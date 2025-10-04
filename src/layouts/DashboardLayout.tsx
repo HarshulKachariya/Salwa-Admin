@@ -15,24 +15,44 @@ const DashboardLayout: FC<DashboardLayoutProps> = ({ children }) => {
   const closeSidebar = () => setIsSidebarOpen(false);
 
   return (
-    <div className="flex h-screen bg-[#f5f6fb] text-gray-900 overflow-hidden">
-      {/* Sidebar */}
-      <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+    <div
+      className="salva-main-desh w-full h-screen flex transition-colors duration-300"
+      style={{ backgroundColor: 'var(--bg-primary)' }}
+    >
+      {/* Mobile backdrop overlay */}
+      {isSidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
+          onClick={closeSidebar}
+        />
+      )}
+
+      {/* Sidebar - Sticky */}
+      <div className="sticky top-0 h-screen z-30">
+        <Sidebar isOpen={isSidebarOpen} onClose={closeSidebar} />
+      </div>
 
       {/* Right content area */}
-      <div className="flex flex-col flex-1 lg:ml-72 relative">
-        {/* Fixed header */}
-        <div className="fixed top-0 left-0 lg:left-72 right-0 z-9999 bg-[#f5f6fb] border-b border-gray-200">
-          <Header
-            onToggleSidebar={toggleSidebar}
-            onOpenProfile={() => setIsProfileOpen(true)}
-          />
+      <div
+        className="salva-right-desh-part-main w-full flex flex-col h-screen overflow-hidden"
+        style={{ backgroundColor: 'var(--bg-primary)' }}
+      >
+        {/* Header section - Sticky */}
+        <div className="sticky top-0 z-20 flex-shrink-0 p-2" style={{ backgroundColor: 'var(--bg-primary)' }}>
+          <div className="salva-right-desh-head-search-profile-and-noti w-fit ml-auto flex flex-wrap gap-2 sm:gap-3 lg:gap-4 mb-4 sm:mb-6 lg:mb-8 max-[767px]:w-full">
+            <Header
+              onToggleSidebar={toggleSidebar}
+              onOpenProfile={() => setIsProfileOpen(true)}
+            />
+          </div>
         </div>
 
-        {/* Scrollable main content below header */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden px-4 py-8 sm:px-8 lg:px-12 mt-[80px]">
-          {children}
-        </main>
+        {/* Main content area - Scrollable */}
+        <div className="flex-1 overflow-y-auto overflow-x-hidden main-content-scroll px-2 sm:px-3 lg:px-5">
+          <div className="w-full">
+            {children}
+          </div>
+        </div>
       </div>
 
       {/* Profile modal */}

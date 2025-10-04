@@ -89,6 +89,7 @@ const App = () => {
         <Route path="/terms-master" element={<TermsConditionsMaster />} />
         <Route path="/promocode-settings" element={<PromocodeSettings />} />
         <Route path="/non-medical-companies" element={<NonMedicalCompanies />} />
+
       </Route>
 
       <Route path="*" element={<Navigate to="/login" replace />} />

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { NavLink } from "react-router-dom";
+import { useTheme } from "../context/ThemeContext";
 import type { FC } from "react";
 
 interface SidebarProps {
@@ -21,105 +22,191 @@ const menuItems = [
   { label: "Supervisor / Employee Management", href: "/supervisor-management", icon: "/theme-icons/messages.png" },
   { label: "Employee & Category Assignment", href: "/employee-category", icon: "/theme-icons/requests.png" },
   { label: "Advanced Options", href: "/advanced-options", icon: "/theme-icons/settings.png" },
+  { label: "Sidebar Test", href: "/sidebar-test", icon: "/theme-icons/settings.png" },
+  { label: "Scroll Test", href: "/scroll-test", icon: "/theme-icons/settings.png" },
+  { label: "Header Height Test", href: "/header-height-test", icon: "/theme-icons/settings.png" },
 ];
 
 const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <>
+    <div
+      className={clsx(
+        "salva-sidebar-left-main w-[280px] sm:w-[320px] lg:w-[400px] min-w-[280px] sm:min-w-[320px] lg:min-w-[400px] rounded-[20px] z-50 transition-all duration-300 ease-in-out flex flex-col",
+        "fixed lg:sticky top-0 left-0 h-screen lg:h-screen",
+        isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
+      )}
+      style={{ backgroundColor: 'var(--sidebar-bg)' }}
+    >
       <div
-        className={clsx(
-          "fixed inset-0 z-30 bg-black/40 backdrop-blur-sm transition-opacity lg:hidden",
-          isOpen ? "opacity-100 pointer-events-auto" : "opacity-0 pointer-events-none"
-        )}
-        onClick={onClose}
-      />
-      <aside
-        className={clsx(
-          "fixed inset-y-0 left-0 z-40 flex w-84 flex-col bg-[linear-gradient(180deg,#0D0D78_0%,#05055C_100%)] text-white transition-transform duration-300 ease-in-out shadow-[12px_0_40px_rgba(5,6,104,0.25)] lg:translate-x-0",
-          isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
-        )}
+        className="salva-sidebar-head-logo w-full p-[40px] rounded-[20px] relative transition-colors duration-300"
+        style={{
+          backgroundColor: 'var(--sidebar-accent)',
+          boxShadow: '0px 4px 4px rgba(0, 0, 0, 0.4)'
+        }}
       >
-        <div className="flex h-24 items-center">
-          <div className="salva-sidebar-head-logo w-full bg-[#15159B] p-[30px] rounded-[20px] shadow-[0px_4px_4px_#00000040] relative">
-            <img src="/img/salva-logo.png" alt="Salwa" />
-          </div>
-        </div>
-        <nav className="sidebar-scroll flex-1 overflow-y-auto px-4 pb-10 mt-6">
-          <ul className="space-y-1.5">
+        <img src="/img/salva-logo.png" alt="Salwa" />
+        <button
+          onClick={onClose}
+          className="salva-toggle-bars absolute top-4 right-0 w-[30px] h-30 bg-white m-auto rounded-full text-[#15159b] text-[18px] lg:hidden hover:bg-gray-100 transition-colors"
+        >
+          <i className="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+
+      <div className="service-sidebar-insd-mn flex flex-col flex-1 overflow-hidden overflow-y-auto ">
+        {/* Scrollable navigation area */}
+        <div className="flex-1 px-[40px] pt-[20px] sidebar-scroll">
+          <ul className="space-y-1">
             {menuItems.map((item) => (
               <li key={item.label}>
                 <NavLink
                   to={item.href}
                   className={({ isActive }) =>
                     clsx(
-                      "group flex items-center gap-3  rounded-[10px] px-3 py-4 text-sm font-textMedium transition",
-                      "text-white/70 hover:bg-white hover:text-primary",
-                      isActive && "bg-white text-primary"
+                      "group my-[6px] mx-0 p-3 rounded-[10px] flex items-center gap-2 transition-all duration-200 relative",
+                      isActive ? "active-nav-item" : "inactive-nav-item"
                     )
                   }
+                  style={({ isActive }) => ({
+                    backgroundColor: isActive ? 'var(--sidebar-hover)' : 'transparent',
+                    color: isActive ? 'var(--sidebar-hover-text)' : 'var(--sidebar-text)',
+                  })}
+                  onMouseEnter={(e) => {
+                    const isActive = e.currentTarget.classList.contains('active-nav-item');
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'var(--sidebar-hover)';
+                      e.currentTarget.style.color = 'var(--sidebar-hover-text)';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    const isActive = e.currentTarget.classList.contains('active-nav-item');
+                    if (!isActive) {
+                      e.currentTarget.style.backgroundColor = 'transparent';
+                      e.currentTarget.style.color = 'var(--sidebar-text)';
+                    }
+                  }}
                 >
                   {({ isActive }) => (
                     <>
-                      {/* <span
+                      <img
+                        src={item.icon}
+                        alt=""
                         className={clsx(
-                          "grid h-8 w-8 place-items-center ",
-                          isActive ? "border-transparent text-blue-500" : "border-white/15 bg-white/15 group-hover:border-white/30 group-hover:bg-white"
+                          "w-6 h-6 transition",
+                          isActive
+                            ? "filter brightness-0 saturate-100 invert-15 sepia-92 saturate-2087 hue-rotate-225 brightness-94 contrast-112"
+                            : "group-hover:filter group-hover:brightness-0 group-hover:saturate-100 group-hover:invert-15 group-hover:sepia-92 group-hover:saturate-2087 group-hover:hue-rotate-225 group-hover:brightness-94 group-hover:contrast-112"
                         )}
-                      > */}
-                      <div className="">
-                        <img
-                          src={item.icon}
-                          alt=""
-                          className={clsx(
-                            "h-5 w-5",
-                            isActive ? "filter brightness-0 " : ""
-                          )}
+                      />
+                      <span className="font-medium transition">
+                        {item.label}
+                      </span>
+                      {/* Active indicator */}
+                      {isActive && (
+                        <div
+                          className="absolute right-2 w-1 h-6 rounded-full"
+                          style={{ backgroundColor: 'var(--accent-primary)' }}
                         />
-                      </div>
-                      {/* </span> */}
-                      <span className={clsx("transition", isActive ? "text-primary group-hover:text-primary" : "text-white/70 group-hover:text-primary")}>{item.label}</span>
+                      )}
                     </>
                   )}
                 </NavLink>
               </li>
             ))}
           </ul>
-        <div
-                        className="salva-sidebar-button-main mt-5 py-0 flex justify-between gap-[8px] w-full max-[480px]:flex-col">
-                        <a href="javascript:;"
-                            className="group w-full flex items-center justify-center gap-[10px] font-medium text-[17px] text-white bg-[#15159B] rounded-[12px] py-[18px] px-[22px] hover:bg-white transition"><img
-                                src="./img/settings.png"
-                                className="w-6 h-6 transition" /><span
-                                className="transition group-hover:text-[#15159b]">Settings</span></a>
-                        <a href="javascript:;"
-                            className="dark-mode group w-full flex items-center justify-center gap-[10px] font-medium text-[17px] text-white bg-[#15159B] rounded-[12px] py-[18px] px-[22px] hover:bg-white transition"><img
-                                src="./img/darkmode.png"
-                                className="w-6 h-6 transition" /><span
-                                className="text-white font-medium transition group-hover:text-[#15159b]">Darkmode</span></a>
-                    </div>
+        </div>
 
-                    <div
-                        className="py-0 mt-[24px] mb-[24px] flex items-center justify-between w-full">
-                        <a href="javascript:;" className="flex items-center gap-[12px] flex-col w-32"><img
-                                src="./img/apple-store.png" className="w-[30px]"/>
-                            <p className="text-[#BCBEC0] text-[12px] text-wrap">Download it from <span className="font-medium">APP
-                                    STORE</span></p>
-                        </a>
-                        <span className="w-[2px] h-[39px] bg-[#bcbec0]"></span>
-                        <a href="javascript:;" className="flex items-center gap-[12px] flex-col w-32"><img
-                                src="./img/play-store.png" className="w-[30px]" />
-                            <p className="text-[#BCBEC0] text-[12px] text-wrap">Download it from <span className="font-medium">GOOGLE
-                                    PLAY</span></p>
-                        </a>
-                    </div>
+        {/* Fixed bottom section */}
+        <div className="flex-shrink-0">
+          <div className="salva-sidebar-button-main px-[40px] py-0 flex justify-between gap-[8px] w-full max-[480px]:flex-col">
+            <a href="javascript:;"
+              className="group w-full flex items-center justify-center gap-[10px] font-medium text-[17px] rounded-[12px] py-[18px] px-[22px] transition-all duration-200"
+              style={{
+                color: 'var(--sidebar-text)',
+                backgroundColor: 'var(--sidebar-accent)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--sidebar-hover)';
+                e.currentTarget.style.color = 'var(--sidebar-hover-text)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--sidebar-accent)';
+                e.currentTarget.style.color = 'var(--sidebar-text)';
+              }}
+            >
+              <img src="./img/settings.png" className="w-6 h-6 transition" />
+              <span className="transition">Settings</span>
+            </a>
+            <button
+              onClick={toggleTheme}
+              className="group w-full flex items-center justify-center gap-[10px] font-medium text-[17px] rounded-[12px] py-[18px] px-[22px] transition-all duration-200"
+              style={{
+                color: 'var(--sidebar-text)',
+                backgroundColor: 'var(--sidebar-accent)'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--sidebar-hover)';
+                e.currentTarget.style.color = 'var(--sidebar-hover-text)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--sidebar-accent)';
+                e.currentTarget.style.color = 'var(--sidebar-text)';
+              }}
+            >
+              <img
+                src={theme === 'dark' ? "./img/darkmode.png" : "./img/darkmode.png"}
+                className="w-6 h-6 transition"
+              />
+              <span className="font-medium transition">
+                {theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
+              </span>
+            </button>
+          </div>
 
-                    <div className="w-full py-0">
-                        <p className="text-[#BCBEC0] text-[14px]">© 2025 Bridge Health Business Service.</p>
-                        <p className="text-[#BCBEC0] text-[14px]">All Rights Reserved.</p>
-                    </div>
-        </nav>
-      </aside>
-    </>
+          <div className="salva-sidebar-app-store-play-store-button px-[40px] py-0 mt-[24px] mb-[24px] flex items-center justify-between w-full">
+            <a href="javascript:;" className="flex items-center gap-[12px] w-[42%] max-[480px]:flex-col">
+              <img src="./img/apple-store.png" className="w-[30px]" />
+              <p
+                className="text-[12px] transition-colors duration-300"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                Download it from <span className="font-medium">APP STORE</span>
+              </p>
+            </a>
+            <span
+              className="w-[2px] h-[39px] transition-colors duration-300"
+              style={{ backgroundColor: 'var(--text-tertiary)' }}
+            ></span>
+            <a href="javascript:;" className="flex items-center gap-[12px] w-[42%] max-[480px]:flex-col">
+              <img src="./img/play-store.png" className="w-[30px]" />
+              <p
+                className="text-[12px] transition-colors duration-300"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                Download it from <span className="font-medium">GOOGLE PLAY</span>
+              </p>
+            </a>
+          </div>
+
+          <div className="salva-sidebar-cpooy-right w-full px-[40px] py-0 pb-[30px]">
+            <p
+              className="text-[14px] transition-colors duration-300"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              © 2025 Bridge Health Business Service.
+            </p>
+            <p
+              className="text-[14px] transition-colors duration-300"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              All Rights Reserved.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 };
 

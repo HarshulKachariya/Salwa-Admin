@@ -23,98 +23,167 @@ const Header: FC<HeaderProps> = ({ onToggleSidebar, onOpenProfile }) => {
   }, []);
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white px-6">
-      <button
-        type="button"
-        onClick={onToggleSidebar}
-        className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 text-gray-600 transition hover:border-primary hover:text-primary lg:hidden"
-        aria-label="Toggle sidebar"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-6 w-6"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-          strokeWidth={1.6}
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+    <>
+      {/* Mobile 3-dot menu button */}
       <div
-                    className="w-fit ml-auto flex flex-wrap gap-5 max-[767px]:w-[100%] items-center">
+        className="salva-toggle-bars w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] rounded-[50px] lg:hidden transition-colors duration-300"
+        style={{ backgroundColor: 'var(--button-secondary)' }}
+      >
+        <button
+          onClick={onToggleSidebar}
+          className="w-full h-full flex items-center justify-center leading-normal text-[18px] sm:text-[20px] transition-colors duration-300"
+          style={{ color: 'var(--accent-primary)' }}
+        >
+          <i className="fa-solid fa-bars"></i>
+        </button>
+      </div>
 
-                    <div className="w-[400px] max-[480px]:w-[100%] relative max-[767px]:w-[100%] ">
-                        <input type="text" placeholder="Search here"
-                            className="bg-[#ECF0F6] w-full outline-none font-medium text-[17px] px-[30px] py-[15px] rounded-full" />
-                        <p
-                            className="text-[#1B1787] flex w-fit h-fit items-center absolute top-0 bottom-0 right-6 m-auto text-[20px]"><i
-                                className="fa-solid fa-magnifying-glass"></i></p>
-                    </div>
+      {/* Search bar */}
+      <div className="salva-search-head-main w-full sm:w-[300px] lg:w-[400px] relative">
+        <input
+          type="text"
+          placeholder="Search here"
+          className="w-full outline-none font-medium text-sm sm:text-base lg:text-[16px] px-3 sm:px-4 lg:px-[25px] py-2 sm:py-2.5 lg:py-[12px] rounded-full transition-colors duration-300"
+          style={{
+            backgroundColor: 'var(--input-bg)',
+            color: 'var(--text-primary)'
+          }}
+        />
+        <a
+          href="javascript:;"
+          className="flex w-fit h-fit items-center absolute top-0 bottom-0 right-3 sm:right-4 lg:right-5 m-auto text-[14px] sm:text-[16px] lg:text-[18px] transition-colors duration-300"
+          style={{ color: 'var(--accent-primary)' }}
+        >
+          <i className="fa-solid fa-magnifying-glass"></i>
+        </a>
+      </div>
 
-                    <div className="w-[55px] h-[55px] rounded-[50px] bg-[#ECF0F6] relative">
-                        <p className="flex items-center justify-center w-full h-full"><img
-                                src="./img/header-noti.png"/></p>
-                                <span className="absolute -top-1 -right-1 inline-flex h-2.5 w-2.5 rounded-full bg-primary" />
-                    </div>
+      {/* Notification icon */}
+      <div
+        className="salva-noti-head-main w-[40px] h-[40px] sm:w-[45px] sm:h-[45px] rounded-[50px] flex-shrink-0 transition-colors duration-300"
+        style={{ backgroundColor: 'var(--button-secondary)' }}
+      >
+        <a href="javascript:;" className="flex items-center justify-center w-full h-full">
+          <img src="./img/header-noti.png" alt="Notifications" className="w-4 h-4 sm:w-5 sm:h-5" />
+        </a>
+      </div>
 
-                    <div className="relative inline-block text-left" ref={menuRef}>
-                        <div>
-                            <button type="button"
-                            onClick={() => setIsMenuOpen((prev) => !prev)}
-                                className="inline-flex gap-2 justify-center items-center w-full rounded-full border border-transparent shadow-sm px-4 py-2 bg-[#ECF0F6] font-medium text-[#1B1787] hover:bg-[#15159b] focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-[#15159b] hover:text-[#ffffff] transition duration-150 ease-in-out"
-                                id="menu-button" aria-expanded="true" aria-haspopup="true">
-                                <img src="./img/profile-ahemda.png"/>
-                                Ahmed
-                                <svg className="-mr-1 h-5 w-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"
-                                    fill="currentColor" aria-hidden="true">
-                                    <path fill-rule="evenodd"
-                                        d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
-                                        clip-rule="evenodd" />
-                                </svg>
-                            </button>
-                        </div>
-{isMenuOpen && (
-            <div className="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 focus:outline-none"
-                            role="menu" aria-orientation="vertical" aria-labelledby="menu-button"
-                            id="dropdown-menu">
-                                <button onClick={() => {
+      {/* Profile dropdown */}
+      <div className="relative inline-block text-left flex-shrink-0" ref={menuRef}>
+        <button
+          type="button"
+          onClick={() => setIsMenuOpen((prev) => !prev)}
+          className="inline-flex gap-1 sm:gap-2 justify-center items-center w-full rounded-full border border-transparent shadow-sm px-2 sm:px-3 py-1.5 sm:py-2 font-medium focus:outline-none focus:ring-2 focus:ring-offset-2 transition duration-150 ease-in-out"
+          style={{
+            backgroundColor: 'var(--button-secondary)',
+            color: 'var(--accent-primary)'
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--button-primary)';
+            e.currentTarget.style.color = 'var(--sidebar-text)';
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.backgroundColor = 'var(--button-secondary)';
+            e.currentTarget.style.color = 'var(--accent-primary)';
+          }}
+          id="menu-button"
+          aria-expanded="true"
+          aria-haspopup="true"
+        >
+          <img src="./img/profile-ahemda.png" alt="Profile" className="w-5 h-5 sm:w-6 sm:h-6 rounded-full" />
+          <span className="hidden sm:inline text-sm">Ahmed</span>
+          <svg className="h-3 w-3 sm:h-4 sm:w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clipRule="evenodd" />
+          </svg>
+        </button>
+
+        {isMenuOpen && (
+          <div
+            className="origin-top-right absolute right-0 mt-2 w-48 sm:w-56 rounded-md shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-50 transition-colors duration-300"
+            style={{
+              backgroundColor: 'var(--card-bg)',
+              boxShadow: 'var(--card-shadow)'
+            }}
+            role="menu"
+            aria-orientation="vertical"
+            aria-labelledby="menu-button"
+            tabIndex={-1}
+            id="dropdown-menu">
+            <div className="py-1" role="none">
+              <button
+                onClick={() => {
                   setIsMenuOpen(false);
                   onOpenProfile();
-                }} className="text-gray-700 flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 w-full text-left"
-                                    role="menuitem" id="menu-item-0"><ProfileIcon /> Profile</button>
-                                    <button
-                                    onClick={() => {
+                }}
+                className="block px-4 py-2 text-sm w-full text-left transition-colors duration-200"
+                style={{ color: 'var(--text-primary)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                role="menuitem"
+                tabIndex={-1}
+                id="menu-item-0">
+                Account settings
+              </button>
+              <a
+                href="#"
+                className="block px-4 py-2 text-sm transition-colors duration-200"
+                style={{ color: 'var(--text-primary)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                role="menuitem"
+                tabIndex={-1}
+                id="menu-item-1">
+                Support
+              </a>
+              <a
+                href="#"
+                className="block px-4 py-2 text-sm transition-colors duration-200"
+                style={{ color: 'var(--text-primary)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                role="menuitem"
+                tabIndex={-1}
+                id="menu-item-2">
+                License
+              </a>
+              <button
+                onClick={() => {
                   setIsMenuOpen(false);
                   logout();
                 }}
-                                        className="text-gray-700 items-center gap-3 w-full text-left px-4 py-2 text-sm flex hover:bg-gray-100"
-                                        role="menuitem" id="menu-item-3"><LogoutIcon /> Sign out</button>
-                                        
-                            </div>
-          )}
-                      </div>
-
-                </div>
-
-    </header>
+                className="block w-full text-left px-4 py-2 text-sm transition-colors duration-200"
+                style={{ color: 'var(--text-primary)' }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--bg-tertiary)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'transparent';
+                }}
+                role="menuitem"
+                tabIndex={-1}
+                id="menu-item-3">
+                Sign out
+              </button>
+            </div>
+          </div>
+        )}
+      </div>
+    </>
   );
 };
 
-const ProfileIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-4 w-4">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 12a4 4 0 1 0-4-4 4 4 0 0 0 4 4Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M6 20a6 6 0 0 1 12 0" />
-  </svg>
-);
-
-const LogoutIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-4 w-4">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 12H3" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M8 7L3 12l5 5" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M15 5h4a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-4" />
-  </svg>
-);
 
 export default Header;
 
