@@ -156,7 +156,7 @@ const Login = () => {
         "Content-Type": "application/json",
         accept: "application/json",
       },
-      body: JSON.stringify({ idNumber: trimmed, IDNumber: trimmed }),
+      body: JSON.stringify({ idNumber: trimmed }),
     });
 
     if (!response.ok) {
@@ -483,33 +483,7 @@ const Login = () => {
     }
   };
 
-  const renderVerificationSummary = useMemo(() => {
-    if (!verification) {
-      return null;
-    }
 
-    const items: Array<{ label: string; active: boolean }> = [
-      { label: "Mobile Verified", active: Boolean(verification.isMobileNoVerify) },
-      { label: "OTP Verified", active: verification.isOtpVerify === 1 },
-      { label: "Password Set", active: verification.isPasswordSet === 1 },
-    ];
-
-    return (
-      <div className="rounded-2xl border border-primary/20 bg-primary/5 px-5 py-4 text-sm text-primary">
-        <p className="text-xs uppercase tracking-[0.18em] text-primary/70">ID NUMBER</p>
-        <p className="text-lg font-semibold text-primary">{idNumber}</p>
-        <p className="mt-3 text-sm font-medium text-primary/80">{verification.adminName}</p>
-        {verification.adminMobileNo && (
-          <p className="text-xs text-primary/60">Mobile: {formatMobileForDisplay(verification.adminMobileNo)}</p>
-        )}
-        <div className="mt-4 flex flex-wrap gap-2">
-          {items.map((item) => (
-            <StatusBadge key={item.label} label={item.label} active={item.active} />
-          ))}
-        </div>
-      </div>
-    );
-  }, [verification, idNumber]);
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-white text-gray-800 font-sans">
@@ -623,7 +597,7 @@ const Login = () => {
 
             {step === "otp" && (
               <div className="space-y-6">
-                {renderVerificationSummary}
+
                 <form onSubmit={handleOtpSubmit} className="space-y-6">
                   <div className="space-y-3 text-sm text-gray-500">
                     <p>
@@ -667,7 +641,7 @@ const Login = () => {
 
             {step === "setPassword" && (
               <div className="space-y-6">
-                {renderVerificationSummary}
+
                 <form onSubmit={handleSetPasswordSubmit} className="space-y-6">
                   <InputField
                     id="new-password"
@@ -727,7 +701,7 @@ const Login = () => {
 
             {step === "login" && (
               <div className="space-y-6">
-                {renderVerificationSummary}
+
                 <form onSubmit={handleLoginSubmit} className="space-y-2">
                   <InputField
                     id="login-id"
@@ -773,17 +747,7 @@ const Login = () => {
   );
 };
 
-const StatusBadge = ({ label, active }: { label: string; active: boolean }) => (
-  <span
-    className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold ${active
-      ? "border-primary/30 bg-primary/10 text-primary"
-      : "border-gray-200 bg-gray-100 text-gray-500"
-      }`}
-  >
-    <span className={`h-2 w-2 rounded-full ${active ? "bg-primary" : "bg-gray-300"}`} />
-    {label}
-  </span>
-);
+
 
 type InputFieldProps = {
   label: string;
@@ -858,7 +822,7 @@ const OtpInputGroup = ({
 );
 
 const ArtworkPanel = () => (
-  <div className="w-full md:w-1/2  lg:w-1/3 flex flex-col justify-between p-8 md:p-12 text-white relative">
+  <div className="w-full md:w-1/2  flex flex-col justify-between p-8 md:p-12 text-white relative">
     <div className="mt-12">
 
       <img src="/img/leftPanelImg.svg" alt="Left Panel Background"
