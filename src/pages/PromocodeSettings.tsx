@@ -4,6 +4,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/ToastProvider";
+import ComanTable, { type TableColumn, type ActionButton, type SortState } from "../components/common/ComanTable";
 
 type ActiveTab = "registration" | "services";
 
@@ -216,13 +217,20 @@ const PromocodeSettings = () => {
   const [deleteTarget, setDeleteTarget] = useState<{ promoCodeId: number; tab: ActiveTab } | null>(null);
   const [deleteSubmitting, setDeleteSubmitting] = useState(false);
 
+  // Pagination state
+  const [pageNumber, setPageNumber] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalPages, setTotalPages] = useState(1);
+  const [sortState, setSortState] = useState<SortState[]>([]);
+
   const loadPromocodes = useCallback(
-    async (tab: ActiveTab) => {
+    async (tab: ActiveTab, page: number = pageNumber, size: number = pageSize) => {
       setListLoading(true);
       setListError(null);
       try {
         const response = await authFetch(
-          `${LIST_ENDPOINT}?typeIsRegisterOrServices=${TAB_TO_TYPE[tab]}`,
+          `${LIST_ENDPOINT}?typeIsRegisterOrServices=${TAB_TO_TYPE[tab]}&pageNumber=${page}&pageSize=${size}`,
           {
             method: "GET",
             headers: {
@@ -239,6 +247,9 @@ const PromocodeSettings = () => {
         const items = extractList(payload);
         setPromoCodes(items);
         setUserTypeOptions((prev) => mergeUserTypeOptions(prev, items));
+        setTotalCount(items.length); // Update this based on your API response
+        setTotalPages(Math.max(1, Math.ceil(items.length / size)));
+        setPageNumber(page);
       } catch (error) {
         const message = error instanceof Error ? error.message : "Unable to load promocodes.";
         setPromoCodes([]);
@@ -248,7 +259,7 @@ const PromocodeSettings = () => {
         setListLoading(false);
       }
     },
-    [authFetch, showToast]
+    [authFetch, showToast, pageNumber, pageSize]
   );
 
   useEffect(() => {
@@ -505,10 +516,161 @@ const PromocodeSettings = () => {
     });
   }, [promoCodes, searchTerm]);
 
+  // Table columns configuration
+  const tableColumns: TableColumn<AdminPromoCode>[] = useMemo(() => [
+    {
+      label: "SO NO",
+      value: (promo) => (
+        <span className="font-semibold text-primary">
+          #{promo.promoCodeId.toString().padStart(4, "0")}
+        </span>
+      ),
+      sortKey: "promoCodeId",
+      isSort: true,
+    },
+    {
+      label: "USER TYPE",
+      value: (promo) => (
+        <span className="text-gray-700">{promo.userType ?? "-"}</span>
+      ),
+      sortKey: "userType",
+      isSort: true,
+    },
+    {
+      label: "PROMO DESCRIPTION",
+      value: (promo) => (
+        <span className="text-gray-500">{promo.promoDescription ?? "-"}</span>
+      ),
+      sortKey: "promoDescription",
+      isSort: true,
+    },
+    {
+      label: "START DATE",
+      value: (promo) => (
+        <span className="text-gray-500">{formatDate(promo.startDate)}</span>
+      ),
+      sortKey: "startDate",
+      isSort: true,
+    },
+    {
+      label: "END DATE",
+      value: (promo) => (
+        <span className="text-gray-500">{formatDate(promo.endDate)}</span>
+      ),
+      sortKey: "endDate",
+      isSort: true,
+    },
+    {
+      label: "CODE",
+      value: (promo) => (
+        <span className="text-gray-500">{promo.code ?? "-"}</span>
+      ),
+      sortKey: "code",
+      isSort: true,
+    },
+    {
+      label: "VALUE TYPE",
+      value: (promo) => {
+        const isPercentage = promo.discountTypeFlatOrPercentage === "Percentage" || promo.discountType === 1;
+        return <span className="text-gray-500">{isPercentage ? "Percentage" : "Flat"}</span>;
+      },
+      sortKey: "discountType",
+      isSort: true,
+    },
+    {
+      label: "VALUE",
+      value: (promo) => {
+        const isPercentage = promo.discountTypeFlatOrPercentage === "Percentage" || promo.discountType === 1;
+        const valueDisplay = isPercentage ? "-" : formatNumeric(promo.discountValue ?? null);
+        return <span className="text-gray-500">{valueDisplay}</span>;
+      },
+      sortKey: "discountValue",
+      isSort: true,
+    },
+    {
+      label: "PERCENTAGE (%)",
+      value: (promo) => {
+        const isPercentage = promo.discountTypeFlatOrPercentage === "Percentage" || promo.discountType === 1;
+        const percentageDisplay = isPercentage ? `${formatNumeric(promo.discountValue ?? null)}%` : "-";
+        return <span className="text-gray-500">{percentageDisplay}</span>;
+      },
+      sortKey: "discountValue",
+      isSort: true,
+    },
+    {
+      label: "MAX DISCOUNT",
+      value: (promo) => (
+        <span className="text-gray-500">{formatNumeric(promo.maxDiscountCapValue ?? null)}</span>
+      ),
+      sortKey: "maxDiscountCapValue",
+      isSort: true,
+    },
+    {
+      label: "MIN PURCHASE",
+      value: (promo) => (
+        <span className="text-gray-500">{formatNumeric(promo.minimumPurchaseValue ?? null)}</span>
+      ),
+      sortKey: "minimumPurchaseValue",
+      isSort: true,
+    },
+    {
+      label: "STATUS",
+      value: (promo) => {
+        const isActive = Boolean(promo.isActive);
+        return (
+          <button
+            type="button"
+            onClick={() => handleStatusRequest(promo.promoCodeId, isActive, activeTab)}
+            className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer border border-transparent hover:border-current ${isActive
+              ? "bg-[#e9fbf3] text-[#0f7b4d] hover:bg-[#d1f2e9]"
+              : "bg-[#fff3d9] text-[#b46a02] hover:bg-[#ffeaa7]"
+              }`}
+            title={`Click to ${isActive ? "deactivate" : "activate"} this promocode`}
+          >
+            {isActive ? "Active" : "Inactive"}
+          </button>
+        );
+      },
+      sortKey: "isActive",
+      isSort: true,
+    },
+  ], [activeTab]);
+
+  // Action buttons configuration
+  const actionButtons: ActionButton<AdminPromoCode>[] = useMemo(() => [
+    {
+      label: "Edit",
+      iconType: "edit",
+      onClick: (promo) => handleOpenEdit(promo.promoCodeId, activeTab),
+    },
+    {
+      label: "Delete",
+      iconType: "delete",
+      onClick: (promo) => handleDeleteRequest(promo.promoCodeId, activeTab),
+    },
+  ], [activeTab]);
+
+  // Pagination handlers
+  const handlePageChange = (page: number) => {
+    setPageNumber(page);
+    void loadPromocodes(activeTab, page, pageSize);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPageNumber(1);
+    void loadPromocodes(activeTab, 1, size);
+  };
+
+  const handleSortChange = (newSortState: SortState[]) => {
+    setSortState(newSortState);
+    // You can implement sorting logic here if needed
+  };
+
   return (
     <DashboardLayout>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 pb-16">
-        <Header />
+      <div className="mx-auto flex w-full  flex-col gap-8 pb-16">
+        {/* <Header /> */}
         <section className="space-y-8 rounded-[32px] border border-gray-200 bg-white p-8 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3 rounded-full bg-[#f7f8fd] p-1 text-sm font-semibold text-gray-500">
@@ -536,103 +698,26 @@ const PromocodeSettings = () => {
           <StatsRow />
           <ChartPlaceholder />
 
-          <div className="rounded-[28px] border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="min-w-[1180px] w-full text-left text-[11px] tracking-[0.18em] text-gray-600">
-                <thead className="bg-[#f6f7fb] text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-                  <tr>
-                    <th className="px-4 py-3 whitespace-nowrap">SO NO</th>
-                    <th className="px-4 py-3 whitespace-nowrap">USER TYPE</th>
-                    <th className="px-4 py-3 whitespace-nowrap">PROMO DESCRIPTION</th>
-                    <th className="px-4 py-3 whitespace-nowrap">START DATE</th>
-                    <th className="px-4 py-3 whitespace-nowrap">END DATE</th>
-                    <th className="px-4 py-3 whitespace-nowrap">CODE</th>
-                    <th className="px-4 py-3 whitespace-nowrap">VALUE TYPE</th>
-                    <th className="px-4 py-3 whitespace-nowrap">VALUE</th>
-                    <th className="px-4 py-3 whitespace-nowrap">PERCENTAGE (%)</th>
-                    <th className="px-4 py-3 whitespace-nowrap">MAX DISCOUNT</th>
-                    <th className="px-4 py-3 whitespace-nowrap">MIN PURCHASE</th>
-                    <th className="px-4 py-3 whitespace-nowrap">STATUS</th>
-                    <th className="px-4 py-3 whitespace-nowrap text-center">ACTION</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100 bg-white">
-                  {listLoading ? (
-                    <tr>
-                      <td colSpan={13} className="px-4 py-6 text-center text-sm text-gray-500">
-                        Loading promocodes...
-                      </td>
-                    </tr>
-                  ) : filteredPromos.length === 0 ? (
-                    <tr>
-                      <td colSpan={13} className="px-4 py-6 text-center text-sm text-gray-500">
-                        No promocodes found.
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredPromos.map((promo) => {
-                      const isPercentage =
-                        promo.discountTypeFlatOrPercentage === "Percentage" || promo.discountType === 1;
-                      const valueDisplay = isPercentage
-                        ? "-"
-                        : formatNumeric(promo.discountValue ?? null);
-                      const percentageDisplay = isPercentage
-                        ? `${formatNumeric(promo.discountValue ?? null)}%`
-                        : "-";
-
-                      return (
-                        <tr key={promo.promoCodeId}>
-                          <td className="px-4 py-3 whitespace-nowrap font-semibold text-primary">#{promo.promoCodeId.toString().padStart(4, "0")}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-700">{promo.userType ?? "-"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{promo.promoDescription ?? "-"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{formatDate(promo.startDate)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{formatDate(promo.endDate)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{promo.code ?? "-"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{isPercentage ? "Percentage" : "Flat"}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{valueDisplay}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{percentageDisplay}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{formatNumeric(promo.maxDiscountCapValue ?? null)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap text-gray-500">{formatNumeric(promo.minimumPurchaseValue ?? null)}</td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <span
-                              className={`inline-flex items-center rounded-full px-3 py-1 text-[11px] font-semibold ${promo.isActive ? "bg-[#e9fbf3] text-[#0f7b4d]" : "bg-[#fff3d9] text-[#b46a02]"}`}
-                            >
-                              {promo.isActive ? "Active" : "Inactive"}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 whitespace-nowrap">
-                            <div className="flex items-center justify-center gap-2">
-                              <ActionButton
-                                label="Edit"
-                                variant="edit"
-                                onClick={() => handleOpenEdit(promo.promoCodeId, activeTab)}
-                              >
-                                <EditIcon />
-                              </ActionButton>
-                              <ActionButton
-                                label={promo.isActive ? "Deactivate" : "Activate"}
-                                variant={promo.isActive ? "delete" : "view"}
-                                onClick={() => handleStatusRequest(promo.promoCodeId, Boolean(promo.isActive), activeTab)}
-                              >
-                                {promo.isActive ? <DeactivateIcon /> : <ActivateIcon />}
-                              </ActionButton>
-                              <ActionButton
-                                label="Delete"
-                                variant="delete"
-                                onClick={() => handleDeleteRequest(promo.promoCodeId, activeTab)}
-                              >
-                                <TrashIcon />
-                              </ActionButton>
-                            </div>
-                          </td>
-                        </tr>
-                      );
-                    })
-                  )}
-                </tbody>
-              </table>
+          {listError ? (
+            <div className="rounded-[28px] border border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-600">
+              {listError}
             </div>
-          </div>
+          ) : (
+            <ComanTable
+              columns={tableColumns}
+              data={filteredPromos}
+              actions={actionButtons}
+              page={pageNumber}
+              totalPages={totalPages}
+              totalCount={totalCount}
+              onPageChange={handlePageChange}
+              sortState={sortState}
+              onSortChange={handleSortChange}
+              pageSize={pageSize}
+              onPageSizeChange={handlePageSizeChange}
+              loading={listLoading}
+            />
+          )}
         </section>
       </div>
 
@@ -687,21 +772,6 @@ const PromocodeSettings = () => {
     </DashboardLayout>
   );
 };
-const Header = () => (
-  <div className="flex items-center gap-4 rounded-[28px] border border-gray-200 bg-white px-6 py-5 shadow-sm">
-    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-primary/10 text-primary">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.6} className="h-5 w-5">
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 4h16v16H4z" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 4v16" />
-        <path strokeLinecap="round" strokeLinejoin="round" d="M4 9h16" />
-      </svg>
-    </div>
-    <div>
-      <p className="text-lg font-semibold text-primary">Promocode Settings</p>
-      <p className="text-sm text-gray-500">Manage promocodes for registration and services.</p>
-    </div>
-  </div>
-);
 
 const TabButton = ({ label, isActive, onClick }: { label: string; isActive: boolean; onClick: () => void }) => (
   <button
@@ -1073,12 +1143,6 @@ const PercentageIcon = () => (
   </svg>
 );
 
-const EditIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h4l10.5-10.5a1.5 1.5 0 0 0-2.12-2.12L6 17.88V20Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M14.5 6.5l3 3" />
-  </svg>
-);
 
 const TrashIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
@@ -1089,17 +1153,6 @@ const TrashIcon = () => (
   </svg>
 );
 
-const ActivateIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M12 5v14m-7-7h14" />
-  </svg>
-);
-
-const DeactivateIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
-  </svg>
-);
 
 const stats = [
   { label: "Total Business", value: "244" },

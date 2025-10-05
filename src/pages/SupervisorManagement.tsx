@@ -5,6 +5,7 @@ import type { SuperAdminRecord, SuperAdminStatusId } from "../services/superAdmi
 import SupervisorForm from "../components/supervisor/SupervisorForm";
 import { ModalShell } from "../components/rentalServices/Modals";
 import DashboardLayout from "../layouts/DashboardLayout";
+import ComanTable, { type TableColumn, type ActionButton, type SortState } from "../components/common/ComanTable";
 
 const PAGE_SIZE = 10;
 
@@ -51,18 +52,22 @@ const SupervisorPage = () => {
     currentStatus: false,
   });
   const [isStatusUpdating, setIsStatusUpdating] = useState(false);
-
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
+  const [sortState, setSortState] = useState<SortState[]>([]);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE);
+  const [totalPages, setTotalPages] = useState(1);
 
   const loadData = useCallback(
-    async (page: number, query: string) => {
+    async (page: number, query: string, currentPageSize: number = pageSize) => {
       setLoading(true);
       setErrorMessage(null);
       try {
-        const response = await getSuperAdmins({ pageNumber: page, pageSize: PAGE_SIZE, search: query || undefined });
+        const response = await getSuperAdmins({ pageNumber: page, pageSize: currentPageSize, search: query || undefined });
         setRecords(response.records);
-        setTotalCount(response.totalCount ?? response.records.length);
+        const newTotalCount = response.totalCount ?? response.records.length;
+        setTotalCount(newTotalCount);
         setPageNumber(response.pageNumber ?? page);
+        const calculatedPages = newTotalCount > 0 ? Math.ceil(newTotalCount / currentPageSize) : 1;
+        setTotalPages(Math.max(1, calculatedPages));
       } catch (error) {
         console.error("Failed to fetch super admin list", error);
         const message = error instanceof Error ? error.message : "Unable to load records";
@@ -76,25 +81,27 @@ const SupervisorPage = () => {
   );
 
   useEffect(() => {
-    void loadData(pageNumber, searchTerm.trim());
+    void loadData(pageNumber, searchTerm.trim(), pageSize);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Update totalPages when totalCount or pageSize changes
+  useEffect(() => {
+    const calculatedPages = totalCount > 0 ? Math.ceil(totalCount / pageSize) : 1;
+    const finalPages = Math.max(1, calculatedPages);
+    setTotalPages(finalPages);
+  }, [totalCount, pageSize]);
+
   const handleRefresh = () => {
-    void loadData(pageNumber, searchTerm.trim());
+    void loadData(pageNumber, searchTerm.trim(), pageSize);
   };
 
   const handleSearchSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setPageNumber(1);
-    void loadData(1, searchTerm.trim());
+    void loadData(1, searchTerm.trim(), pageSize);
   };
 
-  const handlePageChange = (direction: "prev" | "next") => {
-    const nextPage = direction === "prev" ? Math.max(1, pageNumber - 1) : Math.min(totalPages, pageNumber + 1);
-    setPageNumber(nextPage);
-    void loadData(nextPage, searchTerm.trim());
-  };
 
   const handleAdd = () => {
     setFormMode("add");
@@ -110,7 +117,7 @@ const SupervisorPage = () => {
   const handleFormSuccess = () => {
     setShowForm(false);
     setSelectedRecord(null);
-    void loadData(pageNumber, searchTerm.trim());
+    void loadData(pageNumber, searchTerm.trim(), pageSize);
   };
 
   const handleView = (record: SuperAdminRecord) => {
@@ -202,6 +209,134 @@ const SupervisorPage = () => {
     ];
   }, [records, totalCount]);
 
+  // Table columns configuration
+  const tableColumns: TableColumn<SuperAdminRecord>[] = useMemo(() => [
+    {
+      label: "ID No",
+      value: (row) => (
+        <span className="font-semibold text-primary">
+          {row.idNumber || `#${row.employeeId}`}
+        </span>
+      ),
+      sortKey: "employeeId",
+      isSort: true,
+    },
+    {
+      label: "Name",
+      value: (row) => (
+        <span className="text-gray-700">
+          {[row.firstName, row.middleName, row.lastName].filter(Boolean).join(" ")}
+        </span>
+      ),
+      sortKey: "firstName",
+      isSort: true,
+    },
+    {
+      label: "User Type",
+      value: (row) => (
+        <span className="text-gray-500">{TYPE_LABELS[row.type] ?? "Unknown"}</span>
+      ),
+      sortKey: "type",
+      isSort: true,
+    },
+    {
+      label: "Email",
+      value: (row) => (
+        <span className="text-gray-500">{row.officialEmail}</span>
+      ),
+      sortKey: "officialEmail",
+      isSort: true,
+    },
+    {
+      label: "Phone",
+      value: (row) => (
+        <span className="text-gray-500">{row.telephone || "N/A"}</span>
+      ),
+      sortKey: "telephone",
+      isSort: true,
+    },
+    {
+      label: "Country",
+      value: (row) => (
+        <span className="text-gray-500">{row.country || "N/A"}</span>
+      ),
+      sortKey: "country",
+      isSort: true,
+    },
+    {
+      label: "Region",
+      value: (row) => (
+        <span className="text-gray-500">{row.region || "N/A"}</span>
+      ),
+      sortKey: "region",
+      isSort: true,
+    },
+    {
+      label: "City",
+      value: (row) => (
+        <span className="text-gray-500">{row.city || "N/A"}</span>
+      ),
+      sortKey: "city",
+      isSort: true,
+    },
+    {
+      label: "Status",
+      value: (row) => {
+        const statusLabel = (row.statusId ?? (row.isActive ? 1 : 0)) === 1 ? "Active" : "Inactive";
+        return (
+          <button
+            type="button"
+            onClick={() => handleStatusToggle(row)}
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer border border-transparent hover:border-current ${STATUS_BADGE_CLASSES[statusLabel] ?? "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+            title={`Click to ${statusLabel === "Active" ? "deactivate" : "activate"} this supervisor`}
+          >
+            {statusLabel}
+          </button>
+        );
+      },
+      sortKey: "statusId",
+      isSort: true,
+    },
+  ], []);
+
+  // Action buttons configuration
+  const actionButtons: ActionButton<SuperAdminRecord>[] = useMemo(() => [
+    {
+      label: "View",
+      iconType: "view",
+      onClick: handleView,
+    },
+    {
+      label: "Edit",
+      iconType: "edit",
+      onClick: handleEdit,
+    },
+    {
+      label: "Delete",
+      iconType: "delete",
+      onClick: handleDelete,
+    },
+  ], []);
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setPageNumber(page);
+    void loadData(page, searchTerm.trim(), pageSize);
+  };
+
+  // Handle page size change
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setPageNumber(1);
+    void loadData(1, searchTerm.trim(), size);
+  };
+
+  // Handle sort change
+  const handleSortChange = (newSortState: SortState[]) => {
+    setSortState(newSortState);
+    // You can implement sorting logic here if needed
+    // For now, we'll just update the sort state
+  };
 
 
   return (
@@ -263,19 +398,26 @@ const SupervisorPage = () => {
                     </button>
                   </form>
 
-                  <DataTable
-                    loading={loading}
-                    errorMessage={errorMessage}
-                    records={records}
-                    pageNumber={pageNumber}
-                    pageSize={PAGE_SIZE}
-                    totalCount={totalCount}
-                    onPageChange={handlePageChange}
-                    onView={handleView}
-                    onEdit={handleEdit}
-                    onToggleStatus={handleStatusToggle}
-                    onDelete={handleDelete}
-                  />
+                  {errorMessage ? (
+                    <div className="rounded-[28px] border border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-600">
+                      {errorMessage}
+                    </div>
+                  ) : (
+                    <ComanTable
+                      columns={tableColumns}
+                      data={records}
+                      actions={actionButtons}
+                      page={pageNumber}
+                      totalPages={totalPages}
+                      totalCount={totalCount}
+                      onPageChange={handlePageChange}
+                      sortState={sortState}
+                      onSortChange={handleSortChange}
+                      pageSize={pageSize}
+                      onPageSizeChange={handlePageSizeChange}
+                      loading={loading}
+                    />
+                  )}
                 </div>
               ) : (
                 <SupervisorForm
@@ -471,170 +613,6 @@ const ChartPlaceholder = () => (
   </div>
 );
 
-const DataTable = ({
-  loading,
-  errorMessage,
-  records,
-  pageNumber,
-  pageSize,
-  totalCount,
-  onPageChange,
-  onView,
-  onEdit,
-  onToggleStatus,
-  onDelete,
-}: {
-  loading: boolean;
-  errorMessage: string | null;
-  records: SuperAdminRecord[];
-  pageNumber: number;
-  pageSize: number;
-  totalCount: number;
-  onPageChange: (direction: "prev" | "next") => void;
-  onView: (record: SuperAdminRecord) => void;
-  onEdit: (record: SuperAdminRecord) => void;
-  onToggleStatus: (record: SuperAdminRecord) => void;
-  onDelete: (record: SuperAdminRecord) => void;
-}) => {
-  if (errorMessage) {
-    return (
-      <div className="rounded-[28px] border border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-600">
-        {errorMessage}
-      </div>
-    );
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="overflow-x-auto rounded-[28px] border border-gray-100">
-        <table className="w-full min-w-[900px] text-left text-sm text-gray-600">
-          <thead className="bg-[#f6f7fb] text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-            <tr>
-              <th className="px-6 py-4">ID No</th>
-              <th className="px-6 py-4">Name</th>
-              <th className="px-6 py-4">User Type</th>
-              <th className="px-6 py-4">Email</th>
-              <th className="px-6 py-4">Phone</th>
-              <th className="px-6 py-4">Country</th>
-              <th className="px-6 py-4">Region</th>
-              <th className="px-6 py-4">City</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4 text-center">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white text-sm">
-            {loading ? (
-              <tr>
-                <td colSpan={10} className="px-6 py-12 text-center text-sm text-gray-500">
-                  Loading supervisors...
-                </td>
-              </tr>
-            ) : records.length === 0 ? (
-              <tr>
-                <td colSpan={10} className="px-6 py-12 text-center text-sm text-gray-500">
-                  No supervisors found. Try adjusting your search.
-                </td>
-              </tr>
-            ) : (
-              records.map((row) => {
-                const statusLabel = (row.statusId ?? (row.isActive ? 1 : 0)) === 1 ? "Active" : "Inactive";
-                return (
-                  <tr key={row.employeeId}>
-                    <td className="px-6 py-4 font-semibold text-primary">{row.idNumber || `#${row.employeeId}`}</td>
-                    <td className="px-6 py-4 text-gray-700">
-                      {[row.firstName, row.middleName, row.lastName].filter(Boolean).join(" ")}
-                    </td>
-                    <td className="px-6 py-4 text-gray-500">{TYPE_LABELS[row.type] ?? "Unknown"}</td>
-                    <td className="px-6 py-4 text-gray-500">{row.officialEmail}</td>
-                    <td className="px-6 py-4 text-gray-500">{row.telephone || "N/A"}</td>
-                    <td className="px-6 py-4 text-gray-500">{row.country || "N/A"}</td>
-                    <td className="px-6 py-4 text-gray-500">{row.region || "N/A"}</td>
-                    <td className="px-6 py-4 text-gray-500">{row.city || "N/A"}</td>
-                    <td className="px-6 py-4">
-                      <button
-                        type="button"
-                        onClick={() => onToggleStatus(row)}
-                        className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer border border-transparent hover:border-current ${STATUS_BADGE_CLASSES[statusLabel] ?? "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
-                        title={`Click to ${statusLabel === "Active" ? "deactivate" : "activate"} this supervisor`}
-                      >
-                        {statusLabel}
-                      </button>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="flex flex-wrap items-center justify-center gap-2">
-                        <ActionButton label="View" onClick={() => onView(row)} />
-                        <ActionButton label="Edit" variant="primary" onClick={() => onEdit(row)} />
-                        <ActionButton
-                          label={statusLabel === "Active" ? "Deactivate" : "Activate"}
-                          variant="ghost"
-                          onClick={() => onToggleStatus(row)}
-                        />
-                        <ActionButton label="Delete" variant="danger" onClick={() => onDelete(row)} />
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
-      </div>
-
-      <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-gray-500">
-        <p>
-          Showing {records.length ? (pageNumber - 1) * pageSize + 1 : 0} to {Math.min(pageNumber * pageSize, totalCount)} of {totalCount} entries
-        </p>
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => onPageChange("prev")}
-            disabled={pageNumber === 1 || loading}
-            className="rounded-full border border-gray-200 px-4 py-1 text-xs font-semibold text-gray-500 transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Previous
-          </button>
-          <span className="text-xs font-semibold text-primary">
-            Page {pageNumber} of {Math.max(1, Math.ceil(totalCount / pageSize))}
-          </span>
-          <button
-            type="button"
-            onClick={() => onPageChange("next")}
-            disabled={pageNumber >= Math.ceil(totalCount / pageSize) || loading}
-            className="rounded-full border border-gray-200 px-4 py-1 text-xs font-semibold text-gray-500 transition hover:border-primary hover:text-primary disabled:cursor-not-allowed disabled:opacity-50"
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
-const ActionButton = ({
-  label,
-  onClick,
-  variant = "ghost",
-}: {
-  label: string;
-  onClick: () => void;
-  variant?: "primary" | "danger" | "ghost";
-}) => {
-  const variants: Record<string, string> = {
-    primary: "border-transparent bg-primary text-white hover:bg-[#030447]",
-    danger: "border-rose-300 text-rose-600 hover:border-rose-500 hover:text-rose-700",
-    ghost: "border-gray-200 text-primary hover:border-primary",
-  };
-
-  return (
-    <button
-      type="button"
-      className={`rounded-full border px-4 py-1 text-xs font-semibold transition ${variants[variant] ?? variants.ghost}`}
-      onClick={onClick}
-    >
-      {label}
-    </button>
-  );
-};
 
 const SearchIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">

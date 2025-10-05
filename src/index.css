@@ -465,6 +465,29 @@ body {
   object-fit: contain;
 }
 
+/* Action buttons styling for ComanTable */
+.action-buttons-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: nowrap;
+}
+
+.action-buttons-container button {
+  transition: all 0.2s ease;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.action-buttons-container button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
 /* Database page specific styles */
 .border-brown {
   border-color: #8b4513;

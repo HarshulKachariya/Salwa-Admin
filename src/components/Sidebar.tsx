@@ -22,9 +22,6 @@ const menuItems = [
   { label: "Supervisor / Employee Management", href: "/supervisor-management", icon: "/theme-icons/messages.png" },
   { label: "Employee & Category Assignment", href: "/employee-category", icon: "/theme-icons/requests.png" },
   { label: "Advanced Options", href: "/advanced-options", icon: "/theme-icons/settings.png" },
-  { label: "Sidebar Test", href: "/sidebar-test", icon: "/theme-icons/settings.png" },
-  { label: "Scroll Test", href: "/scroll-test", icon: "/theme-icons/settings.png" },
-  { label: "Header Height Test", href: "/header-height-test", icon: "/theme-icons/settings.png" },
 ];
 
 const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {

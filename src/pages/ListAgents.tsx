@@ -65,7 +65,7 @@ const ListAgents = () => {
 
   return (
     <DashboardLayout>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 pb-16">
+      <div className="mx-auto flex w-full  flex-col gap-8 pb-16">
         <section className="space-y-8 rounded-2xl border border-slate-200 bg-white p-8 shadow-card">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div>
@@ -191,9 +191,8 @@ const TabButton = ({ label, isActive, onClick }: { label: string; isActive: bool
   <button
     type="button"
     onClick={onClick}
-    className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-      isActive ? "bg-white text-primary shadow" : "text-gray-400 hover:text-primary"
-    }`}
+    className={`rounded-full px-5 py-2 text-sm font-semibold transition ${isActive ? "bg-white text-primary shadow" : "text-gray-400 hover:text-primary"
+      }`}
   >
     {label}
   </button>
@@ -229,13 +228,12 @@ const PaginationButton = ({ children, isActive, disabled, onClick }: { children:
     type="button"
     onClick={onClick}
     disabled={disabled}
-    className={`min-w-[40px] rounded-full border px-3 py-1 text-sm font-semibold transition ${
-      disabled
-        ? "cursor-not-allowed border-gray-200 text-gray-300"
-        : isActive
+    className={`min-w-[40px] rounded-full border px-3 py-1 text-sm font-semibold transition ${disabled
+      ? "cursor-not-allowed border-gray-200 text-gray-300"
+      : isActive
         ? "border-primary bg-primary text-white"
         : "border-gray-200 text-gray-500 hover:border-primary hover:text-primary"
-    }`}
+      }`}
   >
     {children}
   </button>
