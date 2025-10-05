@@ -2,6 +2,7 @@ import { type FC, useState, useEffect } from "react";
 import { useToast } from "../ToastProvider";
 import type { SuperAdminRecord } from "../../services/superAdminService";
 import SupervisorServices from "../../services/SupervisorServices/SupervisorServices";
+import CommonServices from "../../services/CommonServices/CommonServices";
 
 interface SupervisorFormProps {
     mode: "add" | "view" | "edit";
@@ -18,6 +19,40 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
 }) => {
     const { showToast } = useToast();
 
+    const [commonData, setCommonData] = useState([]);
+
+    // Helper function to format date for HTML date input (YYYY-MM-DD)
+    const formatDateForInput = (dateString: string | undefined): string => {
+        if (!dateString) return "";
+
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+
+            // Format as YYYY-MM-DD for HTML date input
+            return date.toISOString().split('T')[0];
+        } catch (error) {
+            console.error("Error formatting date:", error);
+            return "";
+        }
+    };
+
+    // Helper function to format date for API (YYYY-MM-DD)
+    const formatDateForAPI = (dateString: string): string => {
+        if (!dateString) return "";
+
+        try {
+            const date = new Date(dateString);
+            if (isNaN(date.getTime())) return "";
+
+            // Format as YYYY-MM-DD for API
+            return date.toISOString().split('T')[0];
+        } catch (error) {
+            console.error("Error formatting date for API:", error);
+            return "";
+        }
+    };
+
     // Form state management
     const [formData, setFormData] = useState({
         employeeId: record?.employeeId || 0,
@@ -25,8 +60,8 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
         middleName: record?.middleName || "",
         lastName: record?.lastName || "",
         idNumber: record?.idNumber || "",
-        idExpiryDate: record?.idExpiryDate || "",
-        dateOfBirth: record?.dateOfBirth || "",
+        idExpiryDate: formatDateForInput(record?.idExpiryDate),
+        dateOfBirth: formatDateForInput(record?.dateOfBirth),
         graduationCertificate: record?.graduationCertificate || "",
         acquiredLanguages: record?.acquiredLanguages || "",
         telephone: record?.telephone || "",
@@ -54,9 +89,27 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
 
     const [formErrors, setFormErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const isReadOnly = mode === "view";
     const isAdd = mode === "add";
+
+    useEffect(() => {
+        const fetchCommonData = async () => {
+            const response = await CommonServices.CommonApi({
+                "parameter": "",
+                "spName": "USP_GetSuperAdminTypeDropdown",
+                "language": ""
+            }
+            );
+            console.log("Common data:", response);
+            if (response?.success && 'data' in response && response.data) {
+                const commonData = response.data;
+                setCommonData(JSON.parse(commonData));
+            }
+        }
+        fetchCommonData();
+    }, []);
 
     // Fetch complete record data when component mounts (for edit/view modes)
     useEffect(() => {
@@ -75,8 +128,8 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                             middleName: recordData.middleName || "",
                             lastName: recordData.lastName || "",
                             idNumber: recordData.idNumber || "",
-                            idExpiryDate: recordData.idExpiryDate || "",
-                            dateOfBirth: recordData.dateOfBirth || "",
+                            idExpiryDate: formatDateForInput(recordData.idExpiryDate),
+                            dateOfBirth: formatDateForInput(recordData.dateOfBirth),
                             graduationCertificate: recordData.graduationCertificate || "",
                             acquiredLanguages: recordData.acquiredLanguages || "",
                             telephone: recordData.telephone || "",
@@ -146,6 +199,7 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
     const validateForm = () => {
         const errors: Record<string, string> = {};
 
+        // Required text fields
         if (!formData.firstName.trim()) errors.firstName = "First name is required";
         if (!formData.lastName.trim()) errors.lastName = "Last name is required";
         if (!formData.idNumber.trim()) errors.idNumber = "ID Number is required";
@@ -157,13 +211,88 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
         if (!formData.address.trim()) errors.address = "Address is required";
         if (!formData.bankName.trim()) errors.bankName = "Bank name is required";
         if (!formData.ibanNumber.trim()) errors.ibanNumber = "IBAN number is required";
+        if (!formData.graduationCertificate.trim()) errors.graduationCertificate = "graduation Certificate  is required";
+        if (!formData.acquiredLanguages.trim()) errors.acquiredLanguages = "acquired Languages  is required";
+        if (!formData.type) errors.type = "type is required";
 
+        // Email validation
         if (formData.officialEmail && !/\S+@\S+\.\S+/.test(formData.officialEmail)) {
-            errors.officialEmail = "Please enter a valid email";
+            errors.officialEmail = "Please enter a valid email address";
+        }
+
+        // Telephone validation (should be numeric and have proper length)
+        if (formData.telephone && !/^[\d\s\-\+\(\)]+$/.test(formData.telephone)) {
+            errors.telephone = "Please enter a valid phone number";
+        }
+        if (formData.telephone && formData.telephone.replace(/\D/g, '').length < 7) {
+            errors.telephone = "Phone number must be at least 7 digits";
+        }
+
+        // ID Number validation (should be alphanumeric)
+        if (formData.idNumber && !/^[A-Za-z0-9]+$/.test(formData.idNumber)) {
+            errors.idNumber = "ID Number should contain only letters and numbers";
+        }
+
+        // IBAN validation (basic format check)
+        if (formData.ibanNumber && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/.test(formData.ibanNumber.replace(/\s/g, ''))) {
+            errors.ibanNumber = "Please enter a valid IBAN number";
+        }
+
+        // Date validationsif
+        if (!formData.idExpiryDate) {
+            errors.idExpiryDate = "ID expiry date is required";
+        }
+        if (!formData.dateOfBirth) {
+            errors.dateOfBirth = "Date of birth is required";
+        }
+        if (formData.idExpiryDate && new Date(formData.idExpiryDate) <= new Date()) {
+            errors.idExpiryDate = "ID expiry date must be in the future";
+        }
+
+        if (formData.dateOfBirth && new Date(formData.dateOfBirth) >= new Date()) {
+            errors.dateOfBirth = "Date of birth must be in the past";
+        }
+
+        // Age validation (must be at least 18 years old)
+        if (formData.dateOfBirth) {
+            const birthDate = new Date(formData.dateOfBirth);
+            const today = new Date();
+            let age = today.getFullYear() - birthDate.getFullYear();
+            const monthDiff = today.getMonth() - birthDate.getMonth();
+
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                age--;
+            }
+
+            if (age < 18) {
+                errors.dateOfBirth = "Must be at least 18 years old";
+            }
+        }
+
+        // Name length validations
+        if (formData.firstName && formData.firstName.trim().length < 2) {
+            errors.firstName = "First name must be at least 2 characters";
+        }
+        if (formData.lastName && formData.lastName.trim().length < 2) {
+            errors.lastName = "Last name must be at least 2 characters";
+        }
+
+        // Address length validation
+        if (formData.address && formData.address.trim().length < 10) {
+            errors.address = "Address must be at least 10 characters";
         }
 
         setFormErrors(errors);
         return Object.keys(errors).length === 0;
+    };
+
+    // Prepare form data for API submission with properly formatted dates
+    const prepareFormDataForAPI = () => {
+        return {
+            ...formData,
+            idExpiryDate: formatDateForAPI(formData.idExpiryDate),
+            dateOfBirth: formatDateForAPI(formData.dateOfBirth)
+        };
     };
 
     // Form submission
@@ -171,12 +300,18 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
         e.preventDefault();
         if (!validateForm()) return;
 
+        setIsSubmitting(true);
         try {
             let response: any;
+            const apiFormData = prepareFormDataForAPI();
+
+
+
+            console.log("API Form Data:", apiFormData)
 
             if (isAdd) {
                 // Add new supervisor
-                response = await SupervisorServices.UpsertSuperAdmin(formData);
+                response = await SupervisorServices.UpsertSuperAdmin(apiFormData);
                 console.log("Add response:", response);
                 if (response?.success) {
                     showToast("Supervisor added successfully!", "success");
@@ -186,7 +321,7 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                 }
             } else {
                 // Update existing supervisor
-                response = await SupervisorServices.UpdateSuperAdmin(formData.employeeId, formData, formData.idNumber);
+                response = await SupervisorServices.UpdateSuperAdmin(apiFormData.employeeId, apiFormData, apiFormData.statusId);
                 console.log("Update response:", response);
                 if (response?.success) {
                     showToast("Supervisor updated successfully!", "success");
@@ -199,23 +334,99 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
             console.error("Form submission error:", error);
             const message = error instanceof Error ? error.message : `Failed to ${isAdd ? "add" : "update"} supervisor`;
             showToast(message, "error");
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
-    // Input change handler
+    // Input change handler with real-time validation
     const handleInputChange = (field: string, value: string | number | boolean) => {
         setFormData(prev => ({ ...prev, [field]: value }));
+
+        // Clear existing error for this field
         if (formErrors[field]) {
             setFormErrors(prev => ({ ...prev, [field]: "" }));
+        }
+
+        // Real-time validation for specific fields
+        const stringValue = String(value).trim();
+        let error = "";
+
+        switch (field) {
+            case "firstName":
+                if (stringValue && stringValue.length < 2) {
+                    error = "First name must be at least 2 characters";
+                }
+                break;
+            case "lastName":
+                if (stringValue && stringValue.length < 2) {
+                    error = "Last name must be at least 2 characters";
+                }
+                break;
+            case "officialEmail":
+                if (stringValue && !/\S+@\S+\.\S+/.test(stringValue)) {
+                    error = "Please enter a valid email address";
+                }
+                break;
+            case "telephone":
+                if (stringValue && !/^[\d\s\-\+\(\)]+$/.test(stringValue)) {
+                    error = "Please enter a valid phone number";
+                } else if (stringValue && stringValue.replace(/\D/g, '').length < 7) {
+                    error = "Phone number must be at least 7 digits";
+                }
+                break;
+            case "idNumber":
+                if (stringValue && !/^[A-Za-z0-9]+$/.test(stringValue)) {
+                    error = "ID Number should contain only letters and numbers";
+                }
+                break;
+            case "ibanNumber":
+                if (stringValue && !/^[A-Z]{2}[0-9]{2}[A-Z0-9]+$/.test(stringValue.replace(/\s/g, ''))) {
+                    error = "Please enter a valid IBAN number";
+                }
+                break;
+            case "address":
+                if (stringValue && stringValue.length < 10) {
+                    error = "Address must be at least 10 characters";
+                }
+                break;
+            case "idExpiryDate":
+                if (stringValue && new Date(stringValue) <= new Date()) {
+                    error = "ID expiry date must be in the future";
+                }
+                break;
+            case "dateOfBirth":
+                if (stringValue) {
+                    const birthDate = new Date(stringValue);
+                    const today = new Date();
+                    let age = today.getFullYear() - birthDate.getFullYear();
+                    const monthDiff = today.getMonth() - birthDate.getMonth();
+
+                    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+                        age--;
+                    }
+
+                    if (age < 18) {
+                        error = "Must be at least 18 years old";
+                    } else if (birthDate >= today) {
+                        error = "Date of birth must be in the past";
+                    }
+                }
+                break;
+        }
+
+        // Set error if validation failed
+        if (error) {
+            setFormErrors(prev => ({ ...prev, [field]: error }));
         }
     };
 
 
     return (
-        <div className="flex-1 overflow-y-auto overflow-x-hidden main-content-scroll px-2 sm:px-3 lg:px-5">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden main-content-scroll px-2 ">
             <div className="w-full">
                 <div className="bg-white rounded-[32px] p-8 shadow-sm h-full">
-                    <div className="max-w-4xl mx-auto">
+                    <div className="mx-auto">
                         <div className="flex items-center justify-between mb-8">
                             <div>
                                 <h2 className="text-2xl font-semibold text-gray-900">{getTitle()}</h2>
@@ -247,112 +458,109 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                                     <h3 className="text-lg font-semibold text-gray-900 mb-6">General Information</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">First Name *</label>
                                             <input
                                                 type="text"
                                                 value={formData.firstName}
                                                 onChange={(e) => handleInputChange("firstName", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.firstName ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter first name"
+                                                placeholder="First Name *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.firstName && <p className="text-red-500 text-xs mt-1">{formErrors.firstName}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Middle Name</label>
                                             <input
                                                 type="text"
                                                 value={formData.middleName}
                                                 onChange={(e) => handleInputChange("middleName", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
                                                     }`}
-                                                placeholder="Enter middle name"
+                                                placeholder="Middle Name"
                                                 readOnly={isReadOnly}
                                             />
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Last Name *</label>
                                             <input
                                                 type="text"
                                                 value={formData.lastName}
                                                 onChange={(e) => handleInputChange("lastName", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.lastName ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter last name"
+                                                placeholder="Last Name *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.lastName && <p className="text-red-500 text-xs mt-1">{formErrors.lastName}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">ID Number / IQAMA Number *</label>
                                             <input
                                                 type="text"
                                                 value={formData.idNumber}
                                                 onChange={(e) => handleInputChange("idNumber", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.idNumber ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter ID number"
+                                                placeholder="ID Number / IQAMA Number *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.idNumber && <p className="text-red-500 text-xs mt-1">{formErrors.idNumber}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">ID Expiry Date</label>
                                             <input
                                                 type="date"
                                                 value={formData.idExpiryDate}
                                                 onChange={(e) => handleInputChange("idExpiryDate", e.target.value)}
-                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
-                                                    }`}
+                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.idExpiryDate ? "border-red-500" : "border-gray-300"
+                                                    } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                                                placeholder="ID Expiry Date"
                                                 readOnly={isReadOnly}
                                             />
+                                            {formErrors.idExpiryDate && <p className="text-red-500 text-xs mt-1">{formErrors.idExpiryDate}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Date of Birth</label>
                                             <input
                                                 type="date"
                                                 value={formData.dateOfBirth}
                                                 onChange={(e) => handleInputChange("dateOfBirth", e.target.value)}
-                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
-                                                    }`}
+                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.dateOfBirth ? "border-red-500" : "border-gray-300"
+                                                    } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                                                placeholder="Date of Birth"
                                                 readOnly={isReadOnly}
                                             />
+                                            {formErrors.dateOfBirth && <p className="text-red-500 text-xs mt-1">{formErrors.dateOfBirth}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Graduation Certificate</label>
                                             <input
                                                 type="text"
                                                 value={formData.graduationCertificate}
                                                 onChange={(e) => handleInputChange("graduationCertificate", e.target.value)}
-                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
-                                                    }`}
-                                                placeholder="Enter graduation certificate"
+                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.graduationCertificate ? "border-red-500" : "border-gray-300"
+                                                    } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                                                placeholder="Graduation Certificate"
                                                 readOnly={isReadOnly}
                                             />
+                                            {formErrors.graduationCertificate && <p className="text-red-500 text-xs mt-1">{formErrors.graduationCertificate}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Acquired Languages</label>
                                             <input
                                                 type="text"
                                                 value={formData.acquiredLanguages}
                                                 onChange={(e) => handleInputChange("acquiredLanguages", e.target.value)}
-                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
-                                                    }`}
-                                                placeholder="Enter languages"
+                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.acquiredLanguages ? "border-red-500" : "border-gray-300"
+                                                    } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
+                                                placeholder="Acquired Languages"
                                                 readOnly={isReadOnly}
                                             />
+                                            {formErrors.acquiredLanguages && <p className="text-red-500 text-xs mt-1">{formErrors.acquiredLanguages}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Telephone *</label>
                                             <div className="flex">
                                                 <select
                                                     className={`px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
@@ -369,7 +577,7 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                                                     onChange={(e) => handleInputChange("telephone", e.target.value)}
                                                     className={`flex-1 px-3 py-2 border border-l-0 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.telephone ? "border-red-500" : "border-gray-300"
                                                         } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                    placeholder="566 645 122"
+                                                    placeholder="Telephone *"
                                                     readOnly={isReadOnly}
                                                 />
                                             </div>
@@ -377,34 +585,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Official Email *</label>
                                             <input
                                                 type="email"
                                                 value={formData.officialEmail}
                                                 onChange={(e) => handleInputChange("officialEmail", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.officialEmail ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter email address"
+                                                placeholder="Official Email *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.officialEmail && <p className="text-red-500 text-xs mt-1">{formErrors.officialEmail}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Type</label>
                                             <select
                                                 value={formData.type}
                                                 onChange={(e) => handleInputChange("type", parseInt(e.target.value))}
-                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
-                                                    }`}
+                                                className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.type ? "border-red-500" : "border-gray-300"
+                                                    } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
                                                 disabled={isReadOnly}
                                             >
-                                                <option value={0}>Operational Supervisor</option>
-                                                <option value={1}>Operational Employee</option>
-                                                <option value={2}>Finance Supervisor</option>
-                                                <option value={3}>Finance Employee</option>
-                                                <option value={4}>IT Support Employee</option>
+                                                <option value={0}>Select Type *</option>
+                                                {commonData?.map((item: any) => (
+                                                    <option key={item.ID} value={item.ID}>{item.EName}</option>
+                                                ))}
                                             </select>
+                                            {formErrors.type && <p className="text-red-500 text-xs mt-1">{formErrors.type}</p>}
                                         </div>
                                     </div>
                                 </div>
@@ -414,69 +620,64 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Address</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Country *</label>
                                             <input
                                                 type="text"
                                                 value={formData.country}
                                                 onChange={(e) => handleInputChange("country", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.country ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter country"
+                                                placeholder="Country *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.country && <p className="text-red-500 text-xs mt-1">{formErrors.country}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Region *</label>
                                             <input
                                                 type="text"
                                                 value={formData.region}
                                                 onChange={(e) => handleInputChange("region", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.region ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter region"
+                                                placeholder="Region *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.region && <p className="text-red-500 text-xs mt-1">{formErrors.region}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">City *</label>
                                             <input
                                                 type="text"
                                                 value={formData.city}
                                                 onChange={(e) => handleInputChange("city", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.city ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter city"
+                                                placeholder="City *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.city && <p className="text-red-500 text-xs mt-1">{formErrors.city}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">National Address - SPL</label>
                                             <input
                                                 type="text"
                                                 value={formData.nationalAddress}
                                                 onChange={(e) => handleInputChange("nationalAddress", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : "border-gray-300"
                                                     }`}
-                                                placeholder="YADD3344"
+                                                placeholder="National Address - SPL"
                                                 readOnly={isReadOnly}
                                             />
                                         </div>
 
                                         <div className="md:col-span-2">
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
                                             <input
                                                 type="text"
                                                 value={formData.address}
                                                 onChange={(e) => handleInputChange("address", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.address ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Idara St, King Abdul Aziz University, Jeddah"
+                                                placeholder="Address *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.address && <p className="text-red-500 text-xs mt-1">{formErrors.address}</p>}
@@ -507,28 +708,26 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                                     <h3 className="text-lg font-semibold text-gray-900 mb-6">Bank Information</h3>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">Bank Name *</label>
                                             <input
                                                 type="text"
                                                 value={formData.bankName}
                                                 onChange={(e) => handleInputChange("bankName", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.bankName ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter bank name"
+                                                placeholder="Bank Name *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.bankName && <p className="text-red-500 text-xs mt-1">{formErrors.bankName}</p>}
                                         </div>
 
                                         <div>
-                                            <label className="block text-sm font-medium text-gray-700 mb-2">IBAN Number *</label>
                                             <input
                                                 type="text"
                                                 value={formData.ibanNumber}
                                                 onChange={(e) => handleInputChange("ibanNumber", e.target.value)}
                                                 className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.ibanNumber ? "border-red-500" : "border-gray-300"
                                                     } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""}`}
-                                                placeholder="Enter IBAN number"
+                                                placeholder="IBAN Number *"
                                                 readOnly={isReadOnly}
                                             />
                                             {formErrors.ibanNumber && <p className="text-red-500 text-xs mt-1">{formErrors.ibanNumber}</p>}
@@ -541,9 +740,35 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                                     <div className="flex justify-center pt-6">
                                         <button
                                             type="submit"
-                                            className="px-8 py-3 bg-black text-white font-medium rounded-md hover:bg-gray-800 transition-colors"
+                                            disabled={isSubmitting}
+                                            className={`px-8 py-3 font-medium rounded-md transition-colors flex items-center gap-2 ${isSubmitting
+                                                ? "bg-gray-400 cursor-not-allowed"
+                                                : "bg-black text-white hover:bg-gray-800"
+                                                }`}
                                         >
-                                            {isAdd ? "Save" : "Update"}
+                                            {isSubmitting && (
+                                                <svg
+                                                    className="animate-spin h-4 w-4 text-white"
+                                                    xmlns="http://www.w3.org/2000/svg"
+                                                    fill="none"
+                                                    viewBox="0 0 24 24"
+                                                >
+                                                    <circle
+                                                        className="opacity-25"
+                                                        cx="12"
+                                                        cy="12"
+                                                        r="10"
+                                                        stroke="currentColor"
+                                                        strokeWidth="4"
+                                                    ></circle>
+                                                    <path
+                                                        className="opacity-75"
+                                                        fill="currentColor"
+                                                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                                    ></path>
+                                                </svg>
+                                            )}
+                                            {isSubmitting ? (isAdd ? "Saving..." : "Updating...") : (isAdd ? "Save" : "Update")}
                                         </button>
                                     </div>
                                 )}

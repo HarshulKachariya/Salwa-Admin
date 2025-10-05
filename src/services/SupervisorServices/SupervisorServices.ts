@@ -11,7 +11,7 @@ class SupervisorServices {
     }
   };
 
-  static UpdateSuperAdmin = async (id: any, status: any, data: any) => {
+  static UpdateSuperAdmin = async (id: any, data: any, status: any) => {
     try {
       const res = await axiosInstance.patch(
         `SuperAdmin/UpdateSuperAdminStatus?employeeId=${id}&statusId=${status}`,

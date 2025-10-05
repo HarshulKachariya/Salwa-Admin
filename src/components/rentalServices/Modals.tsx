@@ -117,9 +117,8 @@ export const RejectReasonModal = ({
             value={reason}
             onChange={(event) => onReasonChange?.(event.target.value)}
             readOnly={isViewMode}
-            className={`mt-2 h-32 w-full rounded-3xl border border-gray-200 bg-[#f7f8fd] px-4 py-3 text-sm text-gray-600 shadow-inner focus:outline-none focus:ring-2 focus:ring-primary/20 ${
-              isViewMode ? "cursor-default focus:ring-0" : "focus:border-primary"
-            }`}
+            className={`mt-2 h-32 w-full rounded-3xl border border-gray-200 bg-[#f7f8fd] px-4 py-3 text-sm text-gray-600 shadow-inner focus:outline-none focus:ring-2 focus:ring-primary/20 ${isViewMode ? "cursor-default focus:ring-0" : "focus:border-primary"
+              }`}
             placeholder="Please share the reason for rejecting this order."
           />
         </div>
@@ -140,6 +139,52 @@ export const RejectReasonModal = ({
               Send
             </button>
           ) : null}
+        </div>
+      </div>
+    </ModalShell>
+  );
+};
+
+interface DeleteConfirmModalProps {
+  itemName: string;
+  itemType: string;
+  onCancel: () => void;
+  onConfirm: () => void;
+  isDeleting?: boolean;
+}
+
+export const DeleteConfirmModal = ({ itemName, itemType, onCancel, onConfirm, isDeleting = false }: DeleteConfirmModalProps) => {
+  return (
+    <ModalShell onClose={onCancel}>
+      <div className="flex flex-col items-center gap-4 text-center">
+        <span className="grid h-20 w-20 place-items-center rounded-full bg-red-100 text-red-600">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="h-10 w-10">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+        </span>
+        <div className="space-y-2">
+          <p className="text-lg font-semibold text-gray-900">Delete {itemType}</p>
+          <p className="text-sm text-gray-600">
+            Are you sure you want to delete <span className="font-semibold text-primary">{itemName}</span>? This action cannot be undone.
+          </p>
+        </div>
+        <div className="flex gap-3">
+          <button
+            type="button"
+            className="rounded-full border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-500 transition hover:border-primary hover:text-primary"
+            onClick={onCancel}
+            disabled={isDeleting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            className="rounded-full bg-red-600 px-6 py-2 text-sm font-semibold text-white shadow transition hover:bg-red-700 disabled:opacity-50"
+            onClick={onConfirm}
+            disabled={isDeleting}
+          >
+            {isDeleting ? "Deleting..." : "Delete"}
+          </button>
         </div>
       </div>
     </ModalShell>

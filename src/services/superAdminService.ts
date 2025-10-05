@@ -66,7 +66,9 @@ const buildQuery = (params: Record<string, string | number | undefined>) => {
   return queryString ? `?${queryString}` : "";
 };
 
-const extractList = (payload: SuperAdminListResponse | SuperAdminRecord[] | unknown): SuperAdminRecord[] => {
+const extractList = (
+  payload: SuperAdminListResponse | SuperAdminRecord[] | unknown
+): SuperAdminRecord[] => {
   if (Array.isArray(payload)) {
     return payload as SuperAdminRecord[];
   }
@@ -89,21 +91,27 @@ const extractList = (payload: SuperAdminListResponse | SuperAdminRecord[] | unkn
 };
 
 export const upsertSuperAdmin = (payload: SuperAdminRecord) =>
-  apiRequest<{ message?: string; status?: number }>(`${BASE_URL}/UpsertSuperAdmin`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
-
-export const getSuperAdmins = async (params: { pageNumber?: number; pageSize?: number; search?: string } = {}) => {
-  const query = buildQuery(params);
-  const response = await apiRequest<SuperAdminListResponse | SuperAdminRecord[]>(
-    `${BASE_URL}/GetAllSuperAdmins${query}`,
-    { method: "GET" }
+  apiRequest<{ message?: string; status?: number }>(
+    `${BASE_URL}/UpsertSuperAdmin`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
   );
 
+export const getSuperAdmins = async (
+  params: { pageNumber?: number; pageSize?: number; search?: string } = {}
+) => {
+  const query = buildQuery(params);
+  const response = await apiRequest<
+    SuperAdminListResponse | SuperAdminRecord[]
+  >(`${BASE_URL}/GetAllSuperAdmins${query}`, { method: "GET" });
+
   const records = extractList(response);
-  const meta = (response && typeof response === "object" ? response : {}) as SuperAdminListResponse;
+  const meta = (
+    response && typeof response === "object" ? response : {}
+  ) as SuperAdminListResponse;
 
   return {
     records,
@@ -120,7 +128,10 @@ export const getSuperAdminById = (employeeId: number) =>
     { method: "GET" }
   );
 
-export const updateSuperAdminStatus = (employeeId: number, statusId: SuperAdminStatusId) =>
+export const updateSuperAdminStatus = (
+  employeeId: number,
+  statusId: SuperAdminStatusId
+) =>
   apiRequest<{ message?: string; status?: number }>(
     `${BASE_URL}/UpdateSuperAdminStatus${buildQuery({ employeeId, statusId })}`,
     { method: "PATCH" }
@@ -132,15 +143,22 @@ export const softDeleteSuperAdmin = (employeeId: number) =>
     { method: "DELETE" }
   );
 
-export const fetchSuperAdminTypes = async (): Promise<SuperAdminTypeOption[]> => {
-  const response = await apiRequest<{ data?: unknown; message?: string; status?: number }>(
-    `${ACCOUNT_BASE_URL}/Common`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ parameter: "{}", spName: "USP_GetSuperAdminTypeDropdown", language: "EN" }),
-    }
-  );
+export const fetchSuperAdminTypes = async (): Promise<
+  SuperAdminTypeOption[]
+> => {
+  const response = await apiRequest<{
+    data?: unknown;
+    message?: string;
+    status?: number;
+  }>(`${ACCOUNT_BASE_URL}/Common`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      parameter: "{}",
+      spName: "USP_GetSuperAdminTypeDropdown",
+      language: "EN",
+    }),
+  });
 
   const rawData = response?.data;
   let decoded: unknown = rawData;
@@ -161,7 +179,14 @@ export const fetchSuperAdminTypes = async (): Promise<SuperAdminTypeOption[]> =>
       if (!item || typeof item !== "object") {
         return null;
       }
-      const typed = item as { ID?: number; id?: number; Id?: number; EName?: string; name?: string; Name?: string };
+      const typed = item as {
+        ID?: number;
+        id?: number;
+        Id?: number;
+        EName?: string;
+        name?: string;
+        Name?: string;
+      };
       const id = typed.ID ?? typed.id ?? typed.Id;
       const name = typed.EName ?? typed.name ?? typed.Name;
       if (typeof id !== "number" || typeof name !== "string") {
@@ -169,7 +194,7 @@ export const fetchSuperAdminTypes = async (): Promise<SuperAdminTypeOption[]> =>
       }
       return { id, name: name.trim() };
     })
-    .filter((option): option is SuperAdminTypeOption => Boolean(option && option.name));
+    .filter((option): option is SuperAdminTypeOption =>
+      Boolean(option && option.name)
+    );
 };
-
-

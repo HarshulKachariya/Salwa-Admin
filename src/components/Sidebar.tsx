@@ -37,7 +37,10 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
         "fixed lg:sticky top-0 left-0 h-screen lg:h-screen",
         isOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"
       )}
-      style={{ backgroundColor: 'var(--sidebar-bg)' }}
+      style={{
+        backgroundColor: 'var(--sidebar-bg)',
+        zIndex: 50
+      }}
     >
       <div
         className="salva-sidebar-head-logo w-full p-[40px] rounded-[20px] relative transition-colors duration-300"
@@ -55,7 +58,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
         </button>
       </div>
 
-      <div className="service-sidebar-insd-mn flex flex-col flex-1 overflow-hidden overflow-y-auto ">
+      <div className="service-sidebar-insd-mn flex flex-col flex-1 overflow-y-auto">
         {/* Scrollable navigation area */}
         <div className="flex-1 px-[40px] pt-[20px] sidebar-scroll">
           <ul className="space-y-1">

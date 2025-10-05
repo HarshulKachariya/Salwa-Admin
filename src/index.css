@@ -301,6 +301,8 @@ body {
 .sidebar-scroll {
   scrollbar-width: thin;
   scrollbar-color: var(--text-tertiary) transparent;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
 }
 
 .sidebar-scroll::-webkit-scrollbar {
@@ -318,6 +320,25 @@ body {
 
 .sidebar-scroll::-webkit-scrollbar-thumb:hover {
   background-color: var(--text-secondary);
+}
+
+/* Mobile sidebar scrolling fixes */
+@media (max-width: 1024px) {
+  .salva-sidebar-left-main {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    position: fixed !important;
+    z-index: 50 !important;
+    top: 0 !important;
+    left: 0 !important;
+    height: 100vh !important;
+  }
+
+  .service-sidebar-insd-mn {
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    height: calc(100vh - 120px); /* Account for header height */
+  }
 }
 
 /* Main content scrolling */

@@ -1,6 +1,53 @@
+import { useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { ModalOverlay, DeleteConfirmModal } from "../components/rentalServices/Modals";
 
 const ServiceManagement = () => {
+  const [services, setServices] = useState(rows);
+  const [deleteModal, setDeleteModal] = useState<{
+    isOpen: boolean;
+    item: { category: string; service: string; subService: string; status: string } | null;
+  }>({
+    isOpen: false,
+    item: null,
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (item: { category: string; service: string; subService: string; status: string }) => {
+    setDeleteModal({
+      isOpen: true,
+      item,
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteModal.item) return;
+
+    setIsDeleting(true);
+    try {
+      // Simulate API call
+      await new Promise(resolve => setTimeout(resolve, 1000));
+
+      // Remove the item from the list
+      setServices(prev => prev.filter(service =>
+        service.category !== deleteModal.item?.category ||
+        service.service !== deleteModal.item?.service ||
+        service.subService !== deleteModal.item?.subService
+      ));
+
+      // Close modal
+      setDeleteModal({ isOpen: false, item: null });
+    } catch (error) {
+      console.error("Failed to delete service:", error);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const handleDeleteCancel = () => {
+    setDeleteModal({ isOpen: false, item: null });
+  };
+
   return (
     <DashboardLayout>
       <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 pb-16">
@@ -23,9 +70,22 @@ const ServiceManagement = () => {
 
           <StatsRow />
           <ChartPlaceholder />
-          <ServiceTable />
+          <ServiceTable services={services} onDelete={handleDeleteClick} />
         </section>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {deleteModal.isOpen && deleteModal.item && (
+        <ModalOverlay>
+          <DeleteConfirmModal
+            itemName={`${deleteModal.item.service}${deleteModal.item.subService !== "-" ? ` (${deleteModal.item.subService})` : ""}`}
+            itemType="Service"
+            onCancel={handleDeleteCancel}
+            onConfirm={handleDeleteConfirm}
+            isDeleting={isDeleting}
+          />
+        </ModalOverlay>
+      )}
     </DashboardLayout>
   );
 };
@@ -77,7 +137,12 @@ const ChartPlaceholder = () => (
   </div>
 );
 
-const ServiceTable = () => (
+interface ServiceTableProps {
+  services: Array<{ category: string; service: string; subService: string; status: string }>;
+  onDelete: (item: { category: string; service: string; subService: string; status: string }) => void;
+}
+
+const ServiceTable = ({ services, onDelete }: ServiceTableProps) => (
   <div className="overflow-hidden rounded-[28px] border border-gray-200">
     <table className="w-full text-left text-sm text-gray-600">
       <thead className="bg-[#f6f7fb] text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
@@ -85,25 +150,42 @@ const ServiceTable = () => (
           <th className="px-6 py-4">Categories</th>
           <th className="px-6 py-4">Service</th>
           <th className="px-6 py-4">Sub-Service</th>
+          <th className="px-6 py-4">Status</th>
           <th className="px-6 py-4 text-center">Actions</th>
         </tr>
       </thead>
       <tbody className="divide-y divide-gray-100 bg-white">
-        {rows.map((row) => (
-          <tr key={`${row.category}-${row.service}`}>
+        {services.map((row, index) => (
+          <tr key={`${row.category}-${row.service}-${index}`}>
             <td className="px-6 py-4 font-semibold text-primary">{row.category}</td>
             <td className="px-6 py-4 text-gray-700">{row.service}</td>
             <td className="px-6 py-4 text-gray-500">{row.subService}</td>
             <td className="px-6 py-4">
               <span
-                className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-xs font-semibold ${
-                  row.status === "Active"
+                className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-xs font-semibold ${row.status === "Active"
                     ? "bg-green-100 text-green-600"
                     : "bg-red-100 text-red-600"
-                }`}
+                  }`}
               >
                 {row.status}
               </span>
+            </td>
+            <td className="px-6 py-4">
+              <div className="flex items-center justify-center gap-2">
+                <button
+                  type="button"
+                  className="rounded-full border border-gray-200 px-3 py-1 text-xs font-semibold text-gray-500 transition hover:border-primary hover:text-primary"
+                >
+                  Edit
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(row)}
+                  className="rounded-full border border-red-200 px-3 py-1 text-xs font-semibold text-red-600 transition hover:border-red-500 hover:bg-red-50"
+                >
+                  Delete
+                </button>
+              </div>
             </td>
           </tr>
         ))}
