@@ -2,9 +2,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "../components/ToastProvider";
 import { getSuperAdmins, softDeleteSuperAdmin, updateSuperAdminStatus } from "../services/superAdminService";
 import type { SuperAdminRecord, SuperAdminStatusId } from "../services/superAdminService";
-import Sidebar from "../components/Sidebar";
-import Header from "../components/Header";
-import ProfileModal from "../components/ProfileModal";
 import SupervisorForm from "../components/supervisor/SupervisorForm";
 import { ModalShell } from "../components/rentalServices/Modals";
 import DashboardLayout from "../layouts/DashboardLayout";
@@ -12,8 +9,8 @@ import DashboardLayout from "../layouts/DashboardLayout";
 const PAGE_SIZE = 10;
 
 const STATUS_BADGE_CLASSES: Record<string, string> = {
-  Active: "bg-emerald-100 text-emerald-600",
-  Inactive: "bg-rose-100 text-rose-600",
+  Active: "bg-emerald-100 text-emerald-600 hover:bg-emerald-200 hover:text-emerald-700",
+  Inactive: "bg-rose-100 text-rose-600 hover:bg-rose-200 hover:text-rose-700",
 };
 
 const TYPE_LABELS: Record<number, string> = {
@@ -34,8 +31,6 @@ const SupervisorPage = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [formMode, setFormMode] = useState<"add" | "view" | "edit">("add");
   const [selectedRecord, setSelectedRecord] = useState<SuperAdminRecord | null>(null);
   const [deleteModal, setDeleteModal] = useState<{
@@ -46,6 +41,16 @@ const SupervisorPage = () => {
     record: null,
   });
   const [isDeleting, setIsDeleting] = useState(false);
+  const [statusModal, setStatusModal] = useState<{
+    isOpen: boolean;
+    record: SuperAdminRecord | null;
+    currentStatus: boolean;
+  }>({
+    isOpen: false,
+    record: null,
+    currentStatus: false,
+  });
+  const [isStatusUpdating, setIsStatusUpdating] = useState(false);
 
   const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
 
@@ -120,23 +125,41 @@ const SupervisorPage = () => {
     setShowForm(true);
   };
 
-  const handleStatusToggle = async (record: SuperAdminRecord) => {
-    const currentStatus = record.statusId ?? (record.isActive ? 1 : 0);
-    const nextStatus: SuperAdminStatusId = currentStatus === 1 ? 0 : 1;
+  const handleStatusToggle = (record: SuperAdminRecord) => {
+    const currentStatus = (record.statusId ?? (record.isActive ? 1 : 0)) === 1;
+    setStatusModal({
+      isOpen: true,
+      record,
+      currentStatus,
+    });
+  };
+
+  const handleStatusConfirm = async () => {
+    if (!statusModal.record) return;
+
+    setIsStatusUpdating(true);
     try {
-      await updateSuperAdminStatus(record.employeeId, nextStatus);
+      const nextStatus: SuperAdminStatusId = statusModal.currentStatus ? 0 : 1;
+      await updateSuperAdminStatus(statusModal.record.employeeId, nextStatus);
       showToast(`Status updated to ${nextStatus === 1 ? "Active" : "Inactive"}.`, "success");
       setRecords((prev) =>
         prev.map((item) =>
-          item.employeeId === record.employeeId
+          item.employeeId === statusModal.record!.employeeId
             ? { ...item, statusId: nextStatus, isActive: nextStatus === 1 }
             : item
         )
       );
+      setStatusModal({ isOpen: false, record: null, currentStatus: false });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Failed to update status";
       showToast(message, "error");
+    } finally {
+      setIsStatusUpdating(false);
     }
+  };
+
+  const handleStatusCancel = () => {
+    setStatusModal({ isOpen: false, record: null, currentStatus: false });
   };
 
   const handleDelete = (record: SuperAdminRecord) => {
@@ -277,6 +300,19 @@ const SupervisorPage = () => {
             />
           </div>
         )}
+
+        {/* Status Confirmation Modal */}
+        {statusModal.isOpen && statusModal.record && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-[6px] px-4">
+            <StatusConfirmModal
+              isSubmitting={isStatusUpdating}
+              onCancel={handleStatusCancel}
+              onConfirm={handleStatusConfirm}
+              currentStatus={statusModal.currentStatus}
+              recordName={[statusModal.record.firstName, statusModal.record.middleName, statusModal.record.lastName].filter(Boolean).join(" ")}
+            />
+          </div>
+        )}
       </div>
     </DashboardLayout >
   );
@@ -339,6 +375,90 @@ const DeleteConfirmModal = ({
           disabled={isSubmitting}
         >
           {isSubmitting ? "Deleting..." : "Delete"}
+        </button>
+      </div>
+    </div>
+  </ModalShell>
+);
+
+const StatusConfirmModal = ({
+  isSubmitting,
+  onCancel,
+  onConfirm,
+  currentStatus,
+  recordName,
+}: {
+  isSubmitting: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+  currentStatus: boolean;
+  recordName: string;
+}) => (
+  <ModalShell
+    title={currentStatus ? "Deactivate Supervisor / Employee" : "Activate Supervisor / Employee"}
+    onClose={onCancel}
+  >
+    <div className="space-y-6 text-center">
+      <div className={`mx-auto flex h-24 w-24 items-center justify-center rounded-full ${currentStatus ? "bg-orange-100 text-orange-600" : "bg-green-100 text-green-600"
+        }`}>
+        {currentStatus ? (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-12 w-12"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636m12.728 12.728L18.364 5.636M5.636 18.364l12.728-12.728" />
+          </svg>
+        ) : (
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            className="h-12 w-12"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+          </svg>
+        )}
+      </div>
+      <div className="space-y-2">
+        <p className="text-lg font-semibold text-gray-900">
+          {currentStatus ? "Deactivate" : "Activate"} Supervisor / Employee
+        </p>
+        <p className="text-sm text-gray-600">
+          Are you sure you want to {currentStatus ? "deactivate" : "activate"} <strong>{recordName}</strong>?
+          {currentStatus
+            ? " They will no longer be able to access the system."
+            : " They will regain access to the system."
+          }
+        </p>
+      </div>
+      <div className="flex justify-center gap-3">
+        <button
+          type="button"
+          className="rounded-full border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-500 transition hover:border-primary hover:text-primary"
+          onClick={onCancel}
+          disabled={isSubmitting}
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          className={`rounded-full px-6 py-2 text-sm font-semibold text-white shadow transition disabled:cursor-not-allowed disabled:opacity-50 ${currentStatus
+            ? "bg-orange-600 hover:bg-orange-700"
+            : "bg-green-600 hover:bg-green-700"
+            }`}
+          onClick={onConfirm}
+          disabled={isSubmitting}
+        >
+          {isSubmitting
+            ? (currentStatus ? "Deactivating..." : "Activating...")
+            : (currentStatus ? "Deactivate" : "Activate")
+          }
         </button>
       </div>
     </div>
@@ -431,9 +551,14 @@ const DataTable = ({
                     <td className="px-6 py-4 text-gray-500">{row.region || "N/A"}</td>
                     <td className="px-6 py-4 text-gray-500">{row.city || "N/A"}</td>
                     <td className="px-6 py-4">
-                      <span className={`rounded-full px-3 py-1 text-xs font-semibold ${STATUS_BADGE_CLASSES[statusLabel] ?? "bg-gray-100 text-gray-500"}`}>
+                      <button
+                        type="button"
+                        onClick={() => onToggleStatus(row)}
+                        className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer border border-transparent hover:border-current ${STATUS_BADGE_CLASSES[statusLabel] ?? "bg-gray-100 text-gray-500 hover:bg-gray-200"}`}
+                        title={`Click to ${statusLabel === "Active" ? "deactivate" : "activate"} this supervisor`}
+                      >
                         {statusLabel}
-                      </span>
+                      </button>
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex flex-wrap items-center justify-center gap-2">
