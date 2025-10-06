@@ -305,10 +305,6 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
             let response: any;
             const apiFormData = prepareFormDataForAPI();
 
-
-
-            console.log("API Form Data:", apiFormData)
-
             if (isAdd) {
                 // Add new supervisor
                 response = await SupervisorServices.UpsertSuperAdmin(apiFormData);
