@@ -4,6 +4,7 @@ import type { InputHTMLAttributes, ReactNode, SelectHTMLAttributes } from "react
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/ToastProvider";
+import ComanTable, { type TableColumn, type ActionButton, type SortState } from "../components/common/ComanTable";
 
 type FormMode = "create" | "edit";
 
@@ -111,6 +112,11 @@ const EmployeeCategoryAssignment = () => {
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState("");
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [sortState, setSortState] = useState<SortState[]>([]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [formMode, setFormMode] = useState<FormMode>("create");
@@ -256,6 +262,88 @@ const EmployeeCategoryAssignment = () => {
     });
   }, [assignments, searchTerm]);
 
+  // Pagination logic
+  const totalCount = filteredAssignments.length;
+  const totalPages = Math.ceil(totalCount / pageSize);
+  const startIndex = (currentPage - 1) * pageSize;
+  const endIndex = startIndex + pageSize;
+  const paginatedAssignments = filteredAssignments.slice(startIndex, endIndex);
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+  };
+
+  const handlePageSizeChange = (size: number) => {
+    setPageSize(size);
+    setCurrentPage(1);
+  };
+
+  const handleSortChange = (newSortState: SortState[]) => {
+    setSortState(newSortState);
+  };
+
+  // Table columns configuration
+  const tableColumns: TableColumn<EmployeeCategoryAssignmentItem>[] = useMemo(() => [
+    {
+      label: "Assignment ID",
+      value: (row) => (
+        <span className="font-semibold text-primary">
+          #{row.assignmentId.toString().padStart(4, "0")}
+        </span>
+      ),
+      sortKey: "assignmentId",
+      isSort: true,
+    },
+    {
+      label: "Employee Name",
+      value: (row) => (
+        <span className="text-gray-700">{row.employeeName ?? "-"}</span>
+      ),
+      sortKey: "employeeName",
+      isSort: true,
+    },
+    {
+      label: "Official Email",
+      value: (row) => (
+        <span className="text-gray-500">{row.officialEmail ?? "-"}</span>
+      ),
+      sortKey: "officialEmail",
+      isSort: true,
+    },
+    {
+      label: "Telephone",
+      value: (row) => (
+        <span className="text-gray-500">{row.telephone ?? "-"}</span>
+      ),
+      sortKey: "telephone",
+      isSort: true,
+    },
+    {
+      label: "Category",
+      value: (row) => (
+        <span className="text-gray-500">{row.categoryName ?? "-"}</span>
+      ),
+      sortKey: "categoryName",
+      isSort: true,
+    },
+    {
+      label: "Service",
+      value: (row) => (
+        <span className="text-gray-500">{row.serviceName ?? "-"}</span>
+      ),
+      sortKey: "serviceName",
+      isSort: true,
+    },
+    {
+      label: "Sub-service",
+      value: (row) => (
+        <span className="text-gray-500">{row.subServiceName ?? "-"}</span>
+      ),
+      sortKey: "subServiceName",
+      isSort: true,
+    },
+  ], []);
+
   const handleOpenCreate = () => {
     setFormMode("create");
     setFormValues(createDefaultFormState());
@@ -322,6 +410,15 @@ const EmployeeCategoryAssignment = () => {
     }
   };
 
+  // Action buttons configuration
+  const actionButtons: ActionButton<EmployeeCategoryAssignmentItem>[] = useMemo(() => [
+    {
+      label: "Edit",
+      iconType: "edit",
+      onClick: handleOpenEdit,
+    },
+  ], [handleOpenEdit]);
+
   const handleFormSubmit = async () => {
     if (formSubmitting) {
       return;
@@ -382,7 +479,7 @@ const EmployeeCategoryAssignment = () => {
   };
   return (
     <DashboardLayout>
-      <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 pb-16">
+      <div className="mx-auto flex w-full  flex-col gap-8 pb-16">
         <Header />
         <section className="space-y-8 rounded-[32px] border border-gray-200 bg-white p-8 shadow-sm">
           <div className="flex flex-wrap items-center justify-between gap-4">
@@ -411,10 +508,19 @@ const EmployeeCategoryAssignment = () => {
           <StatsRow stats={stats} />
           <ChartPlaceholder />
 
-          <AssignmentTable
-            assignments={filteredAssignments}
+          <ComanTable
+            columns={tableColumns}
+            data={paginatedAssignments}
+            actions={actionButtons}
+            page={currentPage}
+            totalPages={totalPages}
+            totalCount={totalCount}
+            onPageChange={handlePageChange}
+            sortState={sortState}
+            onSortChange={handleSortChange}
+            pageSize={pageSize}
+            onPageSizeChange={handlePageSizeChange}
             loading={listLoading}
-            onEdit={handleOpenEdit}
           />
         </section>
       </div>
@@ -501,74 +607,6 @@ const ChartPlaceholder = () => (
   </div>
 );
 
-const AssignmentTable = ({
-  assignments,
-  loading,
-  onEdit,
-}: {
-  assignments: EmployeeCategoryAssignmentItem[];
-  loading: boolean;
-  onEdit: (assignment: EmployeeCategoryAssignmentItem) => void;
-}) => (
-  <div className="overflow-hidden rounded-[28px] border border-gray-200">
-    <div className="overflow-x-auto">
-      <table className="min-w-[1080px] w-full text-left text-sm text-gray-600">
-        <thead className="bg-[#f6f7fb] text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-          <tr>
-            <th className="px-6 py-4">Assignment ID</th>
-            <th className="px-6 py-4">Employee Name</th>
-            <th className="px-6 py-4">Official Email</th>
-            <th className="px-6 py-4">Telephone</th>
-            <th className="px-6 py-4">Category</th>
-            <th className="px-6 py-4">Service</th>
-            <th className="px-6 py-4">Sub-service</th>
-            <th className="px-6 py-4 text-center">Actions</th>
-          </tr>
-        </thead>
-        <tbody className="divide-y divide-gray-100 bg-white">
-          {loading ? (
-            <tr>
-              <td colSpan={8} className="px-6 py-6 text-center text-sm text-gray-500">
-                Loading assignments...
-              </td>
-            </tr>
-          ) : assignments.length === 0 ? (
-            <tr>
-              <td colSpan={8} className="px-6 py-6 text-center text-sm text-gray-500">
-                No assignments found.
-              </td>
-            </tr>
-          ) : (
-            assignments.map((assignment) => (
-              <tr key={`${assignment.assignmentId}-${assignment.employeeId}`}>
-                <td className="px-6 py-4 font-semibold text-primary">
-                  #{assignment.assignmentId.toString().padStart(4, "0")}
-                </td>
-                <td className="px-6 py-4 text-gray-700">{assignment.employeeName ?? "-"}</td>
-                <td className="px-6 py-4 text-gray-500">{assignment.officialEmail ?? "-"}</td>
-                <td className="px-6 py-4 text-gray-500">{assignment.telephone ?? "-"}</td>
-                <td className="px-6 py-4 text-gray-500">{assignment.categoryName ?? "-"}</td>
-                <td className="px-6 py-4 text-gray-500">{assignment.serviceName ?? "-"}</td>
-                <td className="px-6 py-4 text-gray-500">{assignment.subServiceName ?? "-"}</td>
-                <td className="px-6 py-4">
-                  <div className="flex items-center justify-center">
-                    <ActionButton
-                      label="Edit"
-                      variant="edit"
-                      onClick={() => onEdit(assignment)}
-                    >
-                      <EditIcon />
-                    </ActionButton>
-                  </div>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
-  </div>
-);
 const FormModal = ({
   mode,
   values,
@@ -597,47 +635,47 @@ const FormModal = ({
   const employeeOptionsWithCurrent =
     values.employeeId && !employeeOptions.some((option) => option.value === values.employeeId)
       ? [
-          ...employeeOptions,
-          {
-            value: values.employeeId,
-            label: values.employeeName || `Employee ${values.employeeId}`,
-            email: values.officialEmail,
-            phone: values.telephone,
-          },
-        ]
+        ...employeeOptions,
+        {
+          value: values.employeeId,
+          label: values.employeeName || `Employee ${values.employeeId}`,
+          email: values.officialEmail,
+          phone: values.telephone,
+        },
+      ]
       : employeeOptions;
 
   const categoryOptionsWithCurrent =
     values.categoryId && !categoryOptions.some((option) => option.value === values.categoryId)
       ? [
-          ...categoryOptions,
-          {
-            value: values.categoryId,
-            label: values.categoryName || `Category ${values.categoryId}`,
-          },
-        ]
+        ...categoryOptions,
+        {
+          value: values.categoryId,
+          label: values.categoryName || `Category ${values.categoryId}`,
+        },
+      ]
       : categoryOptions;
 
   const serviceOptionsWithCurrent =
     values.serviceId && !serviceOptions.some((option) => option.value === values.serviceId)
       ? [
-          ...serviceOptions,
-          {
-            value: values.serviceId,
-            label: values.serviceName || `Service ${values.serviceId}`,
-          },
-        ]
+        ...serviceOptions,
+        {
+          value: values.serviceId,
+          label: values.serviceName || `Service ${values.serviceId}`,
+        },
+      ]
       : serviceOptions;
 
   const subServiceOptionsWithCurrent =
     values.subServiceId && !subServiceOptions.some((option) => option.value === values.subServiceId)
       ? [
-          ...subServiceOptions,
-          {
-            value: values.subServiceId,
-            label: values.subServiceName || `Sub-service ${values.subServiceId}`,
-          },
-        ]
+        ...subServiceOptions,
+        {
+          value: values.subServiceId,
+          label: values.subServiceName || `Sub-service ${values.subServiceId}`,
+        },
+      ]
       : subServiceOptions;
 
   return (
@@ -990,12 +1028,6 @@ const ChevronIcon = () => (
   </svg>
 );
 
-const EditIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-4 w-4">
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 20h4l10.5-10.5a1.5 1.5 0 0 0-2.12-2.12L6 17.88V20Z" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="m14.5 6.5 3 3" />
-  </svg>
-);
 
 export default EmployeeCategoryAssignment;
 
