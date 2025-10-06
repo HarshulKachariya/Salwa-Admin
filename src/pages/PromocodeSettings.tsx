@@ -1089,13 +1089,13 @@ const ActionButton = ({ label, variant, onClick, children }: { label: string; va
 };
 
 const ModalOverlay = ({ children }: { children: ReactNode }) => (
-  <div className="fixed inset-0 z-[9999999] flex items-center justify-center bg-[#1b1787b8] px-4">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1b1787b8] px-4">
     {children}
   </div>
 );
 
 const ModalShell = ({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) => (
-  <div className="w-full max-w-xl rounded-[20px] bg-white px-8 py-10 shadow-[0_40px_90px_rgba(5,6,104,0.18)]">
+  <div className="w-full max-w-xl rounded-md bg-white px-6 py-6 shadow-[0_40px_90px_rgba(5,6,104,0.18)]">
     <div className="flex items-center justify-between gap-4">
       <h3 className="text-xl font-semibold text-primary">{title}</h3>
       <button

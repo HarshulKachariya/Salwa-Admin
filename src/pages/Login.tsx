@@ -159,6 +159,7 @@ const Login = () => {
     if (data.status !== 200) {
       throw new Error(data.message ?? "Unable to verify ID number.");
     }
+    localStorage.setItem('adminName', data.adminName)
     return data;
   };
 

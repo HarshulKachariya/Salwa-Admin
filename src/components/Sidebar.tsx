@@ -57,7 +57,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
 
       <div className="service-sidebar-insd-mn flex flex-col flex-1 overflow-y-auto sidebar-scroll">
         {/* Scrollable navigation area */}
-        <div className="flex-1 lg:px-[40px] px-5 pt-[20px]">
+        <div className="flex-1 lg:px-[30px] px-5 pt-[20px]">
           <ul className="space-y-1">
             {menuItems.map((item) => (
               <li key={item.label}>
@@ -97,7 +97,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
                           "w-6 h-6 transition",
                           isActive
                             ? "filter brightness-0 saturate-100 invert-15 sepia-92 saturate-2087 hue-rotate-225 brightness-94 contrast-112"
-                            : "group-hover:filter group-hover:brightness-0 group-hover:saturate-100 group-hover:invert-15 group-hover:sepia-92 group-hover:saturate-2087 group-hover:hue-rotate-225 group-hover:brightness-94 group-hover:contrast-112"
+                            : ""
                         )}
                       />
                       <span className="font-medium transition">

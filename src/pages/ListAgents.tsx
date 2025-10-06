@@ -312,16 +312,16 @@ const ListAgents = () => {
       iconType: "view",
       onClick: handleView,
     },
-    {
-      label: "Edit",
-      iconType: "edit",
-      onClick: handleEdit,
-    },
-    {
-      label: "Delete",
-      iconType: "delete",
-      onClick: handleDelete,
-    },
+    // {
+    //   label: "Edit",
+    //   iconType: "edit",
+    //   onClick: handleEdit,
+    // },
+    // {
+    //   label: "Delete",
+    //   iconType: "delete",
+    //   onClick: handleDelete,
+    // },
   ], [handleView, handleEdit, handleDelete]);
 
   return (

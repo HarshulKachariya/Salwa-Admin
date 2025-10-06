@@ -490,12 +490,12 @@ const EmployeeCategoryAssignment = () => {
         assignmentId: match.assignmentId ?? assignment.assignmentId ?? null,
         employeeIds:
           typeof match.employeeId === "number" &&
-          !Number.isNaN(match.employeeId)
+            !Number.isNaN(match.employeeId)
             ? [match.employeeId.toString()]
             : [],
         categoryId:
           typeof match.categoryId === "number" &&
-          !Number.isNaN(match.categoryId)
+            !Number.isNaN(match.categoryId)
             ? match.categoryId.toString()
             : "",
         serviceId:
@@ -504,7 +504,7 @@ const EmployeeCategoryAssignment = () => {
             : "",
         subServiceId:
           typeof match.subServiceId === "number" &&
-          !Number.isNaN(match.subServiceId)
+            !Number.isNaN(match.subServiceId)
             ? match.subServiceId.toString()
             : "",
       };
@@ -760,9 +760,8 @@ const FormModal = ({
 }) => {
   return (
     <ModalShell
-      title={`${
-        mode === "edit" ? "Edit" : "Add"
-      } Employee & Category Assignment`}
+      title={`${mode === "edit" ? "Edit" : "Add"
+        } Employee & Category Assignment`}
       onClose={onClose}
     >
       {isLoading ? (
@@ -864,10 +863,10 @@ const FormModal = ({
               ))}
             </LabeledSelect>
           </div>
-          <div className="flex justify-end gap-3 pt-4">
+          <div className="flex justify-center gap-3 pt-4">
             <button
               type="button"
-              className="px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="rounded-md border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-500 hover:border-primary"
               onClick={onClose}
               disabled={isSubmitting}
             >
@@ -875,7 +874,7 @@ const FormModal = ({
             </button>
             <button
               type="submit"
-              className="px-4 py-2 bg-blue-600 text-white rounded-md text-sm font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-blue-400"
+              className="rounded-md bg-primary px-10 py-3 text-sm font-semibold text-white shadow hover:bg-[#030447] disabled:cursor-not-allowed disabled:bg-primary/70"
               disabled={isSubmitting}
             >
               {isSubmitting ? "Saving..." : "Save"}
@@ -888,27 +887,23 @@ const FormModal = ({
 };
 
 const LabeledSelect = ({
-  label,
   className = "",
   children,
   ...props
-}: {
-  label?: string;
-  children: ReactNode;
-} & SelectHTMLAttributes<HTMLSelectElement>) => (
-  <div>
-    <label className="block text-sm font-medium text-gray-700 mb-1">
-      {label || ""}
-    </label>
+}: { children: ReactNode } & SelectHTMLAttributes<HTMLSelectElement>) => (
+  <label className="space-y-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
     <div className="relative">
       <select
         {...props}
-        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 ${className}`}
+        className={`w-full appearance-none rounded-md border border-gray-200 bg-[#f7f8fd] px-4 py-3 text-sm text-gray-600 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 ${className}`}
       >
         {children}
       </select>
+      <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+        <ChevronIcon />
+      </span>
     </div>
-  </div>
+  </label>
 );
 
 const ActionButton = ({
@@ -938,7 +933,7 @@ const ActionButton = ({
   );
 };
 const ModalOverlay = ({ children }: { children: ReactNode }) => (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/55 backdrop-blur-[6px] px-4">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#1b1787b8] px-4">
     {children}
   </div>
 );
@@ -952,13 +947,13 @@ const ModalShell = ({
   onClose: () => void;
   children: ReactNode;
 }) => (
-  <div className="w-full max-w-2xl rounded-lg bg-white px-6 py-6 shadow-lg">
+  <div className="w-full max-w-2xl rounded-md bg-white px-6 py-6 shadow-lg">
     <div className="flex items-center justify-between gap-4 mb-6">
-      <h3 className="text-xl font-semibold text-gray-900">{title}</h3>
+      <h3 className="text-xl font-semibold text-primary">{title}</h3>
       <button
         type="button"
         aria-label="Close"
-        className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-gray-500 transition hover:bg-gray-200 hover:text-gray-700"
+        className="flex h-8 w-8 items-center justify-center rounded-full text-[#1B1787] transition"
         onClick={onClose}
       >
         <CloseIcon />
@@ -975,7 +970,7 @@ const CloseIcon = () => (
     fill="none"
     stroke="currentColor"
     strokeWidth="1.8"
-    className="h-4 w-4"
+    className="h-8 w-8"
   >
     <path
       strokeLinecap="round"
@@ -996,6 +991,12 @@ const SearchIcon = () => (
   >
     <circle cx="11" cy="11" r="7" />
     <path strokeLinecap="round" strokeLinejoin="round" d="m20 20-3-3" />
+  </svg>
+);
+
+const ChevronIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-3 w-3">
+    <path strokeLinecap="round" strokeLinejoin="round" d="m6 8 4 4 4-4" />
   </svg>
 );
 
