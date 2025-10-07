@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { NavLink } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../context/ThemeContext";
-import { useLanguage } from "../context/LanguageContext";
 import type { FC } from "react";
 
 interface SidebarProps {
@@ -78,7 +77,6 @@ const getMenuItems = (t: any) => [
 const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
-  const { isRTL } = useLanguage();
   const menuItems = getMenuItems(t);
 
   return (

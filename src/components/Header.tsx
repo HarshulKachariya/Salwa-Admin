@@ -15,7 +15,7 @@ const Header: FC<HeaderProps> = ({ onToggleSidebar, onOpenProfile }) => {
   const languageMenuRef = useRef<HTMLDivElement>(null);
   const { logout } = useAuth();
   const { t } = useTranslation();
-  const { currentLanguage, changeLanguage, isRTL } = useLanguage();
+  const { currentLanguage, changeLanguage } = useLanguage();
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

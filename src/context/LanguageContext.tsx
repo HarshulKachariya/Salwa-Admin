@@ -1,5 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
+import React, { createContext, useContext, useState, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 interface LanguageContextType {
   currentLanguage: string;
@@ -7,42 +7,44 @@ interface LanguageContextType {
   isRTL: boolean;
 }
 
-const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
+const LanguageContext = createContext<LanguageContextType | undefined>(
+  undefined
+);
 
-interface LanguageProviderProps {
-  children: ReactNode;
-}
-
-export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) => {
+export const LanguageProvider: React.FC<any> = ({ children }) => {
   const { i18n } = useTranslation();
-  const [currentLanguage, setCurrentLanguage] = useState<string>(i18n.language || 'en');
-  const [isRTL, setIsRTL] = useState<boolean>(currentLanguage === 'ar');
+  const [currentLanguage, setCurrentLanguage] = useState<string>(
+    i18n.language || "en"
+  );
+  const [isRTL, setIsRTL] = useState<boolean>(currentLanguage === "ar");
 
   useEffect(() => {
-    const savedLanguage = localStorage.getItem('i18nextLng') || 'en';
+    const savedLanguage = localStorage.getItem("i18nextLng") || "en";
     setCurrentLanguage(savedLanguage);
-    setIsRTL(savedLanguage === 'ar');
-    
+    setIsRTL(savedLanguage === "ar");
+
     // Update document direction
-    document.documentElement.dir = savedLanguage === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = savedLanguage === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = savedLanguage;
   }, []);
 
   const changeLanguage = (language: string) => {
     i18n.changeLanguage(language);
     setCurrentLanguage(language);
-    setIsRTL(language === 'ar');
-    
+    setIsRTL(language === "ar");
+
     // Update document direction
-    document.documentElement.dir = language === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.dir = language === "ar" ? "rtl" : "ltr";
     document.documentElement.lang = language;
-    
+
     // Save to localStorage
-    localStorage.setItem('i18nextLng', language);
+    localStorage.setItem("i18nextLng", language);
   };
 
   return (
-    <LanguageContext.Provider value={{ currentLanguage, changeLanguage, isRTL }}>
+    <LanguageContext.Provider
+      value={{ currentLanguage, changeLanguage, isRTL }}
+    >
       {children}
     </LanguageContext.Provider>
   );
@@ -51,7 +53,7 @@ export const LanguageProvider: React.FC<LanguageProviderProps> = ({ children }) 
 export const useLanguage = (): LanguageContextType => {
   const context = useContext(LanguageContext);
   if (context === undefined) {
-    throw new Error('useLanguage must be used within a LanguageProvider');
+    throw new Error("useLanguage must be used within a LanguageProvider");
   }
   return context;
 };
