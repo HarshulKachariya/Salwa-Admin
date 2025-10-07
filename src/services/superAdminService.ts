@@ -140,7 +140,7 @@ export const updateSuperAdminStatus = (
 export const softDeleteSuperAdmin = (employeeId: number) =>
   apiRequest<{ message?: string; status?: number }>(
     `${BASE_URL}/SoftDeleteSuperAdmin${buildQuery({ employeeId })}`,
-    { method: "DELETE" }
+    { method: "POST" }
   );
 
 export const fetchSuperAdminTypes = async (): Promise<
