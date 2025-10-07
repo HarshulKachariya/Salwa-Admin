@@ -5,9 +5,19 @@ class AgentServices {
   // Get all agent discount business list
   static GetAllAgentDiscountForBusinessList = async (data: any) => {
     try {
+      // Get current language from localStorage or default to 'en'
+      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
+      
+      // Add language parameter to the data
+      const dataWithLanguage = {
+        ...data,
+        Language: languageParam
+      };
+      
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/GetAllAgentDiscountForBusinessList`,
-        data
+        dataWithLanguage
       );
       return successHandler(res);
     } catch (error: any) {
@@ -18,9 +28,19 @@ class AgentServices {
   // Get all agent discount individual list
   static GetAllAgentDiscountForIndividualList = async (data: any) => {
     try {
+      // Get current language from localStorage or default to 'en'
+      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
+      
+      // Add language parameter to the data
+      const dataWithLanguage = {
+        ...data,
+        Language: languageParam
+      };
+      
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/GetAllAgentDiscountForIndividualList`,
-        data
+        dataWithLanguage
       );
       return successHandler(res);
     } catch (error: any) {
@@ -55,9 +75,19 @@ class AgentServices {
   // Upsert agent discount for business and individual
   static UpsertAgentDiscountForBusinessAndIndividual = async (data: any) => {
     try {
+      // Get current language from localStorage or default to 'en'
+      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
+      
+      // Add language parameter to the data
+      const dataWithLanguage = {
+        ...data,
+        Language: languageParam
+      };
+      
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/UpsertAgentDiscountForBusinessAndIndividual`,
-        data
+        dataWithLanguage
       );
       return successHandler(res);
     } catch (error: any) {
@@ -68,9 +98,19 @@ class AgentServices {
   // Get all agent discount for business and individual (combined)
   static GetAllAgentDiscountForBusinessAndIndividual = async (data: any) => {
     try {
+      // Get current language from localStorage or default to 'en'
+      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
+      
+      // Add language parameter to the data
+      const dataWithLanguage = {
+        ...data,
+        Language: languageParam
+      };
+      
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/GetAllAgentDiscountForBusinessAndIndividual`,
-        data
+        dataWithLanguage
       );
       return successHandler(res);
     } catch (error: any) {

@@ -146,6 +146,10 @@ export const softDeleteSuperAdmin = (employeeId: number) =>
 export const fetchSuperAdminTypes = async (): Promise<
   SuperAdminTypeOption[]
 > => {
+  // Get current language from localStorage or default to 'en'
+  const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+  const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
+  
   const response = await apiRequest<{
     data?: unknown;
     message?: string;
@@ -156,7 +160,7 @@ export const fetchSuperAdminTypes = async (): Promise<
     body: JSON.stringify({
       parameter: "{}",
       spName: "USP_GetSuperAdminTypeDropdown",
-      language: "EN",
+      Language: languageParam,
     }),
   });
 
