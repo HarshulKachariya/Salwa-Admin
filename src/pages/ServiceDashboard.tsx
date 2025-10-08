@@ -1,5 +1,5 @@
 import { useMemo, useState, useEffect, type ReactNode } from "react";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 import clsx from "clsx";
 import DashboardLayout from "../layouts/DashboardLayout";
 import type { RentalServicesState } from "./RentalServices";
@@ -43,13 +43,15 @@ interface ApiResponse {
 }
 
 const ServiceDashboard = () => {
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
   const [dynamicCategories, setDynamicCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string>("");
+  const [selectedCategoryIndex, setSelectedCategoryIndex] = useState<number>(0);
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [activeCategoryId, setActiveCategoryId] = useState<string | null>(null);
+  const [activeCategoryIndex, setActiveCategoryIndex] = useState<number | null>(
+    null
+  );
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [selectedServices, setSelectedServices] = useState<Service[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
@@ -58,21 +60,30 @@ const ServiceDashboard = () => {
   const [modalTitle, setModalTitle] = useState<string>("");
   const [modalSubtitle, setModalSubtitle] = useState<string>("");
   const [isServiceModalOpen, setIsServiceModalOpen] = useState(false);
-  const [selectedService, setSelectedService] = useState<Service | null>(null);
+  const [selectedServiceIndex, setSelectedServiceIndex] = useState<
+    number | null
+  >(null);
   const [subServices, setSubServices] = useState<Service[]>([]);
   const [subServicesLoading, setSubServicesLoading] = useState(false);
-  const [selectedSubService, setSelectedSubService] = useState<Service | null>(null);
+  const [selectedSubServiceIndex, setSelectedSubServiceIndex] = useState<
+    number | null
+  >(null);
   const [isOrderReportModalOpen, setIsOrderReportModalOpen] = useState(false);
+  const [hasClickedServiceNext, setHasClickedServiceNext] = useState(false);
+  const [hasClickedSubServiceNext, setHasClickedSubServiceNext] = useState(false);
 
-  // API function to fetch services by category ID
-  const fetchServicesByCategory = async (categoryId: string) => {
+  // API function to fetch services by category index
+  const fetchServicesByCategory = async (categoryIndex: number) => {
     try {
       setServicesLoading(true);
+      const category = dynamicCategories[categoryIndex];
+      if (!category) return [];
+
       const response = (await CommonServices.CommonApi({
-        Parameter: `{"ParentId":${categoryId}}`,
+        Parameter: `{"ParentId":${category.id}}`,
         SPName: "USP_GetAdminCategoryServices",
         Language: "EN",
-      } )) as ApiResponse;
+      })) as ApiResponse;
 
       if (response?.success && response?.data) {
         const services: Service[] = JSON.parse(response.data).map(
@@ -82,7 +93,7 @@ const ServiceDashboard = () => {
             description: apiService.Description || "Service description",
             icon: apiService.Icon || "/theme-icons/genral-service.png",
             hasSubServices: apiService.HasSubServices || false,
-            categoryId: categoryId,
+            categoryId: category.id,
             serviceId: apiService.Id,
             serviceTitle: apiService.Name,
           })
@@ -98,33 +109,37 @@ const ServiceDashboard = () => {
     }
   };
 
-  // API function to fetch sub-services by service ID
-  const fetchSubServices = async (serviceId: string) => {
+  // API function to fetch sub-services by service index
+  const fetchSubServices = async (serviceIndex: number) => {
     try {
       setSubServicesLoading(true);
+      const service = currentServices[serviceIndex];
+      if (!service) return [];
+
       const response = (await CommonServices.CommonApi({
-        Parameter: `{"ParentId":${serviceId}}`,
+        Parameter: `{"ParentId":${service.id}}`,
         SPName: "USP_GetAdminServiceSubServices",
         Language: "EN",
       })) as ApiResponse;
 
       if (response?.success && response?.data) {
-        const subServices: Service[] = JSON.parse(response.data).map(
-          (apiService: any) => ({
+        const parsedData = JSON.parse(response.data);
+        if (Array.isArray(parsedData) && parsedData.length > 0) {
+          const subServices: Service[] = parsedData.map((apiService: any) => ({
             id: apiService.Id,
             title: apiService.Name,
             description: apiService.Description || "Sub-service description",
             icon: apiService.Icon || "/theme-icons/genral-service.png",
             hasSubServices: false, // Sub-services typically don't have further sub-services
-            categoryId: selectedServices[0]?.categoryId,
-            serviceId: serviceId,
-            serviceTitle: selectedServices[0]?.serviceTitle,
+            categoryId: service.categoryId,
+            serviceId: service.id,
+            serviceTitle: service.title,
             optionId: apiService.Id,
             optionTitle: apiService.Name,
-            baseRoute: `/service-dashboard/${selectedServices[0]?.categoryId}-services`,
-          })
-        );
-        return subServices;
+            baseRoute: `/service-dashboard/${service.categoryId}-services`,
+          }));
+          return subServices;
+        }
       }
       return [];
     } catch (error) {
@@ -160,7 +175,7 @@ const ServiceDashboard = () => {
 
           setDynamicCategories(transformedCategories);
           if (transformedCategories.length > 0) {
-            setSelectedCategory(transformedCategories[0].id);
+            setSelectedCategoryIndex(0);
           }
         }
       } catch (err) {
@@ -191,27 +206,26 @@ const ServiceDashboard = () => {
 
   const activeCategory = useMemo(
     () =>
-      dynamicCategories.find((category) => category.id === activeCategoryId) ??
-      null,
-    [activeCategoryId, dynamicCategories]
+      activeCategoryIndex !== null
+        ? dynamicCategories[activeCategoryIndex] ?? null
+        : null,
+    [activeCategoryIndex, dynamicCategories]
   );
 
   const currentSelection = selectedServices[currentStepIndex] ?? null;
 
-  const handleCategoryClick = async (categoryId: string) => {
-    setSelectedCategory(categoryId);
-    const category = filteredCategories.find(
-      (entry) => entry.id === categoryId
-    );
+  const handleCategoryClick = async (categoryIndex: number) => {
+    setSelectedCategoryIndex(categoryIndex);
+    const category = filteredCategories[categoryIndex];
     if (category) {
-      setActiveCategoryId(categoryId);
+      setActiveCategoryIndex(categoryIndex);
       setCurrentStepIndex(0);
       setSelectedServices([]);
       setModalTitle(category.title);
       setModalSubtitle("Choose the service you want to manage.");
 
       // Fetch services for this category
-      const services = await fetchServicesByCategory(categoryId);
+      const services = await fetchServicesByCategory(categoryIndex);
       setCurrentServices(services);
       setIsModalOpen(true);
     }
@@ -223,56 +237,120 @@ const ServiceDashboard = () => {
 
   const handleCloseModal = () => {
     setIsModalOpen(false);
-    setActiveCategoryId(null);
+    setActiveCategoryIndex(null);
     setSelectedServices([]);
     setCurrentStepIndex(0);
     setCurrentServices([]);
   };
 
-  const handleServiceSelect = async (service: Service) => {
-    setSelectedService(service);
+  const handleServiceSelect = async (serviceIndex: number) => {
+    const service = currentServices[serviceIndex];
+    if (!service) return;
+
+    console.log("Service selected:", service.title); // Debug log
+    setSelectedServiceIndex(serviceIndex);
     setModalTitle(service.title);
-    setModalSubtitle("Select sub-service or proceed to orders.");
+    setModalSubtitle("Click Next to view sub-services or proceed to orders.");
     
-    // Fetch sub-services for this service
-    const subServicesData = await fetchSubServices(service.id);
-    setSubServices(subServicesData);
-    
+    // Clear any existing subservices data
+    setSubServices([]);
+    setSelectedSubServiceIndex(null);
+    setHasClickedServiceNext(false);
+    setHasClickedSubServiceNext(false);
+
     // Close main modal and open service modal
     setIsModalOpen(false);
     setIsServiceModalOpen(true);
+
+    console.log("Service modal should be open now"); // Debug log
   };
 
   const handleNextStep = () => {
     // This is now just for the main modal - services will open service modal
     if (currentSelection) {
-      handleServiceSelect(currentSelection);
+      const serviceIndex = currentServices.findIndex(
+        (service) => service.id === currentSelection.id
+      );
+      if (serviceIndex !== -1) {
+        handleServiceSelect(serviceIndex);
+      }
     }
   };
 
-  const handleSubServiceSelect = (subService: Service) => {
-    setSelectedSubService(subService);
+  const handleServiceNext = async () => {
+    if (selectedServiceIndex === null) return;
+    
+    console.log("Service Next clicked, fetching subservices...");
+    setHasClickedServiceNext(true);
+    setHasClickedSubServiceNext(false); // Reset subservice flag
+    
+    // Fetch sub-services for this service
+    const subServicesData = await fetchSubServices(selectedServiceIndex);
+    console.log("Subservices data:", subServicesData); // Debug log
+    setSubServices(subServicesData);
+    
+    // Close service modal and open subservices modal
+    setIsServiceModalOpen(false);
+    
+    // Check if subservices exist
+    if (subServicesData.length > 0) {
+      // Open subservices modal
+      setModalTitle(currentServices[selectedServiceIndex]?.title || "");
+      setModalSubtitle("Select sub-service or proceed to orders.");
+      setIsServiceModalOpen(true); // This will be the subservices modal
+    } else {
+      // No subservices - go directly to Order/Report modal
+      setIsOrderReportModalOpen(true);
+    }
+  };
+
+  const handleSubServiceSelect = (subServiceIndex: number) => {
+    console.log("Subservice selected:", subServices[subServiceIndex]?.title);
+    setSelectedSubServiceIndex(subServiceIndex);
+    setHasClickedSubServiceNext(false); // Reset the flag when selecting a new subservice
   };
 
   const handleSubServiceNext = () => {
+    console.log("Subservice Next clicked, proceeding to Order/Report...");
+    setHasClickedSubServiceNext(true);
+    
+    // If no subservices available or none selected, proceed with null subservice
+    if (subServices.length === 0) {
+      setSelectedSubServiceIndex(null);
+    }
     // Close sub-service modal and open Order/Report modal
     setIsServiceModalOpen(false);
     setIsOrderReportModalOpen(true);
   };
 
-  const handleActionSelect = (action: 'order' | 'report') => {
+  const handleActionSelect = (action: "order" | "report") => {
+    const selectedService =
+      selectedServiceIndex !== null
+        ? currentServices[selectedServiceIndex]
+        : null;
+    const selectedSubService =
+      selectedSubServiceIndex !== null
+        ? subServices[selectedSubServiceIndex]
+        : null;
+
     // Log the required data
     const logData = {
+      categoryIndex: activeCategoryIndex !== null ? activeCategoryIndex + 1 : null,
+      serviceIndex: selectedServiceIndex !== null ? selectedServiceIndex + 1 : null,
+      subServiceIndex: selectedSubServiceIndex !== null ? selectedSubServiceIndex + 1 : null,
       categoryId: selectedService?.categoryId,
       serviceId: selectedService?.serviceId,
       subServiceId: selectedSubService?.id || null,
-      action: action
+      action: action,
+      hasSubServices: subServices.length > 0,
     };
-    
-    console.log('Action Selected:', logData);
-    
-    // Navigate to dashboard
-    // handleCloseOrderReportModal();
+
+    console.log("Action Selected:", logData);
+
+    // Close the modal after action selection
+    handleCloseOrderReportModal();
+
+    // Navigate to dashboard (uncomment when ready)
     // navigate('/dashboard', {
     //   state: {
     //     ...logData,
@@ -285,20 +363,26 @@ const ServiceDashboard = () => {
 
   const handleCloseOrderReportModal = () => {
     setIsOrderReportModalOpen(false);
-    setSelectedService(null);
-    setSelectedSubService(null);
+    setSelectedServiceIndex(null);
+    setSelectedSubServiceIndex(null);
     setSubServices([]);
-    setIsModalOpen(true); // Return to main modal
+    setCurrentServices([]);
+    setActiveCategoryIndex(null);
+    setHasClickedServiceNext(false);
+    setHasClickedSubServiceNext(false);
+    // Don't return to main modal, close everything
   };
-
-
 
   const handleCloseServiceModal = () => {
     setIsServiceModalOpen(false);
-    setSelectedService(null);
+    setSelectedServiceIndex(null);
     setSubServices([]);
-    setSelectedSubService(null);
-    setIsModalOpen(true); // Return to main modal
+    setSelectedSubServiceIndex(null);
+    setCurrentServices([]);
+    setActiveCategoryIndex(null);
+    setHasClickedServiceNext(false);
+    setHasClickedSubServiceNext(false);
+    // Don't return to main modal, close everything
   };
 
   const handleBackStep = () => {
@@ -307,7 +391,9 @@ const ServiceDashboard = () => {
       // Reset to previous level services
       if (currentStepIndex === 1) {
         // Go back to main services
-        fetchServicesByCategory(activeCategoryId!).then(setCurrentServices);
+        if (activeCategoryIndex !== null) {
+          fetchServicesByCategory(activeCategoryIndex).then(setCurrentServices);
+        }
         setModalTitle(activeCategory?.title || "");
         setModalSubtitle("Choose the service you want to manage.");
       }
@@ -315,7 +401,7 @@ const ServiceDashboard = () => {
   };
 
   const nextDisabled = !currentSelection || servicesLoading;
-  const nextLabel = "View Orders";
+  const nextLabel = "Next";
 
   return (
     <DashboardLayout>
@@ -330,6 +416,7 @@ const ServiceDashboard = () => {
                 Lorem ipsum dolor sit amet, consectetur adipiscing elit.
                 Suspendisse varius enim in eros elementum tristique.
               </p>
+              {/* Test button for debugging */}
             </div>
             <div className="relative w-full max-w-sm">
               <input
@@ -399,12 +486,12 @@ const ServiceDashboard = () => {
             ) : (
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {filteredCategories.length > 0 ? (
-                  filteredCategories.map((category) => (
+                  filteredCategories.map((category, index) => (
                     <CategoryCard
                       key={category.id}
                       category={category}
-                      selected={selectedCategory === category.id}
-                      onClick={handleCategoryClick}
+                      selected={selectedCategoryIndex === index}
+                      onClick={() => handleCategoryClick(index)}
                     />
                   ))
                 ) : (
@@ -443,14 +530,14 @@ const ServiceDashboard = () => {
                 </div>
               ) : currentServices.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {currentServices.map((service) => (
+                  {currentServices.map((service, index) => (
                     <SelectableCard
                       key={service.id}
                       title={service.title}
                       description={service.description}
                       icon={service.icon ?? activeCategory.icon}
                       selected={currentSelection?.id === service.id}
-                      onSelect={() => handleServiceSelect(service)}
+                      onSelect={() => handleServiceSelect(index)}
                     />
                   ))}
                 </div>
@@ -472,7 +559,7 @@ const ServiceDashboard = () => {
       )}
 
       {/* Service Modal for Sub-services */}
-      {isServiceModalOpen && selectedService && (
+      {isServiceModalOpen && selectedServiceIndex !== null && (
         <ModalOverlay>
           <ModalShell
             title={modalTitle}
@@ -480,7 +567,27 @@ const ServiceDashboard = () => {
             onClose={handleCloseServiceModal}
           >
             <div className="space-y-6">
-              {subServicesLoading ? (
+              {/* Debug info */}
+              {(() => {
+                console.log("Modal render check:", {
+                  isServiceModalOpen,
+                  selectedServiceIndex,
+                  subServicesCount: subServices.length,
+                });
+                return null;
+              })()}
+              
+              {!hasClickedServiceNext ? (
+                // Initial service selection view
+                <div className="rounded-2xl border border-gray-100 bg-[#f7f8fd] px-6 py-10 text-center text-sm text-gray-500">
+                  <p className="mb-4">
+                    Service selected: {currentServices[selectedServiceIndex || 0]?.title}
+                  </p>
+                  <p className="text-xs">
+                    Click Next to view sub-services or proceed to orders.
+                  </p>
+                </div>
+              ) : subServicesLoading ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[...Array(4)].map((_, index) => (
                     <div
@@ -495,30 +602,55 @@ const ServiceDashboard = () => {
                     </div>
                   ))}
                 </div>
+              ) : subServices.length > 0 && !hasClickedSubServiceNext ? (
+                // Subservice selection view
+                <div className="rounded-2xl border border-gray-100 bg-[#f7f8fd] px-6 py-10 text-center text-sm text-gray-500">
+                  <p className="mb-4">
+                    Subservices available: {subServices.length} options
+                  </p>
+                  <p className="text-xs">
+                    Click Next to view sub-services or proceed to orders.
+                  </p>
+                </div>
               ) : subServices.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {subServices.map((subService) => (
+                  {subServices.map((subService, index) => (
                     <SelectableCard
                       key={subService.id}
                       title={subService.title}
                       description={subService.description}
-                      icon={subService.icon ?? selectedService.icon}
-                      selected={selectedSubService?.id === subService.id}
-                      onSelect={() => handleSubServiceSelect(subService)}
+                      icon={
+                        subService.icon ??
+                        (selectedServiceIndex !== null
+                          ? currentServices[selectedServiceIndex]?.icon
+                          : undefined)
+                      }
+                      selected={selectedSubServiceIndex === index}
+                      onSelect={() => handleSubServiceSelect(index)}
                     />
                   ))}
                 </div>
               ) : (
                 <div className="rounded-2xl border border-gray-100 bg-[#f7f8fd] px-6 py-10 text-center text-sm text-gray-500">
-                  <p className="mb-4">No sub-services available for this service.</p>
-                  <p className="text-xs">Click Next to proceed to Order/Report selection.</p>
+                  <p className="mb-4">
+                    No sub-services available for this service.
+                  </p>
+                  <p className="text-xs">
+                    Click Next to proceed to Order/Report selection.
+                  </p>
                 </div>
               )}
-              
+
               <ModalFooter
                 onCancel={handleCloseServiceModal}
-                onNext={handleSubServiceNext}
-                nextDisabled={subServicesLoading || (subServices.length > 0 && !selectedSubService)}
+                onNext={
+                  !hasClickedServiceNext 
+                    ? handleServiceNext 
+                    : (subServices.length > 0 && !hasClickedSubServiceNext) 
+                      ? () => setHasClickedSubServiceNext(true)
+                      : handleSubServiceNext
+                }
+                nextDisabled={subServicesLoading}
                 nextLabel="Next"
               />
             </div>
@@ -527,7 +659,7 @@ const ServiceDashboard = () => {
       )}
 
       {/* Order/Report Selection Modal */}
-      {isOrderReportModalOpen && selectedService && (
+      {isOrderReportModalOpen && selectedServiceIndex !== null && (
         <ModalOverlay>
           <ModalShell
             title="Select Option"
@@ -540,16 +672,16 @@ const ServiceDashboard = () => {
                   title="Order"
                   description="Create and manage orders"
                   icon="/theme-icons/orders-icon.png"
-                  onClick={() => handleActionSelect('order')}
+                  onClick={() => handleActionSelect("order")}
                 />
                 <ActionCard
                   title="Report"
                   description="View and generate reports"
                   icon="/theme-icons/report.png"
-                  onClick={() => handleActionSelect('report')}
+                  onClick={() => handleActionSelect("report")}
                 />
               </div>
-              
+
               <div className="flex justify-end pt-2">
                 <button
                   type="button"
@@ -573,11 +705,11 @@ const CategoryCard = ({
 }: {
   category: Category;
   selected: boolean;
-  onClick: (id: string) => void;
+  onClick: () => void;
 }) => (
   <button
     type="button"
-    onClick={() => onClick(category.id)}
+    onClick={onClick}
     className={clsx(
       "flex h-44 flex-col justify-between rounded-2xl border px-6 py-5 text-left transition duration-200 shadow",
       selected
@@ -824,11 +956,7 @@ const ActionCard = ({
     className="flex h-32 flex-col gap-4 rounded-2xl border border-gray-200 bg-white px-6 py-5 text-left transition shadow-sm hover:border-primary/40 hover:shadow-lg"
   >
     <span className="grid h-12 w-12 place-items-center rounded-xl bg-slate-100 text-primary">
-      <img
-        src={icon}
-        alt=""
-        className="h-8 w-8"
-      />
+      <img src={icon} alt="" className="h-8 w-8" />
     </span>
     <div className="space-y-2">
       <p className="text-lg font-helveticaBold text-primary">{title}</p>
