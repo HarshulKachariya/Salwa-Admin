@@ -211,6 +211,26 @@ function ComanTable<T extends object>({
                                                             </button>
                                                         );
                                                     }
+
+                                                    if (action.iconType === "publish") {
+                                                        return (
+                                                            <button
+                                                                data-tooltip-id="publish-tooltip"
+                                                                key={action.label}
+                                                                onClick={() => action.onClick(row)}
+                                                                className="w-[30px] h-[30px] rounded-2xl  flex items-center justify-center bg-blue-500"
+                                                            >
+                                                                <svg className="w-4 h-4 text-white" fill="currentColor" viewBox="0 0 24 24">
+                                                                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6z"/>
+                                                                    <path d="M14 2v6h6"/>
+                                                                    <path d="M16 13H8"/>
+                                                                    <path d="M16 17H8"/>
+                                                                    <path d="M10 9H8"/>
+                                                                    <path d="M20 12l-3 3 3 3" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" fill="none"/>
+                                                                </svg>
+                                                            </button>
+                                                        );
+                                                    }
                                                     if (action.iconType === "upgrade") {
                                                         return (
                                                             <button

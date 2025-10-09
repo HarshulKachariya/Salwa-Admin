@@ -69,8 +69,6 @@ const ServiceDashboard = () => {
     number | null
   >(null);
   const [isOrderReportModalOpen, setIsOrderReportModalOpen] = useState(false);
-  const [hasClickedServiceNext, setHasClickedServiceNext] = useState(false);
-  const [hasClickedSubServiceNext, setHasClickedSubServiceNext] = useState(false);
 
   // API function to fetch services by category index
   const fetchServicesByCategory = async (categoryIndex: number) => {
@@ -250,17 +248,28 @@ const ServiceDashboard = () => {
     console.log("Service selected:", service.title); // Debug log
     setSelectedServiceIndex(serviceIndex);
     setModalTitle(service.title);
-    setModalSubtitle("Click Next to view sub-services or proceed to orders.");
+    setModalSubtitle("Select sub-service or proceed to orders.");
 
     // Clear any existing subservices data
     setSubServices([]);
     setSelectedSubServiceIndex(null);
-    setHasClickedServiceNext(false);
-    setHasClickedSubServiceNext(false);
 
-    // Close main modal and open service modal
+    // Fetch sub-services immediately
+    const subServicesData = await fetchSubServices(serviceIndex);
+    console.log("Subservices data:", subServicesData); // Debug log
+    setSubServices(subServicesData);
+
+    // Close main modal
     setIsModalOpen(false);
-    setIsServiceModalOpen(true);
+
+    // Check if subservices exist
+    if (subServicesData.length > 0) {
+      // Show sub-services modal
+      setIsServiceModalOpen(true);
+    } else {
+      // No subservices - go directly to Order/Report modal
+      setIsOrderReportModalOpen(true);
+    }
 
     console.log("Service modal should be open now"); // Debug log
   };
@@ -277,42 +286,14 @@ const ServiceDashboard = () => {
     }
   };
 
-  const handleServiceNext = async () => {
-    if (selectedServiceIndex === null) return;
-
-    console.log("Service Next clicked, fetching subservices...");
-    setHasClickedServiceNext(true);
-    setHasClickedSubServiceNext(false); // Reset subservice flag
-
-    // Fetch sub-services for this service
-    const subServicesData = await fetchSubServices(selectedServiceIndex);
-    console.log("Subservices data:", subServicesData); // Debug log
-    setSubServices(subServicesData);
-
-    // Close service modal and open subservices modal
-    setIsServiceModalOpen(false);
-
-    // Check if subservices exist
-    if (subServicesData.length > 0) {
-      // Open subservices modal
-      setModalTitle(currentServices[selectedServiceIndex]?.title || "");
-      setModalSubtitle("Select sub-service or proceed to orders.");
-      setIsServiceModalOpen(true); // This will be the subservices modal
-    } else {
-      // No subservices - go directly to Order/Report modal
-      setIsOrderReportModalOpen(true);
-    }
-  };
 
   const handleSubServiceSelect = (subServiceIndex: number) => {
     console.log("Subservice selected:", subServices[subServiceIndex]?.title);
     setSelectedSubServiceIndex(subServiceIndex);
-    setHasClickedSubServiceNext(false); // Reset the flag when selecting a new subservice
   };
 
   const handleSubServiceNext = () => {
     console.log("Subservice Next clicked, proceeding to Order/Report...");
-    setHasClickedSubServiceNext(true);
 
     // If no subservices available or none selected, proceed with null subservice
     if (subServices.length === 0) {
@@ -351,11 +332,11 @@ const ServiceDashboard = () => {
     if (selectedService?.categoryId == "6" && action === "order") {
       let targetRoute = '';
 
-      if (selectedServiceIndex === 0) { // serviceIndex 1 (0-based array)
+      if (selectedServiceIndex == 0) { // serviceIndex 1 (0-based array)
         targetRoute = '/service-dashboard/category/6/service/1/action/order';
-      } else if (selectedServiceIndex === 1) { // serviceIndex 2 (0-based array)
+      } else if (selectedServiceIndex == 1) { // serviceIndex 2 (0-based array)
         targetRoute = '/service-dashboard/category/6/service/2/action/order';
-      } else if (selectedServiceIndex === 2) { // serviceIndex 3 (0-based array)
+      } else if (selectedServiceIndex == 2) { // serviceIndex 3 (0-based array)
         targetRoute = '/service-dashboard/category/6/service/3/action/order';
       }
 
@@ -391,8 +372,6 @@ const ServiceDashboard = () => {
     setSubServices([]);
     setCurrentServices([]);
     setActiveCategoryIndex(null);
-    setHasClickedServiceNext(false);
-    setHasClickedSubServiceNext(false);
     // Don't return to main modal, close everything
   };
 
@@ -403,8 +382,6 @@ const ServiceDashboard = () => {
     setSelectedSubServiceIndex(null);
     setCurrentServices([]);
     setActiveCategoryIndex(null);
-    setHasClickedServiceNext(false);
-    setHasClickedSubServiceNext(false);
     // Don't return to main modal, close everything
   };
 
@@ -600,17 +577,7 @@ const ServiceDashboard = () => {
                 return null;
               })()}
 
-              {!hasClickedServiceNext ? (
-                // Initial service selection view
-                <div className="rounded-2xl border border-gray-100 bg-[#f7f8fd] px-6 py-10 text-center text-sm text-gray-500">
-                  <p className="mb-4">
-                    Service selected: {currentServices[selectedServiceIndex || 0]?.title}
-                  </p>
-                  <p className="text-xs">
-                    Click Next to view sub-services or proceed to orders.
-                  </p>
-                </div>
-              ) : subServicesLoading ? (
+              {subServicesLoading ? (
                 <div className="grid gap-4 sm:grid-cols-2">
                   {[...Array(4)].map((_, index) => (
                     <div
@@ -624,16 +591,6 @@ const ServiceDashboard = () => {
                       </div>
                     </div>
                   ))}
-                </div>
-              ) : subServices.length > 0 && !hasClickedSubServiceNext ? (
-                // Subservice selection view
-                <div className="rounded-2xl border border-gray-100 bg-[#f7f8fd] px-6 py-10 text-center text-sm text-gray-500">
-                  <p className="mb-4">
-                    Subservices available: {subServices.length} options
-                  </p>
-                  <p className="text-xs">
-                    Click Next to view sub-services or proceed to orders.
-                  </p>
                 </div>
               ) : subServices.length > 0 ? (
                 <div className="grid gap-4 sm:grid-cols-2">
@@ -656,23 +613,14 @@ const ServiceDashboard = () => {
               ) : (
                 <div className="rounded-2xl border border-gray-100 bg-[#f7f8fd] px-6 py-10 text-center text-sm text-gray-500">
                   <p className="mb-4">
-                    No sub-services available for this service.
-                  </p>
-                  <p className="text-xs">
-                    Click Next to proceed to Order/Report selection.
+                    Loading sub-services...
                   </p>
                 </div>
               )}
 
               <ModalFooter
                 onCancel={handleCloseServiceModal}
-                onNext={
-                  !hasClickedServiceNext
-                    ? handleServiceNext
-                    : (subServices.length > 0 && !hasClickedSubServiceNext)
-                      ? () => setHasClickedSubServiceNext(true)
-                      : handleSubServiceNext
-                }
+                onNext={handleSubServiceNext}
                 nextDisabled={subServicesLoading}
                 nextLabel="Next"
               />

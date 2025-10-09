@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useTheme } from "../context/ThemeContext";
 import type { FC } from "react";
@@ -77,7 +77,26 @@ const getMenuItems = (t: any) => [
 const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
   const { theme, toggleTheme } = useTheme();
   const { t } = useTranslation();
+  const location = useLocation();
   const menuItems = getMenuItems(t);
+
+  // Custom function to check if a menu item should be active
+  const isMenuItemActive = (href: string, currentPath: string) => {
+    // Exact match
+    if (currentPath === href) return true;
+    
+    // Special case: Service detail pages should show Service Dashboard as active
+    if (href === "/service-dashboard" && (
+      currentPath.startsWith("/order-detail/") ||
+      currentPath.startsWith("/service2-detail/") ||
+      currentPath.startsWith("/service3-detail/") ||
+      currentPath.includes("/service-dashboard/")
+    )) {
+      return true;
+    }
+    
+    return false;
+  };
 
   return (
     <div
@@ -115,23 +134,26 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
               <li key={item.label}>
                 <NavLink
                   to={item.href}
-                  className={({ isActive }) =>
-                    clsx(
+                  className={() => {
+                    const isActive = isMenuItemActive(item.href, location.pathname);
+                    return clsx(
                       "group my-[6px] mx-0 p-3 rounded-[10px] flex items-center gap-2 transition-all duration-200 relative",
                       isActive ? "active-nav-item" : "inactive-nav-item"
-                    )
-                  }
-                  style={({ isActive }) => ({
-                    backgroundColor: isActive
-                      ? "var(--sidebar-hover)"
-                      : "transparent",
-                    color: isActive
-                      ? "var(--sidebar-hover-text)"
-                      : "var(--sidebar-text)",
-                  })}
+                    );
+                  }}
+                  style={() => {
+                    const isActive = isMenuItemActive(item.href, location.pathname);
+                    return {
+                      backgroundColor: isActive
+                        ? "var(--sidebar-hover)"
+                        : "transparent",
+                      color: isActive
+                        ? "var(--sidebar-hover-text)"
+                        : "var(--sidebar-text)",
+                    };
+                  }}
                   onMouseEnter={(e) => {
-                    const isActive =
-                      e.currentTarget.classList.contains("active-nav-item");
+                    const isActive = isMenuItemActive(item.href, location.pathname);
                     if (!isActive) {
                       e.currentTarget.style.backgroundColor =
                         "var(--sidebar-hover)";
@@ -139,38 +161,40 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
                     }
                   }}
                   onMouseLeave={(e) => {
-                    const isActive =
-                      e.currentTarget.classList.contains("active-nav-item");
+                    const isActive = isMenuItemActive(item.href, location.pathname);
                     if (!isActive) {
                       e.currentTarget.style.backgroundColor = "transparent";
                       e.currentTarget.style.color = "var(--sidebar-text)";
                     }
                   }}
                 >
-                  {({ isActive }) => (
-                    <>
-                      <img
-                        src={item.icon}
-                        alt=""
-                        className={clsx(
-                          "w-6 h-6 transition",
-                          isActive
-                            ? "filter brightness-0 saturate-100 invert-15 sepia-92 saturate-2087 hue-rotate-225 brightness-94 contrast-112"
-                            : ""
-                        )}
-                      />
-                      <span className="font-medium transition">
-                        {item.label}
-                      </span>
-                      {/* Active indicator */}
-                      {isActive && (
-                        <div
-                          className="absolute right-2 w-1 h-6 rounded-full"
-                          style={{ backgroundColor: "var(--accent-primary)" }}
+                  {() => {
+                    const isActive = isMenuItemActive(item.href, location.pathname);
+                    return (
+                      <>
+                        <img
+                          src={item.icon}
+                          alt=""
+                          className={clsx(
+                            "w-6 h-6 transition",
+                            isActive
+                              ? "filter brightness-0 saturate-100 invert-15 sepia-92 saturate-2087 hue-rotate-225 brightness-94 contrast-112"
+                              : ""
+                          )}
                         />
-                      )}
-                    </>
-                  )}
+                        <span className="font-medium transition">
+                          {item.label}
+                        </span>
+                        {/* Active indicator */}
+                        {isActive && (
+                          <div
+                            className="absolute right-2 w-1 h-6 rounded-full"
+                            style={{ backgroundColor: "var(--accent-primary)" }}
+                          />
+                        )}
+                      </>
+                    );
+                  }}
                 </NavLink>
               </li>
             ))}
