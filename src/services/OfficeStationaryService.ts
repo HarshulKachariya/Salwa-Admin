@@ -30,6 +30,42 @@ interface UpdateHealthMarketPlaceStatusParams {
   reason: string;
 }
 
+export interface DoctorUniformRecord {
+  requestId: number;
+  requestNumber: string;
+  orderTitle: string;
+  uniformType: string;
+  gender: string;
+  size: string;
+  color: string;
+  quantity: number;
+  contactPersonName: string;
+  contactPersonEmail: string;
+  country: string;
+  region: string;
+  city: string;
+  address: string;
+  statusId: number;
+  statusName: string;
+  createdDate: string;
+  updatedDate: string;
+  media?: string;
+  otherDetails?: string;
+  rentPeriod?: number;
+  rentValue?: number;
+  discountType?: number;
+  discountValue?: number;
+  serviceType?: string;
+  postOfficeBox?: string;
+  businessName?: string;
+  district?: string;
+  fdaApproved?: boolean;
+  isFridge?: boolean;
+  fireDepartmentLic?: string;
+  termAndCondition?: string;
+  postValidityTime?: number;
+}
+
 class OfficeStationaryService {
   /**
    * Get all office stationary data with pagination and search
@@ -164,6 +200,77 @@ class OfficeStationaryService {
     try {
       const res = await axiosInstance.get(
         `OfficeStationary/GetHealthMarketPlaceServiceByRequestNumber?requestNumber=${requestNumber}`
+      );
+      return successHandler(res);
+    } catch (error: any) {
+      return errorHandler(error);
+    }
+  };
+
+  /**
+   * Get all doctor uniform clothing records
+   * Uses the exact API endpoint: /api/OfficeStationary/GetDoctorUniformClothingGetAll
+   */
+  static GetDoctorUniformClothingGetAll = async (
+    params: OfficeStationaryParams = {}
+  ) => {
+    try {
+      const {
+        searchText = "",
+        pageNumber = 1,
+        pageSize = 10,
+        orderByColumn = "RequestId",
+        orderDirection = "DESC",
+      } = params;
+
+      // Build query parameters for GET request
+      const queryParams = new URLSearchParams({
+        searchText: searchText,
+        pageNumber: pageNumber.toString(),
+        pageSize: pageSize.toString(),
+        orderByColumn: orderByColumn,
+        orderDirection: orderDirection,
+      });
+
+      // Use GET request with query parameters
+      const res = await axiosInstance.get(
+        `OfficeStationary/GetDoctorUniformClothingGetAll?${queryParams.toString()}`
+      );
+      return {
+        success: true,
+        data: res.data,
+      };
+    } catch (error: any) {
+      return errorHandler(error);
+    }
+  };
+
+  /**
+   * Update doctor uniform clothing status
+   * Uses the exact API endpoint: /api/OfficeStationary/DoctorUniformClothingAdminApproveReject
+   */
+  static UpdateDoctorUniformClothingStatus = async (
+    data: UpdateHealthMarketPlaceStatusParams
+  ) => {
+    try {
+      const res = await axiosInstance.post(
+        `OfficeStationary/DoctorUniformClothingAdminApproveReject`,
+        data
+      );
+      return successHandler(res);
+    } catch (error: any) {
+      return errorHandler(error);
+    }
+  };
+
+  /**
+   * Get doctor uniform clothing by ID
+   * Uses the exact API endpoint: /api/OfficeStationary/GetDoctorUniformClothingGetById
+   */
+  static GetDoctorUniformClothingById = async (requestId: number) => {
+    try {
+      const res = await axiosInstance.get(
+        `OfficeStationary/GetDoctorUniformClothingGetById/${requestId}`
       );
       return successHandler(res);
     } catch (error: any) {

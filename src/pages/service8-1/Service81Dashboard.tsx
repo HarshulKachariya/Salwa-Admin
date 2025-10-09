@@ -6,7 +6,7 @@ import ComanTable, {
   type ActionButton,
   type SortState,
 } from "../../components/common/ComanTable";
-import IndividualClinicService from "../../services/IndividualClinicService";
+import MedicalGeneralServices from "../../services/MedicalGeneralServices";
 import { useToast } from "../../components/ToastProvider";
 import {
   getStatusBadgeClass,
@@ -15,41 +15,28 @@ import {
 } from "../../utils/statusEnum";
 
 interface DashboardRecord {
-  RequestId: number;
-  RequestNumber: string;
-  OrderTitle: string;
-  BuildingLicenseNumber: string;
-  MedicalLicenseNumber: string;
-  WorkingEmp: number;
-  ContactPersonName: string;
-  ContactEmail: string;
-  ClinicHours: string;
-  RentPeriod: number;
-  RentPeriodType: string;
-  ServiceType: string;
-  ProvideWith: string;
-  StatusId: number;
-  StatusName: string;
-  CreatedDate: string;
-  UpdatedDate: string;
-  CreatedBy: number;
-  UpdatedBy: number;
-  ClinicSiteId: number;
-  CategoryId: number;
-  SerevieceId: number;
-  ConfirmedFlag: boolean;
-  IsActive: boolean;
-  IsAdminApprove: boolean;
-  SterilizationEquipmentFlag: boolean;
-  OtherTermsAndCon: string;
-  Reason: string;
-  Media: string;
-  ValidityTime: number;
-  TransactionId: string | null;
-  Quotation: string | null;
-  DeletedBy: number | null;
-  DeletedDate: string | null;
-  RowNum: number;
+  id: number;
+  requestNumber: string;
+  orderTitle: string;
+  contactPersonName: string;
+  contactPersonEmail: string;
+  numberOfBags: number;
+  country: string;
+  region: string;
+  city: string;
+  district: string;
+  address: string;
+  nationalAddress: string;
+  latitude: number;
+  longitude: number;
+  mediaURL: string;
+  orderStatus: number;
+  eName: string;
+  categoryId: number;
+  serviceId: number;
+  isAdminApprove: string;
+  isTermCondition: boolean;
+  otherTermsAndCondition: string;
 }
 
 const Service81Dashboard = () => {
@@ -68,19 +55,18 @@ const Service81Dashboard = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
+
+
   // Fetch data from API
   const fetchDataFromAPI = async (): Promise<DashboardRecord[]> => {
     try {
       const response =
-        await IndividualClinicService.GetAllForAdminIndividualClinicServiceRequests(
+        await MedicalGeneralServices.GetAllMedicalGeneralServicesForAdmin(
           {
-            clinicSiteId: subserviceIndex
-              ? parseInt(subserviceIndex)
-              : undefined,
             pageNumber: pageNumber,
             pageSize: pageSize,
-            sortColumn: sortState.length > 0 ? sortState[0].key : "CreatedDate",
-            sortDirection:
+            orderByColumn: sortState.length > 0 ? sortState[0].key : "createdDate",
+            orderDirection:
               sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
           }
         );
@@ -96,7 +82,7 @@ const Service81Dashboard = () => {
         setTotalCount(totalCount);
         setTotalPages(calculatedTotalPages);
 
-        return responseData?.data || [];
+        return responseData || [];
       } else {
         throw new Error((response as any)?.message || "Failed to fetch data");
       }
@@ -138,9 +124,10 @@ const Service81Dashboard = () => {
     setPageNumber(1);
   };
 
-  const handlePublishAction = async (row: DashboardRecord) => {
+  // Handle approve action
+  const handleApproveAction = async (row: DashboardRecord) => {
     const confirmed = window.confirm(
-      `Are you sure you want to publish request ${row.RequestNumber}?\n\nThis action will make the request visible to other users.`
+      `Are you sure you want to approve request ${row.requestNumber}?`
     );
 
     if (!confirmed) {
@@ -150,17 +137,107 @@ const Service81Dashboard = () => {
     try {
       setLoading(true);
 
-      const response = await IndividualClinicService.UpdateStatus({
-        requestId: row.RequestId,
-        statusId: StatusEnum.PUBLISHED,
+      const response = await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
+        id: row.id,
+        newStatusId: StatusEnum.APPROVED,
+        requestNumber: row.requestNumber,
+        reason: "Request approved by admin",
+      });
+
+      if (response && response.success) {
+        const updatedData = await fetchDataFromAPI();
+        setRecords(updatedData);
+
+        showToast(
+          `Request ${row.requestNumber} has been approved successfully!`,
+          "success"
+        );
+      } else {
+        throw new Error(
+          (response as any)?.message || "Failed to approve request"
+        );
+      }
+    } catch (error) {
+      console.error("Error approving request:", error);
+      showToast(
+        `Failed to approve request ${row.requestNumber}. Please try again.`,
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle reject action
+  const handleRejectAction = async (row: DashboardRecord) => {
+    const reason = window.prompt(
+      `Please provide a reason for rejecting request ${row.requestNumber}:`
+    );
+
+    if (!reason || reason.trim() === "") {
+      showToast("Rejection reason is required", "error");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
+        id: row.id,
+        newStatusId: StatusEnum.REJECTED,
+        requestNumber: row.requestNumber,
+        reason: reason.trim(),
+      });
+
+      if (response && response.success) {
+        const updatedData = await fetchDataFromAPI();
+        setRecords(updatedData);
+
+        showToast(
+          `Request ${row.requestNumber} has been rejected successfully!`,
+          "success"
+        );
+      } else {
+        throw new Error(
+          (response as any)?.message || "Failed to reject request"
+        );
+      }
+    } catch (error) {
+      console.error("Error rejecting request:", error);
+      showToast(
+        `Failed to reject request ${row.requestNumber}. Please try again.`,
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handlePublishAction = async (row: DashboardRecord) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to publish request ${row.requestNumber}?\n\nThis action will make the request visible to other users.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
+        id: row.id,
+        newStatusId: StatusEnum.PUBLISHED,
+        requestNumber: row.requestNumber,
         reason: "Request published by admin",
       });
 
       if (response && response.success) {
-        await fetchDataFromAPI();
+        const updatedData = await fetchDataFromAPI();
+        setRecords(updatedData);
 
         showToast(
-          `Request ${row.RequestNumber} has been published successfully!`,
+          `Request ${row.requestNumber} has been published successfully!`,
           "success"
         );
       } else {
@@ -171,7 +248,7 @@ const Service81Dashboard = () => {
     } catch (error) {
       console.error("Error publishing request:", error);
       showToast(
-        `Failed to publish request ${row.RequestNumber}. Please try again.`,
+        `Failed to publish request ${row.requestNumber}. Please try again.`,
         "error"
       );
     } finally {
@@ -183,91 +260,85 @@ const Service81Dashboard = () => {
     {
       label: "Request Number",
       value: (row) => (
-        <span className="font-semibold text-primary">{row.RequestNumber}</span>
+        <span className="font-semibold text-primary">{row.requestNumber}</span>
       ),
-      sortKey: "RequestNumber",
+      sortKey: "requestNumber",
       isSort: true,
     },
     {
       label: "Order Title",
-      value: (row) => <span className="text-gray-700">{row.OrderTitle}</span>,
-      sortKey: "OrderTitle",
+      value: (row) => (
+        <span className="text-gray-700">{row.orderTitle}</span>
+      ),
+      sortKey: "orderTitle",
       isSort: true,
     },
     {
       label: "Contact Person",
       value: (row) => (
-        <span className="text-gray-500">{row.ContactPersonName}</span>
+        <span className="text-gray-500">{row.contactPersonName}</span>
       ),
-      sortKey: "ContactPersonName",
+      sortKey: "contactPersonName",
       isSort: true,
     },
     {
       label: "Contact Email",
-      value: (row) => <span className="text-gray-500">{row.ContactEmail}</span>,
-      sortKey: "ContactEmail",
-      isSort: true,
-    },
-    {
-      label: "Building License",
       value: (row) => (
-        <span className="text-gray-500">{row.BuildingLicenseNumber}</span>
+        <span className="text-gray-500">{row.contactPersonEmail}</span>
       ),
-      sortKey: "BuildingLicenseNumber",
+      sortKey: "contactPersonEmail",
       isSort: true,
     },
     {
-      label: "Medical License",
+      label: "Number of Bags",
       value: (row) => (
-        <span className="text-gray-500">{row.MedicalLicenseNumber}</span>
+        <span className="text-gray-500">{row.numberOfBags} Bags</span>
       ),
-      sortKey: "MedicalLicenseNumber",
+      sortKey: "numberOfBags",
       isSort: true,
     },
     {
-      label: "Working Employees",
-      value: (row) => <span className="text-gray-500">{row.WorkingEmp}</span>,
-      sortKey: "WorkingEmp",
-      isSort: true,
-    },
-    {
-      label: "Clinic Hours",
-      value: (row) => <span className="text-gray-500">{row.ClinicHours}</span>,
-      sortKey: "ClinicHours",
-      isSort: true,
-    },
-    {
-      label: "Rent Period",
+      label: "Country",
       value: (row) => (
-        <span className="text-gray-500">
-          {row.RentPeriod} {row.RentPeriodType}
+        <span className="text-gray-500">{row.country}</span>
+      ),
+      sortKey: "country",
+      isSort: true,
+    },
+    {
+      label: "Region",
+      value: (row) => (
+        <span className="text-gray-500">{row.region}</span>
+      ),
+      sortKey: "region",
+      isSort: true,
+    },
+    {
+      label: "City",
+      value: (row) => (
+        <span className="text-gray-500">{row.city}</span>
+      ),
+      sortKey: "city",
+      isSort: true,
+    },
+    {
+      label: "District",
+      value: (row) => (
+        <span className="text-gray-500">{row.district}</span>
+      ),
+      sortKey: "district",
+      isSort: true,
+    },
+    {
+      label: "Address",
+      value: (row) => (
+        <span className="text-gray-500" title={row.address}>
+          {row?.address?.length > 30
+            ? `${row.address.substring(0, 30)}...`
+            : row.address}
         </span>
       ),
-      sortKey: "RentPeriod",
-      isSort: true,
-    },
-    {
-      label: "Service Type",
-      value: (row) => <span className="text-gray-500">{row.ServiceType}</span>,
-      sortKey: "ServiceType",
-      isSort: true,
-    },
-    {
-      label: "Validity Time",
-      value: (row) => (
-        <span className="text-gray-500">{row.ValidityTime} days</span>
-      ),
-      sortKey: "ValidityTime",
-      isSort: true,
-    },
-    {
-      label: "Created Date",
-      value: (row) => (
-        <span className="text-gray-500">
-          {new Date(row.CreatedDate).toLocaleDateString()}
-        </span>
-      ),
-      sortKey: "CreatedDate",
+      sortKey: "address",
       isSort: true,
     },
     {
@@ -276,14 +347,14 @@ const Service81Dashboard = () => {
         return (
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-              row.StatusId
+              row.orderStatus
             )}`}
           >
-            {getStatusName(row.StatusId)}
+            {getStatusName(row.orderStatus)}
           </span>
         );
       },
-      sortKey: "StatusName",
+      sortKey: "orderStatus",
       isSort: true,
     },
   ];
@@ -293,15 +364,27 @@ const Service81Dashboard = () => {
       label: "View",
       iconType: "view",
       onClick: (row) => {
-        navigate(`/service8-1/${row.RequestId}`);
+        navigate(`/service8-1/${row.id}`);
       },
       isVisible: () => true,
+    },
+    {
+      label: "Approve",
+      iconType: "approve",
+      onClick: (row) => handleApproveAction(row),
+      isVisible: (row) => row.orderStatus === StatusEnum.PENDING,
+    },
+    {
+      label: "Reject",
+      iconType: "reject",
+      onClick: (row) => handleRejectAction(row),
+      isVisible: (row) => row.orderStatus === StatusEnum.PENDING,
     },
     {
       label: "Publish",
       iconType: "publish",
       onClick: (row) => handlePublishAction(row),
-      isVisible: (row) => row.StatusId === StatusEnum.APPROVED,
+      isVisible: (row) => row.orderStatus === StatusEnum.APPROVED,
     },
   ];
 
@@ -366,7 +449,7 @@ const Service81Dashboard = () => {
               </button>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Service 8-1 Dashboard
+              Medical General Services Dashboard
             </h1>
           </div>
         </header>

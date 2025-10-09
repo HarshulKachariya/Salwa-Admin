@@ -352,7 +352,7 @@ const NewDashboardPage = () => {
       iconType: "view",
       onClick: (row) => {
         // Navigate to service details page
-        navigate(`/subservices-details7/${row.RequestId}`);
+        navigate(`/subservices-details7/${row.RequestNumber}`);
       },
       isVisible: () => true, // Always visible
     },

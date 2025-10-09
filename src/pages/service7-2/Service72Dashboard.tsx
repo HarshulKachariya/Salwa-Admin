@@ -145,21 +145,13 @@ const Service72Dashboard = () => {
 
   // Handle publish action
   const handlePublishAction = async (row: DashboardRecord) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to publish request ${row.RequestNumber}?\n\nThis action will make the request visible to other users.`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setLoading(true);
 
       const response = await IndividualClinicService.UpdateStatus({
         requestId: row.RequestId,
         statusId: StatusEnum.PUBLISHED,
-        reason: "Request published by admin",
+        reason: "",
       });
 
       if (response && response.success) {

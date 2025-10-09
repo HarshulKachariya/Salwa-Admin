@@ -296,233 +296,207 @@ const SubServicesDetails7 = () => {
           </div>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Image Gallery and Details */}
-          <div className="space-y-6">
-            {/* Image Gallery */}
-            <div className="relative">
-              <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden">
-                <img
-                  src={images[currentImageIndex]}
-                  alt={`Service image ${currentImageIndex + 1}`}
-                  className="w-full h-full object-cover"
-                  onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "/img/hospital_img.jpg";
-                  }}
-                />
+        {/* First Section - Image Gallery */}
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="relative h-80 bg-gradient-to-br from-blue-50 to-indigo-100">
+              <img
+                src={images[currentImageIndex]}
+                alt={`Service image ${currentImageIndex + 1}`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = "/img/hospital_img.jpg";
+                }}
+              />
 
-                {/* Navigation Arrows */}
-                <button
-                  onClick={prevImage}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              </div>
+              {/* Navigation Arrows with new design */}
+              <button
+                onClick={prevImage}
+                className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-90 backdrop-blur-sm text-gray-700 p-3 rounded-full shadow-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-110"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 19l-7-7 7-7" />
+                </svg>
+              </button>
+              <button
+                onClick={nextImage}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-white bg-opacity-90 backdrop-blur-sm text-gray-700 p-3 rounded-full shadow-lg hover:bg-opacity-100 transition-all duration-200 hover:scale-110"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
 
-              {/* Thumbnail Images */}
-              <div className="flex gap-2 mt-4 overflow-x-auto">
+            {/* Thumbnail Images with new design */}
+            <div className="p-4 bg-gray-50">
+              <div className="flex gap-3 overflow-x-auto">
                 {images.map((image, index) => (
                   <button
                     key={index}
                     onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 ${
-                      index === currentImageIndex
-                        ? "border-primary"
-                        : "border-gray-200"
-                    }`}
+                    className={`flex-shrink-0 w-16 h-12 rounded-lg overflow-hidden border-2 transition-all duration-200 ${index === currentImageIndex
+                        ? "border-blue-500 shadow-md scale-105"
+                        : "border-gray-200 hover:border-gray-300"
+                      }`}
                   >
                     <img
                       src={image}
                       alt={`Thumbnail ${index + 1}`}
                       className="w-full h-full object-cover"
                       onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/img/hospital_img.jpg";
+                        (e.target as HTMLImageElement).src = "/img/hospital_img.jpg";
                       }}
                     />
                   </button>
                 ))}
               </div>
             </div>
+          </div>
+        </div>
 
-            {/* Order Details */}
-            <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                Order Title
+        {/* Second Section - Service Details */}
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-blue-600 to-indigo-600 px-6 py-4">
+              <h2 className="text-xl font-bold text-white flex items-center gap-3">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                Service Details
               </h2>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
+            </div>
+
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span className="text-gray-700">Jeddah, Saudi Arabia</span>
-                  <span className="ml-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    {serviceDetails.ValidityTime} Days Left
+                  <span className="text-gray-700 font-medium">Jeddah, Saudi Arabia</span>
+                </div>
+                <span className="bg-gradient-to-r from-green-400 to-green-500 text-white text-xs px-3 py-1 rounded-full font-semibold shadow-md">
+                  {serviceDetails.ValidityTime} Days Left
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm font-medium">Building License:</span>
+                      <span className="font-semibold text-gray-900">{serviceDetails.BuildingLicenseNumber}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm font-medium">Medical License:</span>
+                      <span className="font-semibold text-gray-900">{serviceDetails.MedicalLicenseNumber}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm font-medium">Contact Person:</span>
+                      <span className="font-semibold text-gray-900">{serviceDetails.ContactPersonName}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm font-medium">Email:</span>
+                      <span className="font-semibold text-gray-900 text-sm">{serviceDetails.ContactEmail}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm font-medium">Employees:</span>
+                      <span className="font-semibold text-gray-900">{serviceDetails.WorkingEmp}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm font-medium">FDA Number:</span>
+                      <span className="font-semibold text-gray-900">{serviceDetails.TransactionId || "N/A"}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm font-medium">Rent Period:</span>
+                      <span className="font-semibold text-gray-900">{serviceDetails.RentPeriod} {serviceDetails.RentPeriodType}</span>
+                    </div>
+                  </div>
+
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <div className="flex justify-between items-center">
+                      <span className="text-gray-600 text-sm font-medium">Clinic Hours:</span>
+                      <span className="font-semibold text-gray-900">{serviceDetails.ClinicHours}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 bg-blue-50 rounded-lg p-4">
+                <div className="flex justify-between items-center">
+                  <span className="text-gray-600 text-sm font-medium">Sterilization Equipment:</span>
+                  <span className={`font-semibold ${serviceDetails.SterilizationEquipmentFlag ? 'text-green-600' : 'text-red-600'}`}>
+                    {serviceDetails.SterilizationEquipmentFlag ? "Yes" : "No"}
                   </span>
                 </div>
+              </div>
 
-                <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Building Construction License Number:
-                    </span>
-                    <span className="font-medium">
-                      {serviceDetails.BuildingLicenseNumber}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Medical License Number for Building:
-                    </span>
-                    <span className="font-medium">
-                      {serviceDetails.MedicalLicenseNumber}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Contact Person Name:</span>
-                    <span className="font-medium">
-                      {serviceDetails.ContactPersonName}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Contact Person Email:</span>
-                    <span className="font-medium">
-                      {serviceDetails.ContactEmail}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Number of Employees on Worksite:
-                    </span>
-                    <span className="font-medium">
-                      {serviceDetails.WorkingEmp}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      FDA Registration Number:
-                    </span>
-                    <span className="font-medium">
-                      {serviceDetails.TransactionId || "N/A"}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Rent Period:</span>
-                    <span className="font-medium">
-                      {serviceDetails.RentPeriod}{" "}
-                      {serviceDetails.RentPeriodType}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Clinic Hours:</span>
-                    <span className="font-medium">
-                      {serviceDetails.ClinicHours}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Sterilization Equipment:
-                    </span>
-                    <span className="font-medium">
-                      {serviceDetails.SterilizationEquipmentFlag ? "Yes" : "No"}
-                    </span>
-                  </div>
-                </div>
-
-                {serviceDetails.OtherTermsAndCon && (
-                  <div className="mt-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">
-                      Terms & Conditions:
-                    </h3>
-                    <p className="text-gray-700 text-sm">
+              {serviceDetails.OtherTermsAndCon && (
+                <div className="mt-6">
+                  <h3 className="font-semibold text-gray-900 mb-3 flex items-center gap-2">
+                    <svg className="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Terms & Conditions
+                  </h3>
+                  <div className="bg-gray-50 rounded-lg p-4">
+                    <p className="text-gray-700 text-sm leading-relaxed">
                       {serviceDetails.OtherTermsAndCon}
                     </p>
                   </div>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
+        </div>
 
-          {/* Right Column - Map */}
-          <div className="space-y-6">
-            <div className="bg-white rounded-lg border border-gray-200 p-6 h-96">
-              <h3 className="text-lg font-semibold text-gray-900 mb-4">
+        {/* Third Section - Map */}
+        <div className="mb-8">
+          <div className="bg-white rounded-xl shadow-lg border border-gray-100 overflow-hidden">
+            <div className="bg-gradient-to-r from-green-600 to-emerald-600 px-6 py-4">
+              <h3 className="text-lg font-bold text-white flex items-center gap-3">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
                 Location
               </h3>
-              <div className="h-full bg-gray-100 rounded-lg flex items-center justify-center">
-                <div className="text-center">
-                  <svg
-                    className="w-16 h-16 text-gray-400 mx-auto mb-4"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
-                  </svg>
-                  <p className="text-gray-500 mb-2">Riyadh Medical Center</p>
-                  <p className="text-sm text-gray-400">
-                    123 Healthcare Avenue, Riyadh, MD 10001
-                  </p>
-                  <button className="mt-4 px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-gray-800 transition-colors">
+            </div>
+
+            <div className="p-6">
+              <div className="h-80 bg-gradient-to-br from-gray-100 to-gray-200 rounded-lg flex items-center justify-center relative overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-br from-blue-400/20 to-indigo-400/20"></div>
+                <div className="text-center relative z-10">
+                  <div className="bg-white rounded-full p-4 shadow-lg mb-4 mx-auto w-fit">
+                    <svg className="w-12 h-12 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                  </div>
+                  <p className="text-gray-700 font-semibold mb-1">Riyadh Medical Center</p>
+                  <p className="text-sm text-gray-500 mb-4">123 Healthcare Avenue, Riyadh, MD 10001</p>
+                  <button className="px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg text-sm font-semibold shadow-lg hover:from-blue-700 hover:to-indigo-700 transition-all duration-200 transform hover:scale-105">
                     Redirect to location
                   </button>
                 </div>

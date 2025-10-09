@@ -1,64 +1,44 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../layouts/DashboardLayout";
-import IndividualClinicService from "../../services/IndividualClinicService";
+import IndividualMedicalWarehouseService from "../../services/IndividualMedicalWarehouseService";
 import { useToast } from "../../components/ToastProvider";
 import {
   getStatusBadgeClass,
   getStatusName,
   StatusEnum,
 } from "../../utils/statusEnum";
+import IndividualClinicService from "../../services/IndividualClinicService";
 
 interface ServiceDetails {
-  RequestId: number;
-  RequestNumber: string;
-  OrderTitle: string;
-  BuildingLicenseNumber: string;
-  MedicalLicenseNumber: string;
-  WorkingEmp: number;
-  ContactPersonName: string;
-  ContactEmail: string;
-  ClinicHours: string;
-  RentPeriod: number;
-  RentPeriodType: string;
-  ServiceType: string;
-  ProvideWith: string;
-  StatusId: number;
-  StatusName: string;
-  CreatedDate: string;
-  UpdatedDate: string;
-  CreatedBy: number;
-  UpdatedBy: number;
-  ClinicSiteId: number;
-  CategoryId: number;
-  SerevieceId: number;
-  ConfirmedFlag: boolean;
-  IsActive: boolean;
-  IsAdminApprove: boolean;
-  SterilizationEquipmentFlag: boolean;
-  OtherTermsAndCon: string;
-  Reason: string;
-  Media: string;
-  ValidityTime: number;
-  TransactionId: string | null;
-  Quotation: string | null;
-  DeletedBy: number | null;
-  DeletedDate: string | null;
-  RowNum: number;
-  Address?: string;
-  City?: string;
-  Region?: string;
-  Country?: string;
+  requestId: number;
+  requestNumber: string;
+  orderTitle: string;
+  orderType: number;
+  quantity: number;
+  contactPersonEmail: string;
+  country: string;
+  region: string;
+  city: string;
+  businessName: string;
+  address: string;
+  district: string;
+  statusId: number;
+  media: string;
+  fdaApproved: boolean;
+  isFridge: boolean;
+  fireDepartmentLic: string;
+  termAndCondition: string;
+  rentPeriod: number;
+  rentValue: number;
+  discountType: number;
+  discountValue: number;
+  serviceType: string;
+  contactPersonName: string;
+  postOfficeBox: string;
+  otherDetails: string;
+  postValidityTime: number;
 }
-
-// Sample images for carousel
-const sampleImages = [
-  "/img/hospital_img.jpg",
-  "/img/hospital_img (2).jpg",
-  "/img/hospital_img (3).jpg",
-  "/img/hospital_img (4).jpg",
-  "/img/hospital_img (5).jpg",
-];
 
 const Service72Details = () => {
   const { id } = useParams<{ id: string }>();
@@ -70,8 +50,8 @@ const Service72Details = () => {
   );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [images, setImages] = useState<string[]>(sampleImages);
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
 
   // Fetch service details
   const fetchServiceDetails = async () => {
@@ -86,24 +66,43 @@ const Service72Details = () => {
       setError(null);
 
       const response: any =
-        await IndividualClinicService.GetIndividualClinicServiceRequestById(
-          parseInt(id)
-        );
+        await IndividualMedicalWarehouseService.GetWarehouseById(parseInt(id));
 
-      if (response && response.success) {
-        setServiceDetails(response.data);
+      if (response && response.success && response.data) {
+        const warehouseData = Array.isArray(response.data) ? response.data[0] : response.data;
 
-        // If API returns media/images, use them; otherwise use sample images
-        if (response.data.Media) {
-          try {
-            const mediaUrls = JSON.parse(response.data.Media);
-            if (Array.isArray(mediaUrls) && mediaUrls.length > 0) {
-              setImages(mediaUrls);
-            }
-          } catch (e) {
-            console.log("Could not parse media, using sample images");
-          }
-        }
+        // Transform API data to match our ServiceDetails interface
+        const transformedData: ServiceDetails = {
+          requestId: warehouseData.requestId,
+          requestNumber: warehouseData.requestNumber,
+          orderTitle: warehouseData.orderTitle,
+          orderType: warehouseData.orderType,
+          quantity: warehouseData.quantity,
+          contactPersonEmail: warehouseData.contactPersonEmail,
+          country: warehouseData.country || "N/A",
+          region: warehouseData.region || "N/A",
+          city: warehouseData.city || "N/A",
+          businessName: warehouseData.businessName || "N/A",
+          address: warehouseData.address || "N/A",
+          district: warehouseData.district || "N/A",
+          statusId: warehouseData.statusId,
+          media: warehouseData.media,
+          fdaApproved: warehouseData.fdaApproved,
+          isFridge: warehouseData.isFridge,
+          fireDepartmentLic: warehouseData.fireDepartmentLic,
+          termAndCondition: warehouseData.termAndCondition,
+          rentPeriod: warehouseData.rentPeriod,
+          rentValue: warehouseData.rentValue,
+          discountType: warehouseData.discountType,
+          discountValue: warehouseData.discountValue,
+          serviceType: warehouseData.serviceType,
+          contactPersonName: warehouseData.contactPersonName,
+          postOfficeBox: warehouseData.postOfficeBox,
+          otherDetails: warehouseData.otherDetails,
+          postValidityTime: warehouseData.postValidityTime,
+        };
+
+        setServiceDetails(transformedData);
       } else {
         throw new Error(
           (response as any)?.message || "Failed to fetch service details"
@@ -122,41 +121,27 @@ const Service72Details = () => {
     fetchServiceDetails();
   }, [id, showToast]);
 
-  // Image carousel navigation
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
-
   // Handle approve action
   const handleApprove = async () => {
     if (!serviceDetails) return;
-
-    const confirmed = window.confirm(
-      `Are you sure you want to approve request ${serviceDetails.RequestNumber}?`
-    );
-
-    if (!confirmed) return;
 
     try {
       setLoading(true);
 
       const response = await IndividualClinicService.UpdateStatus({
-        requestId: serviceDetails.RequestId,
+        requestId: serviceDetails.requestId,
         statusId: StatusEnum.APPROVED,
-        reason: "Request approved by admin",
+        reason: "",
       });
 
       if (response && response.success) {
-        await fetchServiceDetails();
-
         showToast(
-          `Request ${serviceDetails.RequestNumber} has been approved successfully!`,
+          `Request ${serviceDetails.requestNumber} has been approved successfully!`,
           "success"
         );
+
+        // Refresh the data after successful approve
+        await fetchServiceDetails();
       } else {
         throw new Error(
           (response as any)?.message || "Failed to approve request"
@@ -165,7 +150,7 @@ const Service72Details = () => {
     } catch (error) {
       console.error("Error approving request:", error);
       showToast(
-        `Failed to approve request ${serviceDetails.RequestNumber}. Please try again.`,
+        `Failed to approve request ${serviceDetails.requestNumber}. Please try again.`,
         "error"
       );
     } finally {
@@ -173,32 +158,36 @@ const Service72Details = () => {
     }
   };
 
-  // Handle reject action
-  const handleReject = async () => {
-    if (!serviceDetails) return;
+  // Handle reject action - open modal
+  const handleReject = () => {
+    setShowRejectModal(true);
+  };
 
-    const confirmed = window.confirm(
-      `Are you sure you want to reject request ${serviceDetails.RequestNumber}?`
-    );
-
-    if (!confirmed) return;
+  // Handle reject submit - actually reject with reason
+  const handleRejectSubmit = async () => {
+    if (!serviceDetails || !rejectionReason.trim()) return;
 
     try {
       setLoading(true);
 
       const response = await IndividualClinicService.UpdateStatus({
-        requestId: serviceDetails.RequestId,
+        requestId: serviceDetails.requestId,
         statusId: StatusEnum.REJECTED,
-        reason: "Request rejected by admin",
+        reason: rejectionReason.trim(),
       });
 
       if (response && response.success) {
-        await fetchServiceDetails();
+        // Close modal and reset reason
+        setShowRejectModal(false);
+        setRejectionReason("");
 
         showToast(
-          `Request ${serviceDetails.RequestNumber} has been rejected`,
+          `Request ${serviceDetails.requestNumber} has been rejected`,
           "success"
         );
+
+        // Refresh the data after successful reject
+        await fetchServiceDetails();
       } else {
         throw new Error(
           (response as any)?.message || "Failed to reject request"
@@ -207,12 +196,18 @@ const Service72Details = () => {
     } catch (error) {
       console.error("Error rejecting request:", error);
       showToast(
-        `Failed to reject request ${serviceDetails.RequestNumber}. Please try again.`,
+        `Failed to reject request ${serviceDetails.requestNumber}. Please try again.`,
         "error"
       );
     } finally {
       setLoading(false);
     }
+  };
+
+  // Handle reject cancel - close modal
+  const handleRejectCancel = () => {
+    setShowRejectModal(false);
+    setRejectionReason("");
   };
 
   if (loading) {
@@ -284,209 +279,118 @@ const Service72Details = () => {
                 <div className="h-6 w-px bg-gray-300"></div>
                 <span
                   className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-                    serviceDetails.StatusId
+                    serviceDetails.statusId
                   )}`}
                 >
-                  {getStatusName(serviceDetails.StatusId)}
+                  {getStatusName(serviceDetails.statusId)}
                 </span>
               </div>
             </div>
           </div>
         </header>
 
+        {/* Company Details Section */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          {/* Left Column - Image Gallery and Details */}
+          {/* Left Column - Company Information */}
           <div className="space-y-6">
-            {/* Image Gallery */}
-            <div className="relative">
-              <div className="relative h-96 bg-gray-100 rounded-lg overflow-hidden">
+            {/* Company Image */}
+            <div className="bg-white rounded-lg border border-gray-200 p-6">
+              <div className="relative h-64 bg-gray-100 rounded-lg overflow-hidden flex items-center justify-center">
                 <img
-                  src={images[currentImageIndex]}
-                  alt={`Service image ${currentImageIndex + 1}`}
+                  src={serviceDetails.media ? `https://apisalwa.rushkarprojects.in/${serviceDetails.media}` : "/img/pallet_img.png"}
+                  alt="Company Image"
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src =
-                      "/img/hospital_img.jpg";
+                    (e.target as HTMLImageElement).src = "/img/warehouse (1).png";
                   }}
                 />
-
-                {/* Navigation Arrows */}
-                <button
-                  onClick={prevImage}
-                  className="absolute left-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 19l-7-7 7-7"
-                    />
-                  </svg>
-                </button>
-                <button
-                  onClick={nextImage}
-                  className="absolute right-4 top-1/2 transform -translate-y-1/2 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-all"
-                >
-                  <svg
-                    className="w-6 h-6"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M9 5l7 7-7 7"
-                    />
-                  </svg>
-                </button>
-              </div>
-
-              {/* Thumbnail Images */}
-              <div className="flex gap-2 mt-4 overflow-x-auto">
-                {images.map((image, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setCurrentImageIndex(index)}
-                    className={`flex-shrink-0 w-20 h-16 rounded-lg overflow-hidden border-2 ${
-                      index === currentImageIndex
-                        ? "border-primary"
-                        : "border-gray-200"
-                    }`}
-                  >
-                    <img
-                      src={image}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="w-full h-full object-cover"
-                      onError={(e) => {
-                        (e.target as HTMLImageElement).src =
-                          "/img/hospital_img.jpg";
-                      }}
-                    />
-                  </button>
-                ))}
               </div>
             </div>
 
-            {/* Order Details */}
+            {/* Company Information */}
             <div className="bg-white rounded-lg border border-gray-200 p-6">
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
-                {serviceDetails.OrderTitle}
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                {serviceDetails.businessName || "Company Name"}
               </h2>
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <svg
-                    className="w-5 h-5 text-gray-500"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
-                    />
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
-                    />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-2 text-gray-600">
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
                   </svg>
-                  <span className="text-gray-700">Jeddah, Saudi Arabia</span>
-                  <span className="ml-auto bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                    {serviceDetails.ValidityTime} Days Left
+                  <span className="text-gray-700">{serviceDetails.city || "N/A"}, {serviceDetails.country || "Saudi Arabia"}</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <svg className="w-5 h-5 text-red-500" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                  </svg>
+                  <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
+                    {serviceDetails.postValidityTime || 30} Days Left
                   </span>
                 </div>
+              </div>
 
+              {/* Key Details */}
+              <div className="mb-6">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Key Details:</h3>
                 <div className="space-y-3">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Request Number:</span>
-                    <span className="font-medium">
-                      {serviceDetails.RequestNumber}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-gray-700">
+                      <strong>Fridge:</strong> {serviceDetails.isFridge ? "Yes" : "No"}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Building License Number:
-                    </span>
-                    <span className="font-medium">
-                      {serviceDetails.BuildingLicenseNumber}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-gray-700">
+                      <strong>FDA Approved:</strong> {serviceDetails.fdaApproved ? "Yes" : "No"}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Medical License Number:
-                    </span>
-                    <span className="font-medium">
-                      {serviceDetails.MedicalLicenseNumber}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-gray-700">
+                      <strong>Fire Department License:</strong> {serviceDetails.fireDepartmentLic || "N/A"}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Contact Person:</span>
-                    <span className="font-medium">
-                      {serviceDetails.ContactPersonName}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-gray-700">
+                      <strong>Order Type:</strong> {serviceDetails.orderType || "N/A"}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Contact Email:</span>
-                    <span className="font-medium">
-                      {serviceDetails.ContactEmail}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-gray-700">
+                      <strong>Quantity:</strong> {serviceDetails.quantity || "N/A"}
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Working Employees:</span>
-                    <span className="font-medium">
-                      {serviceDetails.WorkingEmp}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-gray-700">
+                      <strong>Rent Period:</strong> {serviceDetails.rentPeriod || "N/A"} months
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Rent Period:</span>
-                    <span className="font-medium">
-                      {serviceDetails.RentPeriod}{" "}
-                      {serviceDetails.RentPeriodType}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-gray-700">
+                      <strong>Rent Value:</strong> {serviceDetails.rentValue || "N/A"} SAR
                     </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Clinic Hours:</span>
-                    <span className="font-medium">
-                      {serviceDetails.ClinicHours}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Service Type:</span>
-                    <span className="font-medium">
-                      {serviceDetails.ServiceType}
-                    </span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">
-                      Sterilization Equipment:
-                    </span>
-                    <span className="font-medium">
-                      {serviceDetails.SterilizationEquipmentFlag ? "Yes" : "No"}
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
+                    <span className="text-gray-700">
+                      <strong>Contact Person:</strong> {serviceDetails.contactPersonName || "N/A"}
                     </span>
                   </div>
                 </div>
+              </div>
 
-                {serviceDetails.OtherTermsAndCon && (
-                  <div className="mt-4">
-                    <h3 className="font-semibold text-gray-900 mb-2">
-                      Terms & Conditions:
-                    </h3>
-                    <p className="text-gray-700 text-sm">
-                      {serviceDetails.OtherTermsAndCon}
-                    </p>
-                  </div>
-                )}
+              {/* Terms & Conditions */}
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">Terms & Condition:</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  {serviceDetails.termAndCondition || "No terms and conditions provided."}
+                </p>
               </div>
             </div>
           </div>
@@ -518,9 +422,12 @@ const Service72Details = () => {
                       d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                     />
                   </svg>
-                  <p className="text-gray-500 mb-2">Riyadh Medical Center</p>
+                  <p className="text-gray-500 mb-2">{serviceDetails.businessName || "Medical Center"}</p>
                   <p className="text-sm text-gray-400">
-                    123 Healthcare Avenue, Riyadh, MD 10001
+                    {serviceDetails.address || "Address not provided"}
+                    {serviceDetails.district && `, ${serviceDetails.district}`}
+                    {serviceDetails.city && `, ${serviceDetails.city}`}
+                    {serviceDetails.country && `, ${serviceDetails.country}`}
                   </p>
                   <button className="mt-4 px-4 py-2 bg-black text-white rounded-md text-sm hover:bg-gray-800 transition-colors">
                     Redirect to location
@@ -531,31 +438,68 @@ const Service72Details = () => {
           </div>
         </div>
 
-        {/* Action Buttons */}
-        <div className="mt-8 flex justify-center gap-4">
-          <button
-            onClick={handleReject}
-            disabled={
-              loading || serviceDetails.StatusId === StatusEnum.REJECTED
-            }
-            className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Reject
-          </button>
-          <button
-            onClick={handleApprove}
-            disabled={
-              loading || serviceDetails.StatusId === StatusEnum.APPROVED
-            }
-            className="px-8 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            Approve
-          </button>
-        </div>
+        {/* Action Buttons - Only show when status is PENDING */}
+        {serviceDetails.statusId === StatusEnum.PENDING && (
+          <div className="mt-8 flex justify-center gap-4">
+            <button
+              onClick={handleReject}
+              disabled={loading}
+              className="px-8 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Reject
+            </button>
+            <button
+              onClick={handleApprove}
+              disabled={loading}
+              className="px-8 py-3 bg-black text-white rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Approve
+            </button>
+          </div>
+        )}
+
+        {/* Rejection Modal */}
+        {showRejectModal && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-gray-900">Reason for Cancellation</h3>
+                <button
+                  onClick={handleRejectCancel}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              <div className="mb-6">
+                <label className="block text-sm font-medium text-gray-700 mb-2">
+                  Reason*
+                </label>
+                <textarea
+                  value={rejectionReason}
+                  onChange={(e) => setRejectionReason(e.target.value)}
+                  placeholder="Please provide the reason for rejection..."
+                  className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
+                  required
+                />
+              </div>
+              <div className="flex justify-center">
+                <button
+                  onClick={handleRejectSubmit}
+                  disabled={loading || !rejectionReason.trim()}
+                  className="px-8 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {loading ? "Processing..." : "Send"}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
 };
 
 export default Service72Details;
-

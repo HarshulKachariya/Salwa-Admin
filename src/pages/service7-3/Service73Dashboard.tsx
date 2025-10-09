@@ -6,7 +6,7 @@ import ComanTable, {
   type ActionButton,
   type SortState,
 } from "../../components/common/ComanTable";
-import IndividualClinicService from "../../services/IndividualClinicService";
+import MedicalRealEstateService from "../../services/MedicalRealEstateService";
 import { useToast } from "../../components/ToastProvider";
 import {
   getStatusBadgeClass,
@@ -15,41 +15,50 @@ import {
 } from "../../utils/statusEnum";
 
 interface DashboardRecord {
-  RequestId: number;
-  RequestNumber: string;
-  OrderTitle: string;
-  BuildingLicenseNumber: string;
-  MedicalLicenseNumber: string;
-  WorkingEmp: number;
-  ContactPersonName: string;
-  ContactEmail: string;
-  ClinicHours: string;
-  RentPeriod: number;
-  RentPeriodType: string;
-  ServiceType: string;
-  ProvideWith: string;
-  StatusId: number;
-  StatusName: string;
-  CreatedDate: string;
-  UpdatedDate: string;
-  CreatedBy: number;
-  UpdatedBy: number;
-  ClinicSiteId: number;
-  CategoryId: number;
-  SerevieceId: number;
-  ConfirmedFlag: boolean;
-  IsActive: boolean;
-  IsAdminApprove: boolean;
-  SterilizationEquipmentFlag: boolean;
-  OtherTermsAndCon: string;
-  Reason: string;
-  Media: string;
-  ValidityTime: number;
-  TransactionId: string | null;
-  Quotation: string | null;
-  DeletedBy: number | null;
-  DeletedDate: string | null;
-  RowNum: number;
+  requestId: number;
+  categoryId: number;
+  serviceId: number;
+  propertyCategory: string;
+  transactionAction: string;
+  governmentRegistrationLandNumber: string;
+  type: string;
+  ownerName: string;
+  unifiedNationalNumber: string;
+  propertyType: string;
+  period: string;
+  rentValue: number;
+  internetFiberOptic: boolean;
+  electricityService: boolean;
+  sewageService: boolean;
+  waterService: boolean;
+  telephoneInternetService: boolean;
+  landSizeSqMeter: number;
+  numberOfStreets: number;
+  buildingConstructionLicense: boolean;
+  landSoilTestsCompleted: boolean;
+  locationId: number;
+  mediaFilePath: string;
+  mediaFilesArray: any;
+  isTermCondition: boolean;
+  serviceType: string;
+  statusId: number;
+  createdBy: number;
+  createdDate: string;
+  updatedBy: number;
+  updatedDate: string;
+  deletedBy: number | null;
+  deletedDate: string | null;
+  isActive: boolean;
+  country: string;
+  region: string;
+  city: string;
+  district: string;
+  nationalAddress: string;
+  address: string;
+  latitude: string;
+  longitude: string;
+  isAdminApprove: boolean | null;
+  businessName: string | null;
 }
 
 const Service73Dashboard = () => {
@@ -72,15 +81,12 @@ const Service73Dashboard = () => {
   const fetchDataFromAPI = async (): Promise<DashboardRecord[]> => {
     try {
       const response =
-        await IndividualClinicService.GetAllForAdminIndividualClinicServiceRequests(
+        await MedicalRealEstateService.GetAllMedicalRealEstateServices(
           {
-            clinicSiteId: subserviceIndex
-              ? parseInt(subserviceIndex)
-              : undefined,
             pageNumber: pageNumber,
             pageSize: pageSize,
-            sortColumn: sortState.length > 0 ? sortState[0].key : "CreatedDate",
-            sortDirection:
+            orderByColumn: sortState.length > 0 ? sortState[0].key : "CreatedDate",
+            orderDirection:
               sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
           }
         );
@@ -143,10 +149,10 @@ const Service73Dashboard = () => {
     setPageNumber(1);
   };
 
-  // Handle publish action
-  const handlePublishAction = async (row: DashboardRecord) => {
+  // Handle approve action
+  const handleApproveAction = async (row: DashboardRecord) => {
     const confirmed = window.confirm(
-      `Are you sure you want to publish request ${row.RequestNumber}?\n\nThis action will make the request visible to other users.`
+      `Are you sure you want to approve request ${row.requestId}?`
     );
 
     if (!confirmed) {
@@ -156,18 +162,109 @@ const Service73Dashboard = () => {
     try {
       setLoading(true);
 
-      const response = await IndividualClinicService.UpdateStatus({
-        requestId: row.RequestId,
-        statusId: StatusEnum.PUBLISHED,
+      const response = await MedicalRealEstateService.MedicalRealEstateServicesAdminApproveReject({
+        requestId: row.requestId,
+        newStatusId: StatusEnum.APPROVED,
+        requestNumber: row.requestId.toString(),
+        reason: "Request approved by admin",
+      });
+
+      if (response && response.success) {
+        const updatedData = await fetchDataFromAPI();
+        setRecords(updatedData);
+
+        showToast(
+          `Request ${row.requestId} has been approved successfully!`,
+          "success"
+        );
+      } else {
+        throw new Error(
+          (response as any)?.message || "Failed to approve request"
+        );
+      }
+    } catch (error) {
+      console.error("Error approving request:", error);
+      showToast(
+        `Failed to approve request ${row.requestId}. Please try again.`,
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle reject action
+  const handleRejectAction = async (row: DashboardRecord) => {
+    const reason = window.prompt(
+      `Please provide a reason for rejecting request ${row.requestId}:`
+    );
+
+    if (!reason || reason.trim() === "") {
+      showToast("Rejection reason is required", "error");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await MedicalRealEstateService.MedicalRealEstateServicesAdminApproveReject({
+        requestId: row.requestId,
+        newStatusId: StatusEnum.REJECTED,
+        requestNumber: row.requestId.toString(),
+        reason: reason.trim(),
+      });
+
+      if (response && response.success) {
+        const updatedData = await fetchDataFromAPI();
+        setRecords(updatedData);
+
+        showToast(
+          `Request ${row.requestId} has been rejected successfully!`,
+          "success"
+        );
+      } else {
+        throw new Error(
+          (response as any)?.message || "Failed to reject request"
+        );
+      }
+    } catch (error) {
+      console.error("Error rejecting request:", error);
+      showToast(
+        `Failed to reject request ${row.requestId}. Please try again.`,
+        "error"
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Handle publish action
+  const handlePublishAction = async (row: DashboardRecord) => {
+    const confirmed = window.confirm(
+      `Are you sure you want to publish request ${row.requestId}?\n\nThis action will make the request visible to other users.`
+    );
+
+    if (!confirmed) {
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const response = await MedicalRealEstateService.MedicalRealEstateServicesAdminApproveReject({
+        requestId: row.requestId,
+        newStatusId: StatusEnum.PUBLISHED,
+        requestNumber: row.requestId.toString(), // Using requestId as requestNumber since we don't have a separate requestNumber field
         reason: "Request published by admin",
       });
 
       if (response && response.success) {
         // Refetch the data to get updated information
-        await fetchDataFromAPI();
+        const updatedData = await fetchDataFromAPI();
+        setRecords(updatedData);
 
         showToast(
-          `Request ${row.RequestNumber} has been published successfully!`,
+          `Request ${row.requestId} has been published successfully!`,
           "success"
         );
       } else {
@@ -178,7 +275,7 @@ const Service73Dashboard = () => {
     } catch (error) {
       console.error("Error publishing request:", error);
       showToast(
-        `Failed to publish request ${row.RequestNumber}. Please try again.`,
+        `Failed to publish request ${row.requestId}. Please try again.`,
         "error"
       );
     } finally {
@@ -189,93 +286,110 @@ const Service73Dashboard = () => {
   // Table columns configuration
   const tableColumns: TableColumn<DashboardRecord>[] = [
     {
-      label: "Request Number",
+      label: "Request ID",
       value: (row) => (
-        <span className="font-semibold text-primary">{row.RequestNumber}</span>
+        <span className="font-semibold text-primary">{row.requestId}</span>
       ),
-      sortKey: "RequestNumber",
+      sortKey: "requestId",
       isSort: true,
     },
     {
-      label: "Order Title",
-      value: (row) => <span className="text-gray-700">{row.OrderTitle}</span>,
-      sortKey: "OrderTitle",
+      label: "Owner Name",
+      value: (row) => <span className="text-gray-700">{row.ownerName}</span>,
+      sortKey: "ownerName",
       isSort: true,
     },
     {
-      label: "Contact Person",
+      label: "Property Type",
       value: (row) => (
-        <span className="text-gray-500">{row.ContactPersonName}</span>
+        <span className="text-gray-500">{row.propertyType}</span>
       ),
-      sortKey: "ContactPersonName",
+      sortKey: "propertyType",
       isSort: true,
     },
     {
-      label: "Contact Email",
-      value: (row) => <span className="text-gray-500">{row.ContactEmail}</span>,
-      sortKey: "ContactEmail",
-      isSort: true,
-    },
-    {
-      label: "Building License",
+      label: "Rent Value",
       value: (row) => (
-        <span className="text-gray-500">{row.BuildingLicenseNumber}</span>
-      ),
-      sortKey: "BuildingLicenseNumber",
-      isSort: true,
-    },
-    {
-      label: "Medical License",
-      value: (row) => (
-        <span className="text-gray-500">{row.MedicalLicenseNumber}</span>
-      ),
-      sortKey: "MedicalLicenseNumber",
-      isSort: true,
-    },
-    {
-      label: "Working Employees",
-      value: (row) => <span className="text-gray-500">{row.WorkingEmp}</span>,
-      sortKey: "WorkingEmp",
-      isSort: true,
-    },
-    {
-      label: "Clinic Hours",
-      value: (row) => <span className="text-gray-500">{row.ClinicHours}</span>,
-      sortKey: "ClinicHours",
-      isSort: true,
-    },
-    {
-      label: "Rent Period",
-      value: (row) => (
-        <span className="text-gray-500">
-          {row.RentPeriod} {row.RentPeriodType}
+        <span className="text-gray-500 font-semibold">
+          {row.rentValue.toFixed(2)} SAR
         </span>
       ),
-      sortKey: "RentPeriod",
+      sortKey: "rentValue",
       isSort: true,
     },
     {
-      label: "Service Type",
-      value: (row) => <span className="text-gray-500">{row.ServiceType}</span>,
-      sortKey: "ServiceType",
-      isSort: true,
-    },
-    {
-      label: "Validity Time",
+      label: "Period",
       value: (row) => (
-        <span className="text-gray-500">{row.ValidityTime} days</span>
+        <span className="text-gray-500">{row.period}</span>
       ),
-      sortKey: "ValidityTime",
+      sortKey: "period",
+      isSort: true,
+    },
+    {
+      label: "Land Size",
+      value: (row) => (
+        <span className="text-gray-500">{row.landSizeSqMeter} sq m</span>
+      ),
+      sortKey: "landSizeSqMeter",
+      isSort: true,
+    },
+    {
+      label: "Location",
+      value: (row) => (
+        <span className="text-gray-500">
+          {row.city}, {row.region}
+        </span>
+      ),
+      sortKey: "city",
+      isSort: true,
+    },
+    {
+      label: "Address",
+      value: (row) => (
+        <span className="text-gray-500" title={row.address}>
+          {row.address.length > 30
+            ? `${row.address.substring(0, 30)}...`
+            : row.address}
+        </span>
+      ),
+      sortKey: "address",
+      isSort: true,
+    },
+    {
+      label: "Services",
+      value: (row) => {
+        const services = [];
+        if (row.electricityService) services.push("Electricity");
+        if (row.waterService) services.push("Water");
+        if (row.sewageService) services.push("Sewage");
+        if (row.internetFiberOptic) services.push("Internet");
+        if (row.telephoneInternetService) services.push("Telephone");
+
+        return (
+          <span className="text-gray-500">
+            {services.length > 0 ? services.join(", ") : "None"}
+          </span>
+        );
+      },
+      sortKey: "electricityService",
+      isSort: false,
+    },
+    {
+      label: "Government Registration",
+      value: (row) => (
+        <span className="text-gray-500">{row.governmentRegistrationLandNumber}</span>
+      ),
+      sortKey: "governmentRegistrationLandNumber",
       isSort: true,
     },
     {
       label: "Created Date",
       value: (row) => (
         <span className="text-gray-500">
-          {new Date(row.CreatedDate).toLocaleDateString()}
+          {new Date(row.createdDate).toLocaleDateString()}
         </span>
       ),
-      sortKey: "CreatedDate",
+      sortKey: "createdDate",
       isSort: true,
     },
     {
@@ -284,14 +398,14 @@ const Service73Dashboard = () => {
         return (
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-              row.StatusId
+              row.statusId
             )}`}
           >
-            {getStatusName(row.StatusId)}
+            {getStatusName(row.statusId)}
           </span>
         );
       },
-      sortKey: "StatusName",
+      sortKey: "statusId",
       isSort: true,
     },
   ];
@@ -302,15 +416,27 @@ const Service73Dashboard = () => {
       label: "View",
       iconType: "view",
       onClick: (row) => {
-        navigate(`/service7-3/${row.RequestId}`);
+        navigate(`/service7-3/${row.requestId}`);
       },
       isVisible: () => true,
+    },
+    {
+      label: "Approve",
+      iconType: "approve",
+      onClick: (row) => handleApproveAction(row),
+      isVisible: (row) => row.statusId === StatusEnum.PENDING,
+    },
+    {
+      label: "Reject",
+      iconType: "reject",
+      onClick: (row) => handleRejectAction(row),
+      isVisible: (row) => row.statusId === StatusEnum.PENDING,
     },
     {
       label: "Publish",
       iconType: "publish",
       onClick: (row) => handlePublishAction(row),
-      isVisible: (row) => row.StatusId === StatusEnum.APPROVED,
+      isVisible: (row) => row.statusId === StatusEnum.APPROVED,
     },
   ];
 
@@ -376,7 +502,7 @@ const Service73Dashboard = () => {
               </button>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Service 7-3 Dashboard
+              Medical Real Estate Services Dashboard
             </h1>
           </div>
         </header>
