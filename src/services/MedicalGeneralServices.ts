@@ -101,6 +101,24 @@ class MedicalGeneralServices {
   };
 
   /**
+   * Get medical general service by ID
+   * Uses the API endpoint: /api/MedicalGeneralServices/GetMedicalGeneralServiceById
+   */
+  static GetMedicalGeneralServiceById = async (id: number) => {
+    try {
+      const res = await axiosInstance.get(
+        `MedicalGeneralServices/GetMedicalGeneralServiceById?Id=${id}`
+      );
+      return {
+        success: true,
+        data: res.data,
+      };
+    } catch (error: any) {
+      return errorHandler(error);
+    }
+  };
+
+  /**
    * Update medical general service request status
    */
   static UpdateMedicalGeneralServiceRequestStatus = async (data: {

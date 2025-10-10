@@ -6,7 +6,7 @@ import ComanTable, {
   type ActionButton,
   type SortState,
 } from "../../components/common/ComanTable";
-import IndividualClinicService from "../../services/IndividualClinicService";
+import MedicalRecruitmentJobService from "../../services/MedicalRecruitmentJobService";
 import { useToast } from "../../components/ToastProvider";
 import {
   getStatusBadgeClass,
@@ -15,41 +15,33 @@ import {
 } from "../../utils/statusEnum";
 
 interface DashboardRecord {
-  RequestId: number;
-  RequestNumber: string;
-  OrderTitle: string;
-  BuildingLicenseNumber: string;
-  MedicalLicenseNumber: string;
-  WorkingEmp: number;
-  ContactPersonName: string;
-  ContactEmail: string;
-  ClinicHours: string;
-  RentPeriod: number;
-  RentPeriodType: string;
-  ServiceType: string;
-  ProvideWith: string;
-  StatusId: number;
-  StatusName: string;
-  CreatedDate: string;
-  UpdatedDate: string;
-  CreatedBy: number;
-  UpdatedBy: number;
-  ClinicSiteId: number;
-  CategoryId: number;
-  SerevieceId: number;
-  ConfirmedFlag: boolean;
-  IsActive: boolean;
-  IsAdminApprove: boolean;
-  SterilizationEquipmentFlag: boolean;
-  OtherTermsAndCon: string;
-  Reason: string;
-  Media: string;
-  ValidityTime: number;
-  TransactionId: string | null;
-  Quotation: string | null;
-  DeletedBy: number | null;
-  DeletedDate: string | null;
-  RowNum: number;
+  id: number;
+  jobTitle: string;
+  jobDescription: string;
+  department: string;
+  requiredQualifications: string;
+  experienceYears: number;
+  salaryRange: string;
+  location: string;
+  employmentType: string;
+  statusId: number;
+  statusName: string;
+  createdDate: string;
+  updatedDate?: string;
+  createdBy: number;
+  updatedBy?: number;
+  isActive: boolean;
+  applicationDeadline?: string;
+  contactEmail: string;
+  contactPhone: string;
+  benefits: string;
+  responsibilities: string;
+  requirements: string;
+  jobCategory: string;
+  recruitmentType: string;
+  urgentFlag: boolean;
+  internalOnly: boolean;
+  externalAllowed: boolean;
 }
 
 const Service51Dashboard = () => {
@@ -71,15 +63,14 @@ const Service51Dashboard = () => {
   const fetchDataFromAPI = async (): Promise<DashboardRecord[]> => {
     try {
       const response =
-        await IndividualClinicService.GetAllForAdminIndividualClinicServiceRequests(
+        await MedicalRecruitmentJobService.GetAllMedicalRecruitmentJob(
           {
-            clinicSiteId: subserviceIndex
-              ? parseInt(subserviceIndex)
-              : undefined,
+            searchText: "",
+            statusId: 0,
             pageNumber: pageNumber,
             pageSize: pageSize,
-            sortColumn: sortState.length > 0 ? sortState[0].key : "CreatedDate",
-            sortDirection:
+            orderByColumn: sortState.length > 0 ? sortState[0].key : "CreatedDate",
+            orderDirection:
               sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
           }
         );
@@ -139,7 +130,7 @@ const Service51Dashboard = () => {
 
   const handlePublishAction = async (row: DashboardRecord) => {
     const confirmed = window.confirm(
-      `Are you sure you want to publish request ${row.RequestNumber}?\n\nThis action will make the request visible to other users.`
+      `Are you sure you want to publish job "${row.jobTitle}"?\n\nThis action will make the job posting visible to candidates.`
     );
 
     if (!confirmed) {
@@ -149,28 +140,28 @@ const Service51Dashboard = () => {
     try {
       setLoading(true);
 
-      const response = await IndividualClinicService.UpdateStatus({
-        requestId: row.RequestId,
+      const response = await MedicalRecruitmentJobService.UpdateMedicalRecruitmentJobStatus({
+        jobId: row.id,
         statusId: StatusEnum.PUBLISHED,
-        reason: "Request published by admin",
+        reason: "Job published by admin",
       });
 
       if (response && response.success) {
         await fetchDataFromAPI();
 
         showToast(
-          `Request ${row.RequestNumber} has been published successfully!`,
+          `Job "${row.jobTitle}" has been published successfully!`,
           "success"
         );
       } else {
         throw new Error(
-          (response as any)?.message || "Failed to publish request"
+          (response as any)?.message || "Failed to publish job"
         );
       }
     } catch (error) {
-      console.error("Error publishing request:", error);
+      console.error("Error publishing job:", error);
       showToast(
-        `Failed to publish request ${row.RequestNumber}. Please try again.`,
+        `Failed to publish job "${row.jobTitle}". Please try again.`,
         "error"
       );
     } finally {
@@ -180,93 +171,97 @@ const Service51Dashboard = () => {
 
   const tableColumns: TableColumn<DashboardRecord>[] = [
     {
-      label: "Request Number",
+      label: "Job ID",
       value: (row) => (
-        <span className="font-semibold text-primary">{row.RequestNumber}</span>
+        <span className="font-semibold text-primary">#{row.id}</span>
       ),
-      sortKey: "RequestNumber",
+      sortKey: "id",
       isSort: true,
     },
     {
-      label: "Order Title",
-      value: (row) => <span className="text-gray-700">{row.OrderTitle}</span>,
-      sortKey: "OrderTitle",
+      label: "Job Title",
+      value: (row) => (
+        <div className="max-w-xs">
+          <span className="font-semibold text-gray-900">{row.jobTitle}</span>
+          {row.urgentFlag && (
+            <span className="ml-2 inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 text-xs font-medium text-red-800">
+              Urgent
+            </span>
+          )}
+        </div>
+      ),
+      sortKey: "jobTitle",
       isSort: true,
     },
     {
-      label: "Contact Person",
+      label: "Department",
       value: (row) => (
-        <span className="text-gray-500">{row.ContactPersonName}</span>
+        <span className="text-gray-700">{row.department}</span>
       ),
-      sortKey: "ContactPersonName",
+      sortKey: "department",
+      isSort: true,
+    },
+    {
+      label: "Location",
+      value: (row) => (
+        <span className="text-gray-500">{row.location}</span>
+      ),
+      sortKey: "location",
+      isSort: true,
+    },
+    {
+      label: "Employment Type",
+      value: (row) => (
+        <span className="text-gray-500">{row.employmentType}</span>
+      ),
+      sortKey: "employmentType",
+      isSort: true,
+    },
+    {
+      label: "Experience",
+      value: (row) => (
+        <span className="text-gray-500">{row.experienceYears} years</span>
+      ),
+      sortKey: "experienceYears",
+      isSort: true,
+    },
+    {
+      label: "Salary Range",
+      value: (row) => (
+        <span className="text-gray-500">{row.salaryRange}</span>
+      ),
+      sortKey: "salaryRange",
       isSort: true,
     },
     {
       label: "Contact Email",
-      value: (row) => <span className="text-gray-500">{row.ContactEmail}</span>,
-      sortKey: "ContactEmail",
-      isSort: true,
-    },
-    {
-      label: "Building License",
       value: (row) => (
-        <span className="text-gray-500">{row.BuildingLicenseNumber}</span>
+        <span className="text-gray-500">{row.contactEmail}</span>
       ),
-      sortKey: "BuildingLicenseNumber",
+      sortKey: "contactEmail",
       isSort: true,
     },
     {
-      label: "Medical License",
-      value: (row) => (
-        <span className="text-gray-500">{row.MedicalLicenseNumber}</span>
-      ),
-      sortKey: "MedicalLicenseNumber",
-      isSort: true,
-    },
-    {
-      label: "Working Employees",
-      value: (row) => <span className="text-gray-500">{row.WorkingEmp}</span>,
-      sortKey: "WorkingEmp",
-      isSort: true,
-    },
-    {
-      label: "Clinic Hours",
-      value: (row) => <span className="text-gray-500">{row.ClinicHours}</span>,
-      sortKey: "ClinicHours",
-      isSort: true,
-    },
-    {
-      label: "Rent Period",
+      label: "Application Deadline",
       value: (row) => (
         <span className="text-gray-500">
-          {row.RentPeriod} {row.RentPeriodType}
+          {row.applicationDeadline 
+            ? new Date(row.applicationDeadline).toLocaleDateString()
+            : "No deadline"
+          }
         </span>
       ),
-      sortKey: "RentPeriod",
-      isSort: true,
-    },
-    {
-      label: "Service Type",
-      value: (row) => <span className="text-gray-500">{row.ServiceType}</span>,
-      sortKey: "ServiceType",
-      isSort: true,
-    },
-    {
-      label: "Validity Time",
-      value: (row) => (
-        <span className="text-gray-500">{row.ValidityTime} days</span>
-      ),
-      sortKey: "ValidityTime",
+      sortKey: "applicationDeadline",
       isSort: true,
     },
     {
       label: "Created Date",
       value: (row) => (
         <span className="text-gray-500">
-          {new Date(row.CreatedDate).toLocaleDateString()}
+          {new Date(row.createdDate).toLocaleDateString()}
         </span>
       ),
-      sortKey: "CreatedDate",
+      sortKey: "createdDate",
       isSort: true,
     },
     {
@@ -275,14 +270,14 @@ const Service51Dashboard = () => {
         return (
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-              row.StatusId
+              row.statusId
             )}`}
           >
-            {getStatusName(row.StatusId)}
+            {getStatusName(row.statusId)}
           </span>
         );
       },
-      sortKey: "StatusName",
+      sortKey: "statusName",
       isSort: true,
     },
   ];
@@ -292,7 +287,7 @@ const Service51Dashboard = () => {
       label: "View",
       iconType: "view",
       onClick: (row) => {
-        navigate(`/service5-1/${row.RequestId}`);
+        navigate(`/service5-1/${row.id}`);
       },
       isVisible: () => true,
     },
@@ -300,7 +295,7 @@ const Service51Dashboard = () => {
       label: "Publish",
       iconType: "publish",
       onClick: (row) => handlePublishAction(row),
-      isVisible: (row) => row.StatusId === StatusEnum.APPROVED,
+      isVisible: (row) => row.statusId === StatusEnum.APPROVED,
     },
   ];
 
@@ -365,30 +360,34 @@ const Service51Dashboard = () => {
               </button>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Service 5-1 Dashboard
+              Medical Recruitment Jobs Dashboard
             </h1>
           </div>
         </header>
 
         <div className="grid gap-4 sm:grid-cols-3 mb-8">
           <div className="rounded-[28px] border border-gray-200 bg-[#f7f8fd] px-6 py-8 text-center shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-            <h3 className="mb-2 text-4xl font-bold text-gray-900">244</h3>
-            <p className="text-sm text-gray-600">Total Approved</p>
+            <h3 className="mb-2 text-4xl font-bold text-gray-900">
+              {records.filter(r => r.statusId === StatusEnum.PUBLISHED).length}
+            </h3>
+            <p className="text-sm text-gray-600">Published Jobs</p>
           </div>
           <div className="rounded-[28px] border border-gray-200 bg-[#f7f8fd] px-6 py-8 text-center shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-            <h3 className="mb-2 text-4xl font-bold text-gray-900">22</h3>
-            <p className="text-sm text-gray-600">Total Rejected</p>
+            <h3 className="mb-2 text-4xl font-bold text-gray-900">
+              {records.filter(r => r.statusId === StatusEnum.APPROVED).length}
+            </h3>
+            <p className="text-sm text-gray-600">Approved Jobs</p>
           </div>
           <div className="rounded-[28px] border border-gray-200 bg-[#f7f8fd] px-6 py-8 text-center shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-            <h3 className="mb-2 text-4xl font-bold text-gray-900">266</h3>
-            <p className="text-sm text-gray-600">Total Orders</p>
+            <h3 className="mb-2 text-4xl font-bold text-gray-900">{totalCount}</h3>
+            <p className="text-sm text-gray-600">Total Jobs</p>
           </div>
         </div>
 
         <div className="mb-8">
           <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
             <h3 className="mb-6 text-lg font-semibold text-gray-900">
-              Report By Month
+              Job Postings By Month
             </h3>
             <div className="h-64">
               <div className="flex h-full items-end justify-between gap-2">

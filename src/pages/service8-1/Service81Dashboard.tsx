@@ -55,21 +55,24 @@ const Service81Dashboard = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
-
+  // Reject reason modal state
+  const [showRejectModal, setShowRejectModal] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState("");
+  const [selectedRowForReject, setSelectedRowForReject] =
+    useState<DashboardRecord | null>(null);
 
   // Fetch data from API
   const fetchDataFromAPI = async (): Promise<DashboardRecord[]> => {
     try {
       const response =
-        await MedicalGeneralServices.GetAllMedicalGeneralServicesForAdmin(
-          {
-            pageNumber: pageNumber,
-            pageSize: pageSize,
-            orderByColumn: sortState.length > 0 ? sortState[0].key : "createdDate",
-            orderDirection:
-              sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
-          }
-        );
+        await MedicalGeneralServices.GetAllMedicalGeneralServicesForAdmin({
+          pageNumber: pageNumber,
+          pageSize: pageSize,
+          orderByColumn:
+            sortState.length > 0 ? sortState[0].key : "createdDate",
+          orderDirection:
+            sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
+        });
 
       if (response && response.success) {
         const responseData = (response as any).data;
@@ -126,23 +129,16 @@ const Service81Dashboard = () => {
 
   // Handle approve action
   const handleApproveAction = async (row: DashboardRecord) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to approve request ${row.requestNumber}?`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setLoading(true);
 
-      const response = await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
-        id: row.id,
-        newStatusId: StatusEnum.APPROVED,
-        requestNumber: row.requestNumber,
-        reason: "Request approved by admin",
-      });
+      const response =
+        await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
+          id: row.id,
+          newStatusId: StatusEnum.APPROVED,
+          requestNumber: row.requestNumber,
+          reason: "Request approved by admin",
+        });
 
       if (response && response.success) {
         const updatedData = await fetchDataFromAPI();
@@ -168,33 +164,40 @@ const Service81Dashboard = () => {
     }
   };
 
-  // Handle reject action
-  const handleRejectAction = async (row: DashboardRecord) => {
-    const reason = window.prompt(
-      `Please provide a reason for rejecting request ${row.requestNumber}:`
-    );
+  // Handle reject action - open modal instead of direct rejection
+  const handleRejectAction = (row: DashboardRecord) => {
+    setSelectedRowForReject(row);
+    setShowRejectModal(true);
+    setRejectionReason("");
+  };
 
-    if (!reason || reason.trim() === "") {
-      showToast("Rejection reason is required", "error");
+  // Handle reject confirmation with reason
+  const handleRejectSubmit = async () => {
+    if (!selectedRowForReject || !rejectionReason.trim()) {
+      showToast("Please provide a reason for rejection", "error");
       return;
     }
 
     try {
       setLoading(true);
 
-      const response = await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
-        id: row.id,
-        newStatusId: StatusEnum.REJECTED,
-        requestNumber: row.requestNumber,
-        reason: reason.trim(),
-      });
+      const response =
+        await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
+          id: selectedRowForReject.id,
+          newStatusId: StatusEnum.REJECTED,
+          requestNumber: selectedRowForReject.requestNumber,
+          reason: rejectionReason.trim(),
+        });
 
       if (response && response.success) {
+        setShowRejectModal(false);
+        setRejectionReason("");
+        setSelectedRowForReject(null);
         const updatedData = await fetchDataFromAPI();
         setRecords(updatedData);
 
         showToast(
-          `Request ${row.requestNumber} has been rejected successfully!`,
+          `Request ${selectedRowForReject.requestNumber} has been rejected successfully!`,
           "success"
         );
       } else {
@@ -205,7 +208,7 @@ const Service81Dashboard = () => {
     } catch (error) {
       console.error("Error rejecting request:", error);
       showToast(
-        `Failed to reject request ${row.requestNumber}. Please try again.`,
+        `Failed to reject request ${selectedRowForReject.requestNumber}. Please try again.`,
         "error"
       );
     } finally {
@@ -213,24 +216,24 @@ const Service81Dashboard = () => {
     }
   };
 
+  // Handle reject modal cancel
+  const handleRejectCancel = () => {
+    setShowRejectModal(false);
+    setRejectionReason("");
+    setSelectedRowForReject(null);
+  };
+
   const handlePublishAction = async (row: DashboardRecord) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to publish request ${row.requestNumber}?\n\nThis action will make the request visible to other users.`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setLoading(true);
 
-      const response = await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
-        id: row.id,
-        newStatusId: StatusEnum.PUBLISHED,
-        requestNumber: row.requestNumber,
-        reason: "Request published by admin",
-      });
+      const response =
+        await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
+          id: row.id,
+          newStatusId: StatusEnum.PUBLISHED,
+          requestNumber: row.requestNumber,
+          reason: "Request published by admin",
+        });
 
       if (response && response.success) {
         const updatedData = await fetchDataFromAPI();
@@ -267,9 +270,7 @@ const Service81Dashboard = () => {
     },
     {
       label: "Order Title",
-      value: (row) => (
-        <span className="text-gray-700">{row.orderTitle}</span>
-      ),
+      value: (row) => <span className="text-gray-700">{row.orderTitle}</span>,
       sortKey: "orderTitle",
       isSort: true,
     },
@@ -299,33 +300,25 @@ const Service81Dashboard = () => {
     },
     {
       label: "Country",
-      value: (row) => (
-        <span className="text-gray-500">{row.country}</span>
-      ),
+      value: (row) => <span className="text-gray-500">{row.country}</span>,
       sortKey: "country",
       isSort: true,
     },
     {
       label: "Region",
-      value: (row) => (
-        <span className="text-gray-500">{row.region}</span>
-      ),
+      value: (row) => <span className="text-gray-500">{row.region}</span>,
       sortKey: "region",
       isSort: true,
     },
     {
       label: "City",
-      value: (row) => (
-        <span className="text-gray-500">{row.city}</span>
-      ),
+      value: (row) => <span className="text-gray-500">{row.city}</span>,
       sortKey: "city",
       isSort: true,
     },
     {
       label: "District",
-      value: (row) => (
-        <span className="text-gray-500">{row.district}</span>
-      ),
+      value: (row) => <span className="text-gray-500">{row.district}</span>,
       sortKey: "district",
       isSort: true,
     },
@@ -368,18 +361,7 @@ const Service81Dashboard = () => {
       },
       isVisible: () => true,
     },
-    {
-      label: "Approve",
-      iconType: "approve",
-      onClick: (row) => handleApproveAction(row),
-      isVisible: (row) => row.orderStatus === StatusEnum.PENDING,
-    },
-    {
-      label: "Reject",
-      iconType: "reject",
-      onClick: (row) => handleRejectAction(row),
-      isVisible: (row) => row.orderStatus === StatusEnum.PENDING,
-    },
+
     {
       label: "Publish",
       iconType: "publish",
@@ -520,9 +502,64 @@ const Service81Dashboard = () => {
           />
         </div>
       </div>
+
+      {/* Reject Reason Modal - Same design as Service3DetailPage */}
+      {showRejectModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+            {/* Modal Header */}
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold text-gray-900">
+                Reason for Cancellation
+              </h3>
+              <button
+                onClick={handleRejectCancel}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth="2"
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Body */}
+            <div className="mb-6">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Reason*
+              </label>
+              <textarea
+                value={rejectionReason}
+                onChange={(e) => setRejectionReason(e.target.value)}
+                placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
+                required
+              />
+            </div>
+
+            {/* Modal Footer */}
+            <div className="flex justify-center">
+              <button
+                onClick={handleRejectSubmit}
+                className="px-8 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors"
+              >
+                Send
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
 
 export default Service81Dashboard;
-

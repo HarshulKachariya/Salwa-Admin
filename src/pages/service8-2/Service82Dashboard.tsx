@@ -6,7 +6,11 @@ import ComanTable, {
   type ActionButton,
   type SortState,
 } from "../../components/common/ComanTable";
-import IndividualClinicService from "../../services/IndividualClinicService";
+import MedicalEquipmentAndFacilitiesService, {
+  type MedicalFactoriesSectorRecord,
+  type GetAllMedicalFactoriesSectorParams,
+  type MedicalFactoriesSectorApproveRejectParams,
+} from "../../services/MedicalEquipmentAndFacilitiesService";
 import { useToast } from "../../components/ToastProvider";
 import {
   getStatusBadgeClass,
@@ -14,43 +18,8 @@ import {
   StatusEnum,
 } from "../../utils/statusEnum";
 
-interface DashboardRecord {
-  RequestId: number;
-  RequestNumber: string;
-  OrderTitle: string;
-  BuildingLicenseNumber: string;
-  MedicalLicenseNumber: string;
-  WorkingEmp: number;
-  ContactPersonName: string;
-  ContactEmail: string;
-  ClinicHours: string;
-  RentPeriod: number;
-  RentPeriodType: string;
-  ServiceType: string;
-  ProvideWith: string;
-  StatusId: number;
-  StatusName: string;
-  CreatedDate: string;
-  UpdatedDate: string;
-  CreatedBy: number;
-  UpdatedBy: number;
-  ClinicSiteId: number;
-  CategoryId: number;
-  SerevieceId: number;
-  ConfirmedFlag: boolean;
-  IsActive: boolean;
-  IsAdminApprove: boolean;
-  SterilizationEquipmentFlag: boolean;
-  OtherTermsAndCon: string;
-  Reason: string;
-  Media: string;
-  ValidityTime: number;
-  TransactionId: string | null;
-  Quotation: string | null;
-  DeletedBy: number | null;
-  DeletedDate: string | null;
-  RowNum: number;
-}
+// Using the imported MedicalFactoriesSectorRecord interface
+type DashboardRecord = MedicalFactoriesSectorRecord;
 
 const Service82Dashboard = () => {
   const { subserviceIndex } = useParams<{
@@ -70,18 +39,17 @@ const Service82Dashboard = () => {
 
   const fetchDataFromAPI = async (): Promise<DashboardRecord[]> => {
     try {
-      const response =
-        await IndividualClinicService.GetAllForAdminIndividualClinicServiceRequests(
-          {
-            clinicSiteId: subserviceIndex
-              ? parseInt(subserviceIndex)
-              : undefined,
-            pageNumber: pageNumber,
-            pageSize: pageSize,
-            sortColumn: sortState.length > 0 ? sortState[0].key : "CreatedDate",
-            sortDirection:
-              sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
-          }
+      const params: GetAllMedicalFactoriesSectorParams = {
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        orderByColumn: sortState.length > 0 ? sortState[0].key : "createdDate",
+        orderDirection:
+          sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
+      };
+
+      const response: any =
+        await MedicalEquipmentAndFacilitiesService.GetAllMedicalFactoriesSectorforAdmin(
+          params
         );
 
       if (response && response.success) {
@@ -95,7 +63,7 @@ const Service82Dashboard = () => {
         setTotalCount(totalCount);
         setTotalPages(calculatedTotalPages);
 
-        return responseData?.data || [];
+        return response?.data || [];
       } else {
         throw new Error((response as any)?.message || "Failed to fetch data");
       }
@@ -112,6 +80,7 @@ const Service82Dashboard = () => {
         setError(null);
 
         const apiData = await fetchDataFromAPI();
+        console.log(apiData);
         setRecords(apiData);
       } catch (err) {
         console.error("Error fetching data:", err);
@@ -138,39 +107,43 @@ const Service82Dashboard = () => {
   };
 
   const handlePublishAction = async (row: DashboardRecord) => {
-    const confirmed = window.confirm(
-      `Are you sure you want to publish request ${row.RequestNumber}?\n\nThis action will make the request visible to other users.`
-    );
-
-    if (!confirmed) {
-      return;
-    }
-
     try {
       setLoading(true);
 
-      const response = await IndividualClinicService.UpdateStatus({
-        requestId: row.RequestId,
-        statusId: StatusEnum.PUBLISHED,
-        reason: "Request published by admin",
-      });
+      const params: MedicalFactoriesSectorApproveRejectParams = {
+        RequestId: row.requestId,
+        NewStatusId: StatusEnum.PUBLISHED, // Published status ID
+        RequestNumber: row.requestNumber || "",
+        Reason: "Order published by admin",
+      };
+
+      const response =
+        await MedicalEquipmentAndFacilitiesService.MedicalFactoriesSectorAdminApproveReject(
+          params
+        );
 
       if (response && response.success) {
         await fetchDataFromAPI();
 
         showToast(
-          `Request ${row.RequestNumber} has been published successfully!`,
+          `Order #${String(row.requestId).padStart(
+            4,
+            "0"
+          )} has been published successfully!`,
           "success"
         );
       } else {
         throw new Error(
-          (response as any)?.message || "Failed to publish request"
+          (response as any)?.message || "Failed to publish order"
         );
       }
     } catch (error) {
-      console.error("Error publishing request:", error);
+      console.error("Error publishing order:", error);
       showToast(
-        `Failed to publish request ${row.RequestNumber}. Please try again.`,
+        `Failed to publish order #${String(row.requestId).padStart(
+          4,
+          "0"
+        )}. Please try again.`,
         "error"
       );
     } finally {
@@ -180,93 +153,83 @@ const Service82Dashboard = () => {
 
   const tableColumns: TableColumn<DashboardRecord>[] = [
     {
-      label: "Request Number",
+      label: "Order No",
       value: (row) => (
-        <span className="font-semibold text-primary">{row.RequestNumber}</span>
-      ),
-      sortKey: "RequestNumber",
-      isSort: true,
-    },
-    {
-      label: "Order Title",
-      value: (row) => <span className="text-gray-700">{row.OrderTitle}</span>,
-      sortKey: "OrderTitle",
-      isSort: true,
-    },
-    {
-      label: "Contact Person",
-      value: (row) => (
-        <span className="text-gray-500">{row.ContactPersonName}</span>
-      ),
-      sortKey: "ContactPersonName",
-      isSort: true,
-    },
-    {
-      label: "Contact Email",
-      value: (row) => <span className="text-gray-500">{row.ContactEmail}</span>,
-      sortKey: "ContactEmail",
-      isSort: true,
-    },
-    {
-      label: "Building License",
-      value: (row) => (
-        <span className="text-gray-500">{row.BuildingLicenseNumber}</span>
-      ),
-      sortKey: "BuildingLicenseNumber",
-      isSort: true,
-    },
-    {
-      label: "Medical License",
-      value: (row) => (
-        <span className="text-gray-500">{row.MedicalLicenseNumber}</span>
-      ),
-      sortKey: "MedicalLicenseNumber",
-      isSort: true,
-    },
-    {
-      label: "Working Employees",
-      value: (row) => <span className="text-gray-500">{row.WorkingEmp}</span>,
-      sortKey: "WorkingEmp",
-      isSort: true,
-    },
-    {
-      label: "Clinic Hours",
-      value: (row) => <span className="text-gray-500">{row.ClinicHours}</span>,
-      sortKey: "ClinicHours",
-      isSort: true,
-    },
-    {
-      label: "Rent Period",
-      value: (row) => (
-        <span className="text-gray-500">
-          {row.RentPeriod} {row.RentPeriodType}
+        <span className="font-semibold text-primary">
+          #{String(row.requestId).padStart(4, "0")}
         </span>
       ),
-      sortKey: "RentPeriod",
+      sortKey: "requestId",
       isSort: true,
     },
     {
-      label: "Service Type",
-      value: (row) => <span className="text-gray-500">{row.ServiceType}</span>,
-      sortKey: "ServiceType",
+      label: "Item Name",
+      value: (row) => <span className="text-gray-700">{row.itemName}</span>,
+      sortKey: "itemName",
       isSort: true,
     },
     {
-      label: "Validity Time",
+      label: "Item Quantity",
+      value: (row) => <span className="text-gray-500">{row.itemQuantity}</span>,
+      sortKey: "itemQuantity",
+      isSort: true,
+    },
+    {
+      label: "Fac. Price",
+      value: (row) => <span className="text-gray-500">{row.facPrices}</span>,
+      sortKey: "facPrices",
+      isSort: true,
+    },
+    {
+      label: "Discount in %",
+      value: (row) => <span className="text-gray-500">{row.discount}%</span>,
+      sortKey: "discount",
+      isSort: true,
+    },
+    {
+      label: "Discounted Price",
       value: (row) => (
-        <span className="text-gray-500">{row.ValidityTime} days</span>
+        <span className="text-gray-500">{row.discountPrice}</span>
       ),
-      sortKey: "ValidityTime",
+      sortKey: "discountPrice",
       isSort: true,
     },
     {
-      label: "Created Date",
+      label: "Total Weight",
+      value: (row) => <span className="text-gray-500">{row.totalWeight}</span>,
+      sortKey: "totalWeight",
+      isSort: true,
+    },
+    {
+      label: "Country",
       value: (row) => (
-        <span className="text-gray-500">
-          {new Date(row.CreatedDate).toLocaleDateString()}
-        </span>
+        <span className="text-gray-500">{row.country || "N/A"}</span>
       ),
-      sortKey: "CreatedDate",
+      sortKey: "country",
+      isSort: true,
+    },
+    {
+      label: "Region",
+      value: (row) => (
+        <span className="text-gray-500">{row.region || "N/A"}</span>
+      ),
+      sortKey: "region",
+      isSort: true,
+    },
+    {
+      label: "City",
+      value: (row) => (
+        <span className="text-gray-500">{row.city || "N/A"}</span>
+      ),
+      sortKey: "city",
+      isSort: true,
+    },
+    {
+      label: "District",
+      value: (row) => (
+        <span className="text-gray-500">{row.district || "N/A"}</span>
+      ),
+      sortKey: "district",
       isSort: true,
     },
     {
@@ -275,14 +238,14 @@ const Service82Dashboard = () => {
         return (
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-              row.StatusId
+              row.statusId
             )}`}
           >
-            {getStatusName(row.StatusId)}
+            {getStatusName(row.statusId)}
           </span>
         );
       },
-      sortKey: "StatusName",
+      sortKey: "statusId",
       isSort: true,
     },
   ];
@@ -292,15 +255,16 @@ const Service82Dashboard = () => {
       label: "View",
       iconType: "view",
       onClick: (row) => {
-        navigate(`/service8-2/${row.RequestId}`);
+        navigate(`/service8-2/${row.requestId}`);
       },
       isVisible: () => true,
     },
+
     {
       label: "Publish",
       iconType: "publish",
       onClick: (row) => handlePublishAction(row),
-      isVisible: (row) => row.StatusId === StatusEnum.APPROVED,
+      isVisible: (row) => row.statusId === StatusEnum.APPROVED,
     },
   ];
 
@@ -365,22 +329,34 @@ const Service82Dashboard = () => {
               </button>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Service 8-2 Dashboard
+              Medical Factories Sector Orders
             </h1>
           </div>
         </header>
 
-        <div className="grid gap-4 sm:grid-cols-3 mb-8">
+        <div className="grid gap-4 sm:grid-cols-4 mb-8">
           <div className="rounded-[28px] border border-gray-200 bg-[#f7f8fd] px-6 py-8 text-center shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-            <h3 className="mb-2 text-4xl font-bold text-gray-900">244</h3>
-            <p className="text-sm text-gray-600">Total Approved</p>
+            <h3 className="mb-2 text-4xl font-bold text-gray-900">
+              {records.filter((r) => r.statusId === 102).length}
+            </h3>
+            <p className="text-sm text-gray-600">Approved Orders</p>
           </div>
           <div className="rounded-[28px] border border-gray-200 bg-[#f7f8fd] px-6 py-8 text-center shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-            <h3 className="mb-2 text-4xl font-bold text-gray-900">22</h3>
-            <p className="text-sm text-gray-600">Total Rejected</p>
+            <h3 className="mb-2 text-4xl font-bold text-gray-900">
+              {records.filter((r) => r.statusId === 103).length}
+            </h3>
+            <p className="text-sm text-gray-600">Rejected Orders</p>
           </div>
           <div className="rounded-[28px] border border-gray-200 bg-[#f7f8fd] px-6 py-8 text-center shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-            <h3 className="mb-2 text-4xl font-bold text-gray-900">266</h3>
+            <h3 className="mb-2 text-4xl font-bold text-gray-900">
+              {records.filter((r) => r.statusId === 104).length}
+            </h3>
+            <p className="text-sm text-gray-600">Published Orders</p>
+          </div>
+          <div className="rounded-[28px] border border-gray-200 bg-[#f7f8fd] px-6 py-8 text-center shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
+            <h3 className="mb-2 text-4xl font-bold text-gray-900">
+              {totalCount}
+            </h3>
             <p className="text-sm text-gray-600">Total Orders</p>
           </div>
         </div>
@@ -441,4 +417,3 @@ const Service82Dashboard = () => {
 };
 
 export default Service82Dashboard;
-

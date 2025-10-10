@@ -6,7 +6,10 @@ import ComanTable, {
   type ActionButton,
   type SortState,
 } from "../../components/common/ComanTable";
-import IndividualClinicService from "../../services/IndividualClinicService";
+import OfficeStationaryService, {
+  type FoodSectorService,
+  type FoodSectorApiResponse,
+} from "../../services/OfficeStationaryService";
 import { useToast } from "../../components/ToastProvider";
 import {
   getStatusBadgeClass,
@@ -14,43 +17,8 @@ import {
   StatusEnum,
 } from "../../utils/statusEnum";
 
-interface DashboardRecord {
-  RequestId: number;
-  RequestNumber: string;
-  OrderTitle: string;
-  BuildingLicenseNumber: string;
-  MedicalLicenseNumber: string;
-  WorkingEmp: number;
-  ContactPersonName: string;
-  ContactEmail: string;
-  ClinicHours: string;
-  RentPeriod: number;
-  RentPeriodType: string;
-  ServiceType: string;
-  ProvideWith: string;
-  StatusId: number;
-  StatusName: string;
-  CreatedDate: string;
-  UpdatedDate: string;
-  CreatedBy: number;
-  UpdatedBy: number;
-  ClinicSiteId: number;
-  CategoryId: number;
-  SerevieceId: number;
-  ConfirmedFlag: boolean;
-  IsActive: boolean;
-  IsAdminApprove: boolean;
-  SterilizationEquipmentFlag: boolean;
-  OtherTermsAndCon: string;
-  Reason: string;
-  Media: string;
-  ValidityTime: number;
-  TransactionId: string | null;
-  Quotation: string | null;
-  DeletedBy: number | null;
-  DeletedDate: string | null;
-  RowNum: number;
-}
+// Use the FoodSectorService interface directly since items are now included
+type DashboardRecord = FoodSectorService;
 
 const Service91Dashboard = () => {
   const { subserviceIndex } = useParams<{
@@ -68,34 +36,32 @@ const Service91Dashboard = () => {
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
 
+  console.log("records", records);
+
   const fetchDataFromAPI = async (): Promise<DashboardRecord[]> => {
     try {
-      const response =
-        await IndividualClinicService.GetAllForAdminIndividualClinicServiceRequests(
-          {
-            clinicSiteId: subserviceIndex
-              ? parseInt(subserviceIndex)
-              : undefined,
-            pageNumber: pageNumber,
-            pageSize: pageSize,
-            sortColumn: sortState.length > 0 ? sortState[0].key : "CreatedDate",
-            sortDirection:
-              sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
-          }
-        );
+      const response = await OfficeStationaryService.GetAllFoodSectorServices({
+        searchText: "",
+        pageNumber: pageNumber,
+        pageSize: pageSize,
+        orderByColumn: sortState.length > 0 ? sortState[0].key : "requestId",
+        orderDirection:
+          sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC",
+      });
 
-      if (response && response.success) {
-        const responseData = (response as any).data;
-        const totalCount = responseData?.totalCount || 0;
-        const apiTotalPages = responseData?.totalPages;
+      if (response) {
+        const responseData: FoodSectorApiResponse | any = (response as any)
+          .data;
 
-        const calculatedTotalPages =
-          apiTotalPages || Math.ceil(totalCount / pageSize) || 1;
+        const totalCount = responseData?.totalRecords || 0;
+
+        const calculatedTotalPages = Math.ceil(totalCount / pageSize) || 1;
 
         setTotalCount(totalCount);
         setTotalPages(calculatedTotalPages);
 
-        return responseData?.data || [];
+        // Return the services directly since items are now included in each service
+        return responseData.services || [];
       } else {
         throw new Error((response as any)?.message || "Failed to fetch data");
       }
@@ -141,17 +107,19 @@ const Service91Dashboard = () => {
     try {
       setLoading(true);
 
-      const response = await IndividualClinicService.UpdateStatus({
-        requestId: row.RequestId,
-        statusId: StatusEnum.PUBLISHED,
-        reason: "Request published by admin",
-      });
+      const response =
+        await OfficeStationaryService.FoodSectorServicesAdminApproveReject({
+          requestId: row.requestId,
+          newStatusId: StatusEnum.PUBLISHED,
+          requestNumber: row.requestNumber,
+          reason: "Request published by admin",
+        });
 
       if (response && response.success) {
         await fetchDataFromAPI();
 
         showToast(
-          `Request ${row.RequestNumber} has been published successfully!`,
+          `Request ${row.requestNumber} has been published successfully!`,
           "success"
         );
       } else {
@@ -162,7 +130,7 @@ const Service91Dashboard = () => {
     } catch (error) {
       console.error("Error publishing request:", error);
       showToast(
-        `Failed to publish request ${row.RequestNumber}. Please try again.`,
+        `Failed to publish request ${row.requestNumber}. Please try again.`,
         "error"
       );
     } finally {
@@ -174,91 +142,67 @@ const Service91Dashboard = () => {
     {
       label: "Request Number",
       value: (row) => (
-        <span className="font-semibold text-primary">{row.RequestNumber}</span>
+        <span className="font-semibold text-primary">{row.requestNumber}</span>
       ),
-      sortKey: "RequestNumber",
-      isSort: true,
-    },
-    {
-      label: "Order Title",
-      value: (row) => <span className="text-gray-700">{row.OrderTitle}</span>,
-      sortKey: "OrderTitle",
+      sortKey: "requestNumber",
       isSort: true,
     },
     {
       label: "Contact Person",
       value: (row) => (
-        <span className="text-gray-500">{row.ContactPersonName}</span>
+        <span className="text-gray-700">{row.contactPersonName}</span>
       ),
-      sortKey: "ContactPersonName",
+      sortKey: "contactPersonName",
       isSort: true,
     },
     {
       label: "Contact Email",
-      value: (row) => <span className="text-gray-500">{row.ContactEmail}</span>,
-      sortKey: "ContactEmail",
-      isSort: true,
-    },
-    {
-      label: "Building License",
       value: (row) => (
-        <span className="text-gray-500">{row.BuildingLicenseNumber}</span>
+        <span className="text-gray-500">{row.contactPersonEmail}</span>
       ),
-      sortKey: "BuildingLicenseNumber",
+      sortKey: "contactPersonEmail",
       isSort: true,
     },
     {
-      label: "Medical License",
+      label: "Total Items",
       value: (row) => (
-        <span className="text-gray-500">{row.MedicalLicenseNumber}</span>
+        <span className="text-gray-500">{row.items?.length || 0}</span>
       ),
-      sortKey: "MedicalLicenseNumber",
-      isSort: true,
+      sortKey: "items",
+      isSort: false,
     },
     {
-      label: "Working Employees",
-      value: (row) => <span className="text-gray-500">{row.WorkingEmp}</span>,
-      sortKey: "WorkingEmp",
-      isSort: true,
-    },
-    {
-      label: "Clinic Hours",
-      value: (row) => <span className="text-gray-500">{row.ClinicHours}</span>,
-      sortKey: "ClinicHours",
-      isSort: true,
-    },
-    {
-      label: "Rent Period",
+      label: "Total Quantity",
       value: (row) => (
         <span className="text-gray-500">
-          {row.RentPeriod} {row.RentPeriodType}
+          {row.items?.reduce((sum, item) => sum + item.quantity, 0) || 0}
         </span>
       ),
-      sortKey: "RentPeriod",
+      sortKey: "items",
+      isSort: false,
+    },
+    {
+      label: "Country",
+      value: (row) => <span className="text-gray-500">{row.country}</span>,
+      sortKey: "country",
       isSort: true,
     },
     {
-      label: "Service Type",
-      value: (row) => <span className="text-gray-500">{row.ServiceType}</span>,
-      sortKey: "ServiceType",
+      label: "Region",
+      value: (row) => <span className="text-gray-500">{row.region}</span>,
+      sortKey: "region",
       isSort: true,
     },
     {
-      label: "Validity Time",
-      value: (row) => (
-        <span className="text-gray-500">{row.ValidityTime} days</span>
-      ),
-      sortKey: "ValidityTime",
+      label: "City",
+      value: (row) => <span className="text-gray-500">{row.city}</span>,
+      sortKey: "city",
       isSort: true,
     },
     {
-      label: "Created Date",
-      value: (row) => (
-        <span className="text-gray-500">
-          {new Date(row.CreatedDate).toLocaleDateString()}
-        </span>
-      ),
-      sortKey: "CreatedDate",
+      label: "District",
+      value: (row) => <span className="text-gray-500">{row.district}</span>,
+      sortKey: "district",
       isSort: true,
     },
     {
@@ -267,14 +211,14 @@ const Service91Dashboard = () => {
         return (
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-              row.StatusId
+              row.statusId
             )}`}
           >
-            {getStatusName(row.StatusId)}
+            {getStatusName(row.statusId)}
           </span>
         );
       },
-      sortKey: "StatusName",
+      sortKey: "statusId",
       isSort: true,
     },
   ];
@@ -284,7 +228,7 @@ const Service91Dashboard = () => {
       label: "View",
       iconType: "view",
       onClick: (row) => {
-        navigate(`/service9-1/${row.RequestId}`);
+        navigate(`/service9-1/${row.requestId}`);
       },
       isVisible: () => true,
     },
@@ -292,7 +236,7 @@ const Service91Dashboard = () => {
       label: "Publish",
       iconType: "publish",
       onClick: (row) => handlePublishAction(row),
-      isVisible: (row) => row.StatusId === StatusEnum.APPROVED,
+      isVisible: (row) => row.statusId === StatusEnum.APPROVED,
     },
   ];
 
@@ -357,7 +301,7 @@ const Service91Dashboard = () => {
               </button>
             </div>
             <h1 className="text-2xl font-bold text-gray-900">
-              Service 9-1 Dashboard
+              Food Sector Services Dashboard
             </h1>
           </div>
         </header>
@@ -433,4 +377,3 @@ const Service91Dashboard = () => {
 };
 
 export default Service91Dashboard;
-
