@@ -57,8 +57,7 @@ const Service21Details = () => {
   const [serviceDetails, setServiceDetails] = useState<ServiceDetails | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-  const [images, setImages] = useState<string[]>(sampleImages);
+  const [, setImages] = useState<string[]>(sampleImages);
 
   const fetchServiceDetails = async () => {
     if (!id) {
@@ -107,13 +106,6 @@ const Service21Details = () => {
     fetchServiceDetails();
   }, [id, showToast]);
 
-  const nextImage = () => {
-    setCurrentImageIndex((prev) => (prev + 1) % images.length);
-  };
-
-  const prevImage = () => {
-    setCurrentImageIndex((prev) => (prev - 1 + images.length) % images.length);
-  };
 
   const handleApprove = async () => {
     if (!serviceDetails) return;

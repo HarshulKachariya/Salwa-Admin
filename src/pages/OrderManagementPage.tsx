@@ -80,13 +80,12 @@ const OrderManagementPage = () => {
   const state = location.state as LocationState;
   const { showToast } = useToast();
 
-  const [category, setCategory] = useState<Category | null>(null);
   const [orders, setOrders] = useState<OrderRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [pageNumber, setPageNumber] = useState(1);
   const [totalCount, setTotalCount] = useState(0);
-  const [searchText, setSearchText] = useState("");
+  const [searchText] = useState("");
   const [sortState, setSortState] = useState<SortState[]>([]);
   const [pageSize, setPageSize] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
@@ -190,7 +189,7 @@ const OrderManagementPage = () => {
 
         // Set category from state
         if (state?.category) {
-          setCategory(state.category);
+          // Category is set from state but not used in this component
         }
 
         // Fetch office stationary data

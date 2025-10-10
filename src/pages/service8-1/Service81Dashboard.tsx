@@ -127,49 +127,6 @@ const Service81Dashboard = () => {
     setPageNumber(1);
   };
 
-  // Handle approve action
-  const handleApproveAction = async (row: DashboardRecord) => {
-    try {
-      setLoading(true);
-
-      const response =
-        await MedicalGeneralServices.MedicalGeneralServicesAdminApproveReject({
-          id: row.id,
-          newStatusId: StatusEnum.APPROVED,
-          requestNumber: row.requestNumber,
-          reason: "Request approved by admin",
-        });
-
-      if (response && response.success) {
-        const updatedData = await fetchDataFromAPI();
-        setRecords(updatedData);
-
-        showToast(
-          `Request ${row.requestNumber} has been approved successfully!`,
-          "success"
-        );
-      } else {
-        throw new Error(
-          (response as any)?.message || "Failed to approve request"
-        );
-      }
-    } catch (error) {
-      console.error("Error approving request:", error);
-      showToast(
-        `Failed to approve request ${row.requestNumber}. Please try again.`,
-        "error"
-      );
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Handle reject action - open modal instead of direct rejection
-  const handleRejectAction = (row: DashboardRecord) => {
-    setSelectedRowForReject(row);
-    setShowRejectModal(true);
-    setRejectionReason("");
-  };
 
   // Handle reject confirmation with reason
   const handleRejectSubmit = async () => {
