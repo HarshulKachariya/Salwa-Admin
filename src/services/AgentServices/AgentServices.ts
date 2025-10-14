@@ -6,15 +6,15 @@ class AgentServices {
   static GetAllAgentDiscountForBusinessList = async (data: any) => {
     try {
       // Get current language from localStorage or default to 'en'
-      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      const currentLanguage = localStorage.getItem("i18nextLng") || "en";
       const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
-      
+
       // Add language parameter to the data
       const dataWithLanguage = {
         ...data,
-        Language: languageParam
+        Language: languageParam,
       };
-      
+
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/GetAllAgentDiscountForBusinessList`,
         dataWithLanguage
@@ -29,15 +29,15 @@ class AgentServices {
   static GetAllAgentDiscountForIndividualList = async (data: any) => {
     try {
       // Get current language from localStorage or default to 'en'
-      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      const currentLanguage = localStorage.getItem("i18nextLng") || "en";
       const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
-      
+
       // Add language parameter to the data
       const dataWithLanguage = {
         ...data,
-        Language: languageParam
+        Language: languageParam,
       };
-      
+
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/GetAllAgentDiscountForIndividualList`,
         dataWithLanguage
@@ -75,16 +75,11 @@ class AgentServices {
   // Upsert agent discount for business and individual
   static UpsertAgentDiscountForBusinessAndIndividual = async (data: any) => {
     try {
-      // Get current language from localStorage or default to 'en'
-      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
-      const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
-      
       // Add language parameter to the data
       const dataWithLanguage = {
         ...data,
-        Language: languageParam
       };
-      
+
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/UpsertAgentDiscountForBusinessAndIndividual`,
         dataWithLanguage
@@ -99,15 +94,15 @@ class AgentServices {
   static GetAllAgentDiscountForBusinessAndIndividual = async (data: any) => {
     try {
       // Get current language from localStorage or default to 'en'
-      const currentLanguage = localStorage.getItem('i18nextLng') || 'en';
+      const currentLanguage = localStorage.getItem("i18nextLng") || "en";
       const languageParam = currentLanguage.toUpperCase(); // Convert to EN or AR
-      
+
       // Add language parameter to the data
       const dataWithLanguage = {
         ...data,
-        Language: languageParam
+        Language: languageParam,
       };
-      
+
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/GetAllAgentDiscountForBusinessAndIndividual`,
         dataWithLanguage
@@ -128,13 +123,18 @@ class AgentServices {
   }) => {
     try {
       const queryParams = new URLSearchParams();
-      
-      if (params.searchTerm) queryParams.append('searchTerm', params.searchTerm);
-      if (params.pageNumber) queryParams.append('pageNumber', params.pageNumber.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.orderByColumn) queryParams.append('orderByColumn', params.orderByColumn);
-      if (params.orderDirection) queryParams.append('orderDirection', params.orderDirection);
-      
+
+      if (params.searchTerm)
+        queryParams.append("searchTerm", params.searchTerm);
+      if (params.pageNumber)
+        queryParams.append("pageNumber", params.pageNumber.toString());
+      if (params.pageSize)
+        queryParams.append("pageSize", params.pageSize.toString());
+      if (params.orderByColumn)
+        queryParams.append("orderByColumn", params.orderByColumn);
+      if (params.orderDirection)
+        queryParams.append("orderDirection", params.orderDirection);
+
       const res = await axiosInstance.get(
         `AgentDiscountForBusinessAndIndividual/GetAllListOfBusinessAgent?${queryParams.toString()}`
       );
@@ -166,13 +166,18 @@ class AgentServices {
   }) => {
     try {
       const queryParams = new URLSearchParams();
-      
-      if (params.pageNumber) queryParams.append('pageNumber', params.pageNumber.toString());
-      if (params.pageSize) queryParams.append('pageSize', params.pageSize.toString());
-      if (params.searchTerm) queryParams.append('searchTerm', params.searchTerm);
-      if (params.sortColumn) queryParams.append('sortColumn', params.sortColumn);
-      if (params.sortDirection) queryParams.append('sortDirection', params.sortDirection);
-      
+
+      if (params.pageNumber)
+        queryParams.append("pageNumber", params.pageNumber.toString());
+      if (params.pageSize)
+        queryParams.append("pageSize", params.pageSize.toString());
+      if (params.searchTerm)
+        queryParams.append("searchTerm", params.searchTerm);
+      if (params.sortColumn)
+        queryParams.append("sortColumn", params.sortColumn);
+      if (params.sortDirection)
+        queryParams.append("sortDirection", params.sortDirection);
+
       const res = await axiosInstance.get(
         `AgentDiscountForBusinessAndIndividual/GetAllIndividualAgents?${queryParams.toString()}`
       );
@@ -183,7 +188,10 @@ class AgentServices {
   };
 
   // Update individual agent status (PUT API)
-  static UpdateIndividualAgentStatus = async (id: number, isActive: boolean) => {
+  static UpdateIndividualAgentStatus = async (
+    id: number,
+    isActive: boolean
+  ) => {
     try {
       const res = await axiosInstance.post(
         `AgentDiscountForBusinessAndIndividual/UpdateIndividualAgentStatus?id=${id}&isActive=${isActive}`

@@ -84,7 +84,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
   const isMenuItemActive = (href: string, currentPath: string) => {
     // Exact match
     if (currentPath === href) return true;
-    
+
     // Special case: Service detail pages should show Service Dashboard as active
     if (href === "/service-dashboard" && (
       currentPath.startsWith("/order-detail/") ||
@@ -94,7 +94,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
     )) {
       return true;
     }
-    
+
     return false;
   };
 
@@ -220,7 +220,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
                 e.currentTarget.style.color = "var(--sidebar-text)";
               }}
             >
-              <img src="./img/settings.png" className="w-6 h-6 transition" />
+              <img src="/img/settings.png" className="w-6 h-6 transition" />
               <span className="transition">{t('common.settings')}</span>
             </a>
             <button
@@ -241,7 +241,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
             >
               <img
                 src={
-                  theme === "dark" ? "./img/darkmode.png" : "./img/darkmode.png"
+                  theme === "dark" ? "/img/darkmode.png" : "/img/darkmode.png"
                 }
                 className="w-6 h-6 transition"
               />
@@ -256,7 +256,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
               href="javascript:;"
               className="flex items-center gap-[12px] w-[42%] max-[480px]:flex-col"
             >
-              <img src="./img/apple-store.png" className="w-[30px]" />
+              <img src="/img/apple-store.png" className="w-[30px]" />
               <p
                 className="text-[12px] transition-colors duration-300"
                 style={{ color: "var(--text-tertiary)" }}
@@ -272,7 +272,7 @@ const Sidebar: FC<SidebarProps> = ({ isOpen, onClose }) => {
               href="javascript:;"
               className="flex items-center gap-[12px] w-[42%] max-[480px]:flex-col"
             >
-              <img src="./img/play-store.png" className="w-[30px]" />
+              <img src="/img/play-store.png" className="w-[30px]" />
               <p
                 className="text-[12px] transition-colors duration-300"
                 style={{ color: "var(--text-tertiary)" }}
