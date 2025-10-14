@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useRef } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import ComanTable, {
   type TableColumn,
@@ -96,6 +96,129 @@ const TermsConditionsMaster = () => {
   const [searchText, setSearchText] = useState("");
   const [debouncedSearchText, setDebouncedSearchText] = useState("");
 
+  // History state
+  const [historyData, setHistoryData] = useState<HistoryItem[]>([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
+
+  // Ref to track current tab for reliable access
+  const currentTabRef = useRef<ActiveTab>(activeTab);
+
+  // Track activeTab changes
+  useEffect(() => {
+    currentTabRef.current = activeTab; // Update ref when activeTab changes
+  }, [activeTab]);
+
+  // Open history modal
+  const openHistory = async (row: TermsRow) => {
+    // Use ref to get the most current tab value
+    const currentTab = currentTabRef.current;
+
+    setSelectedRow(row);
+    setModalState("history");
+    await fetchHistoryData(row, currentTab);
+  };
+
+  // Print history data
+  const printHistory = () => {
+    const printWindow = window.open('', '_blank');
+    if (!printWindow) return;
+
+    const printContent = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Terms & Conditions History</title>
+          <style>
+            body {
+              font-family: Arial, sans-serif;
+              margin: 20px;
+              color: #333;
+            }
+            .header {
+              text-align: center;
+              margin-bottom: 30px;
+              border-bottom: 2px solid #050668;
+              padding-bottom: 20px;
+            }
+            .header h1 {
+              color: #050668;
+              margin: 0;
+              font-size: 24px;
+            }
+            .header p {
+              margin: 5px 0 0 0;
+              color: #666;
+              font-size: 14px;
+            }
+            .history-item {
+              border: 1px solid #e5e7eb;
+              border-radius: 12px;
+              padding: 20px;
+              margin-bottom: 15px;
+              background-color: #f7f8fd;
+            }
+            .history-header {
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              margin-bottom: 10px;
+              font-size: 12px;
+              font-weight: 600;
+              text-transform: uppercase;
+              letter-spacing: 0.18em;
+              color: #6b7280;
+            }
+            .history-description {
+              font-size: 14px;
+              color: #374151;
+              line-height: 1.5;
+            }
+            .no-data {
+              text-align: center;
+              color: #6b7280;
+              font-style: italic;
+              padding: 40px;
+            }
+            @media print {
+              body { margin: 0; }
+              .no-print { display: none; }
+            }
+          </style>
+        </head>
+        <body>
+          <div class="header">
+            <h1>Terms & Conditions History</h1>
+            <p>Generated on ${new Date().toLocaleDateString()} at ${new Date().toLocaleTimeString()}</p>
+            ${selectedRow ? `<p><strong>${activeTab === 'registration' ? 'User Type' : 'Service'}:</strong> ${selectedRow.userType || selectedRow.Service || 'N/A'}</p>` : ''}
+            ${selectedRow ? `<p><strong>Category:</strong> ${selectedRow.category}</p>` : ''}
+          </div>
+          <div class="history-content">
+            ${historyData.length > 0 ?
+        historyData.map((item) => `
+                <div class="history-item">
+                  <div class="history-header">
+                    <span>Date: ${item.date}</span>
+                    <span>Version: ${item.version}</span>
+                  </div>
+                  <div class="history-description">
+                    ${item.description}
+                  </div>
+                </div>
+              `).join('') :
+        '<div class="no-data">No history data available</div>'
+      }
+          </div>
+        </body>
+      </html>
+    `;
+
+    printWindow.document.write(printContent);
+    printWindow.document.close();
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+
   // API call function
   const fetchTermsConditions = async () => {
     setLoading(true);
@@ -121,7 +244,6 @@ const TermsConditionsMaster = () => {
           orderDirection,
         });
 
-      console.log(`${activeTab} API response:`, response);
 
       if (response && response.data) {
         // Transform API data to match component structure
@@ -158,7 +280,6 @@ const TermsConditionsMaster = () => {
         setTotalPages(Math.ceil((response.data.totalRecords?.TotalRecords || 0) / pageSize));
       }
     } catch (error) {
-      console.error(`Error fetching ${activeTab} terms and conditions:`, error);
       // Keep existing data on error
     } finally {
       setLoading(false);
@@ -220,8 +341,11 @@ const TermsConditionsMaster = () => {
     try {
       let response;
 
-      // Call different API based on active tab
-      if (activeTab === "registration") {
+      // Use ref to get the most current tab value
+      const currentTab = currentTabRef.current;
+
+      // Call different API based on current tab
+      if (currentTab === "registration") {
         response = await TermsConditionsService.getRegistrationTermsAndConditionsAdminById(
           row.CategoryId || 0
         );
@@ -232,18 +356,15 @@ const TermsConditionsMaster = () => {
       }
 
       if (response.success && response.data) {
-        console.log("Fetched terms data:", response.data);
         // Set the detailed terms content in both languages
         setEnglishText(response.data.ETermsAndCondition || "");
         setArabicText(response.data.ATermsAndCondition || "");
       } else {
-        console.log("API failed, using fallback data");
         // Fallback to existing data if API fails
         setEnglishText(row.ETermsAndCondition || "");
         setArabicText(row.ATermsAndCondition || "");
       }
     } catch (error) {
-      console.error("Error fetching terms details:", error);
       // Fallback to existing data on error
       setEnglishText(row.ETermsAndCondition || "");
       setArabicText(row.ATermsAndCondition || "");
@@ -260,8 +381,11 @@ const TermsConditionsMaster = () => {
     try {
       let response;
 
-      // Call different API based on active tab
-      if (activeTab === "registration") {
+      // Use ref to get the most current tab value
+      const currentTab = currentTabRef.current;
+
+      // Call different API based on current tab
+      if (currentTab === "registration") {
         // Prepare the registration update request data
         const updateData = {
           subTypeId: selectedRow.SubTypeId || null,
@@ -275,7 +399,6 @@ const TermsConditionsMaster = () => {
           updatedBy: 1, // You might want to get this from user context
         };
 
-        console.log("Updating registration terms with data:", updateData);
         response = await TermsConditionsService.updateRegistrationTermsAndConditions(updateData);
       } else {
         // Prepare the service update request data
@@ -292,11 +415,8 @@ const TermsConditionsMaster = () => {
           updatedBy: 1, // You might want to get this from user context
         };
 
-        console.log("Updating service terms with data:", updateData);
         response = await TermsConditionsService.updateServiceTermsAndConditions(updateData);
       }
-
-      console.log("Update response:", response);
 
       if (response.success) {
         // Update successful, show success modal
@@ -305,12 +425,10 @@ const TermsConditionsMaster = () => {
         fetchTermsConditions();
       } else {
         // Handle error - you might want to show an error message
-        console.error("Update failed:", response.message);
         // For now, still show success modal, but you could add error handling
         setModalState("success");
       }
     } catch (error) {
-      console.error("Error updating terms:", error);
       // Handle error - you might want to show an error message
       setModalState("success"); // For now, still show success modal
     } finally {
@@ -391,7 +509,7 @@ const TermsConditionsMaster = () => {
             <IconButton label="Edit" onClick={() => openEdit(row)}>
               <EditIcon />
             </IconButton>
-            <IconButton label="History" onClick={() => setModalState("history")}>
+            <IconButton label="History" onClick={() => openHistory(row)}>
               <HistoryIcon />
             </IconButton>
           </div>
@@ -402,6 +520,44 @@ const TermsConditionsMaster = () => {
     ],
     []
   );
+
+  // Fetch history data
+  const fetchHistoryData = async (row: TermsRow, currentTab: ActiveTab) => {
+    setHistoryLoading(true);
+    try {
+      let response;
+
+      if (currentTab === "registration") {
+        response = await TermsConditionsService.getHistoryRegistrationTermsAndCondition(
+          row.UserTypeId || 0,
+          row.CategoryId || 0
+        );
+      } else {
+        response = await TermsConditionsService.getHistoryServiceTermsAndCondition(
+          row.ServiceId || 0,
+          row.CategoryId || 0
+        );
+      }
+
+      if (response.success && response.data) {
+        // Transform API data to HistoryItem format
+        const transformedHistory = response.data.map((item: any) => ({
+          date: item.CreatedDate ? new Date(item.CreatedDate).toLocaleDateString() : item.date || "",
+          version: item.Version || item.version || "1.0.0",
+          description: item.Description || item.description || "Terms and conditions updated",
+        }));
+        setHistoryData(transformedHistory);
+      } else {
+        // Fallback to static data if API fails
+        setHistoryData(historyItems);
+      }
+    } catch (error) {
+      // Fallback to static data on error
+      setHistoryData(historyItems);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   return (
     <DashboardLayout>
@@ -483,7 +639,12 @@ const TermsConditionsMaster = () => {
             <SuccessModal version={selectedRow.version} onClose={() => setModalState(null)} />
           )}
           {modalState === "history" && (
-            <HistoryModal onClose={() => setModalState(null)} items={historyItems} />
+            <HistoryModal
+              onClose={() => setModalState(null)}
+              items={historyData}
+              loading={historyLoading}
+              onPrint={printHistory}
+            />
           )}
         </ModalOverlay>
       )}
@@ -678,7 +839,7 @@ const RichTextCard = ({
       <div
         ref={editorRef}
         contentEditable
-        className="h-32 w-full resize-none rounded-[18px] border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+        className="h-32 w-full overflow-y-auto resize-none rounded-[18px] border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
         onInput={handleInput}
         onKeyDown={handleKeyDown}
         dangerouslySetInnerHTML={{ __html: value }}
@@ -949,25 +1110,50 @@ const SuccessModal = ({ version, onClose }: { version: string; onClose: () => vo
   </ModalShell>
 );
 
-const HistoryModal = ({ onClose, items }: { onClose: () => void; items: HistoryItem[] }) => (
-  <ModalShell title="History" onClose={onClose}>
+const HistoryModal = ({
+  onClose,
+  items,
+  loading = false,
+  onPrint
+}: {
+  onClose: () => void;
+  items: HistoryItem[];
+  loading?: boolean;
+  onPrint: () => void;
+}) => (
+  <ModalShell title="Version History" onClose={onClose}>
     <div className="space-y-4">
-      <div className="max-h-80 space-y-3 overflow-y-auto pr-1">
-        {items.map((item) => (
-          <div key={`${item.date}-${item.version}`} className="rounded-[20px] border border-gray-200 bg-[#f7f8fd] px-5 py-4 text-left text-sm text-gray-600">
-            <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
-              <span>Date : {item.date}</span>
-              <span>Version : {item.version}</span>
-            </div>
-            <p className="mt-2 text-sm text-gray-600">{item.description}</p>
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="flex items-center gap-3 text-sm text-gray-500">
+            <div className="h-5 w-5 animate-spin rounded-full border-2 border-primary border-t-transparent"></div>
+            Loading history...
           </div>
-        ))}
-      </div>
-      <div className="flex justify-center">
+        </div>
+      ) : (
+        <div className="max-h-80 space-y-3 overflow-y-auto pr-1">
+          {items.length > 0 ? (
+            items.map((item, index) => (
+              <div key={`${item.date}-${item.version}-${index}`} className="rounded-[20px] border border-gray-200 bg-[#f7f8fd] px-5 py-4 text-left text-sm text-gray-600">
+                <div className="flex items-center justify-between text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
+                  <span>Date : {item.date}</span>
+                  <span>Version : {item.version}</span>
+                </div>
+                <p className="mt-2 text-sm text-gray-600">{item.description}</p>
+              </div>
+            ))
+          ) : (
+            <div className="flex items-center justify-center py-8 text-sm text-gray-500">
+              No history data available
+            </div>
+          )}
+        </div>
+      )}
+      <div className="flex justify-center gap-3">
         <button
           type="button"
           className="rounded-full border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-600 hover:border-primary"
-          onClick={onClose}
+          onClick={onPrint}
         >
           Print
         </button>

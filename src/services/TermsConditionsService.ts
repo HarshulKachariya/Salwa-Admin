@@ -60,6 +60,12 @@ interface UpdateRegistrationTermsResponse {
   message?: string;
 }
 
+// History APIs interfaces
+interface HistoryResponse {
+  data: any[];
+  success: boolean;
+}
+
 class TermsConditionsService {
   static getServiceTermsAndConditionsAdmin = async (
     params: TermsConditionsParams = {}
@@ -237,6 +243,86 @@ class TermsConditionsService {
         message:
           errorResponse?.message ||
           "Failed to update registration terms and conditions",
+        ...errorResponse,
+      };
+    }
+  };
+
+  static getHistoryServiceTermsAndCondition = async (
+    serviceId: number,
+    categoryId: number
+  ): Promise<HistoryResponse> => {
+    try {
+      console.log("Calling GetHistoryServiceTermsAndCondition API with:", {
+        serviceId,
+        categoryId,
+      });
+
+      const res = await axiosInstance.get(
+        `Account/GetHistoryServiceTermsAndCondition`,
+        {
+          params: {
+            serviceId,
+            categoryId,
+          },
+        }
+      );
+
+      console.log("GetHistoryServiceTermsAndCondition API response:", res.data);
+
+      return {
+        success: true,
+        data: res.data.data || res.data, // Handle different response structures
+      };
+    } catch (error: any) {
+      console.error("GetHistoryServiceTermsAndCondition API error:", error);
+      const errorResponse = errorHandler(error);
+      return {
+        success: false,
+        data: [],
+        ...errorResponse,
+      };
+    }
+  };
+
+  static getHistoryRegistrationTermsAndCondition = async (
+    userTypeId: number,
+    categoryId: number
+  ): Promise<HistoryResponse> => {
+    try {
+      console.log("Calling GetHistoryRegistrationTermsAndCondition API with:", {
+        userTypeId,
+        categoryId,
+      });
+
+      const res = await axiosInstance.get(
+        `Account/GetHistoryRegistrationTermsAndCondition`,
+        {
+          params: {
+            userTypeId,
+            categoryId,
+          },
+        }
+      );
+
+      console.log(
+        "GetHistoryRegistrationTermsAndCondition API response:",
+        res.data
+      );
+
+      return {
+        success: true,
+        data: res.data.data || res.data, // Handle different response structures
+      };
+    } catch (error: any) {
+      console.error(
+        "GetHistoryRegistrationTermsAndCondition API error:",
+        error
+      );
+      const errorResponse = errorHandler(error);
+      return {
+        success: false,
+        data: [],
         ...errorResponse,
       };
     }
