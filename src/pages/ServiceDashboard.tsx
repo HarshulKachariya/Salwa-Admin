@@ -328,6 +328,28 @@ const ServiceDashboard = () => {
       hasSubServices: subServices.length > 0,
     };
 
+    // Check if this is the specific case: categoryId 1, action order
+    if (selectedService?.categoryId == "1" && action === "order") {
+      let targetRoute = "";
+
+      if (selectedServiceIndex == 0) {
+        // serviceIndex 1 (0-based array)
+        targetRoute = "/service-dashboard/category/1/service/1/action/order";
+      }
+
+      if (targetRoute) {
+        navigate(targetRoute, {
+          state: {
+            category: activeCategory,
+            service: selectedService,
+            action: action,
+            logData: logData,
+          },
+        });
+        return;
+      }
+    }
+
     // Check if this is the specific case: categoryId 2, action order
     if (selectedService?.categoryId == "2" && action === "order") {
       let targetRoute = "";

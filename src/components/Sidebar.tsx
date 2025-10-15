@@ -23,7 +23,7 @@ const getMenuItems = (t: any) => [
     icon: "/theme-icons/wallet.png",
   },
   {
-    label: t('sidebar.subscribers'),
+    label: t('List of Subscribers'),
     href: "/subscribers",
     icon: "/theme-icons/subscription-details.png",
   },

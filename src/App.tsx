@@ -7,6 +7,7 @@ import RentalServiceNotifications from "./pages/RentalServiceNotifications";
 import AdvancedOptions from "./pages/AdvancedOptions";
 import StatementAnalysis from "./pages/StatementAnalysis";
 import ListSubscribers from "./pages/ListSubscribers";
+import UserDetailsPage from "./pages/UserDetailsPage";
 import ListAgents from "./pages/ListAgents";
 import Login from "./pages/Login";
 import Reports from "./pages/Reports";
@@ -46,6 +47,8 @@ import Service41Dashboard from "./pages/service4-1/Service41Dashboard";
 import Service41MedicalLegalDetails from "./pages/service4-1/Service41MedicalLegalDetails";
 import Service31Dashboard from "./pages/service3-1/Service31Dashboard";
 import Service31Details from "./pages/service3-1/Service31Details";
+import Service11Dashboard from "./pages/service1-1/Service11Dashboard";
+import Service11Details from "./pages/service1-1/Service11Details";
 import Service21Dashboard from "./pages/service2-1/Service21Dashboard";
 // import Service21Details from "./pages/service2-1/Service21Details"; // Fixed: File not found, so commenting out this import
 import Service22Dashboard from "./pages/service2-2/Service22Dashboard";
@@ -73,6 +76,16 @@ const App = () => {
       <Route element={<ProtectedRoute />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/service-dashboard" element={<ServiceDashboard />} />
+
+        {/* Specific routes for Category ID 1 */}
+        <Route
+          path="/service-dashboard/category/1/service/1/action/order"
+          element={<Service11Dashboard />}
+        />
+        <Route
+          path="/service1-1/:requestId"
+          element={<Service11Details />}
+        />
 
         {/* Specific routes for Category ID 2 */}
         <Route
@@ -413,6 +426,8 @@ const App = () => {
         <Route path="/advanced-options" element={<AdvancedOptions />} />
         <Route path="/statement-analysis" element={<StatementAnalysis />} />
         <Route path="/subscribers" element={<ListSubscribers />} />
+        <Route path="/list-subscribers" element={<ListSubscribers />} />
+        <Route path="/user-details/:userId/:userType" element={<UserDetailsPage />} />
         <Route path="/agents" element={<ListAgents />} />
         <Route
           path="/agents/individual/:id"
