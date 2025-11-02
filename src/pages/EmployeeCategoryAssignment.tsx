@@ -217,7 +217,7 @@ const EmployeeCategoryAssignment = () => {
       const data: any = JSON.parse(response.data);
       const options: SelectOption[] = data.map((item: any) => ({
         value: item.Id?.toString() || item.Id?.toString() || "",
-        label: item.Name || `Category ${item.categoryId || item.id}`,
+        label: item.EName || `Category ${item.categoryId || item.id}`,
       }));
       setCategoryOptions(options);
     } catch (error) {
