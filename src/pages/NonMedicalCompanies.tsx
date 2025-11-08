@@ -244,11 +244,10 @@ const NonMedicalCompanies = () => {
       } else {
         // Business request list data structure - new API
         return {
-          id: `#${
-            apiData.id?.toString().padStart(4, "0") ||
+          id: `#${apiData.id?.toString().padStart(4, "0") ||
             apiData.requestId?.toString().padStart(4, "0") ||
             "0000"
-          }`,
+            }`,
           name: apiData.businessName || apiData.companyName || "N/A",
           subscription:
             apiData.subscriptionType || apiData.subscription || "N/A",
@@ -266,8 +265,8 @@ const NonMedicalCompanies = () => {
           status: apiData.isActive
             ? "Active"
             : apiData.status === "Active"
-            ? "Active"
-            : "Inactive",
+              ? "Active"
+              : "Inactive",
         };
       }
     },
@@ -634,9 +633,8 @@ const NonMedicalCompanies = () => {
         label: "Status",
         value: (row) => (
           <span
-            className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-xs font-semibold ${
-              statusStyles[row.status]
-            }`}
+            className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-xs font-semibold ${statusStyles[row.status]
+              }`}
           >
             {row.status}
           </span>
@@ -700,11 +698,10 @@ const NonMedicalCompanies = () => {
         label: "Status",
         value: (row) => (
           <span
-            className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-xs font-semibold ${
-              row.isActive || row.status === "Active"
-                ? "bg-[#e9fbf3] text-[#09a66d]"
-                : "bg-[#fff1f0] text-[#e23939]"
-            }`}
+            className={`inline-flex items-center justify-center rounded-full px-4 py-1 text-xs font-semibold ${row.isActive || row.status === "Active"
+              ? "bg-[#e9fbf3] text-[#09a66d]"
+              : "bg-[#fff1f0] text-[#e23939]"
+              }`}
           >
             {row.isActive || row.status === "Active" ? "Active" : "Inactive"}
           </span>
@@ -756,14 +753,28 @@ const NonMedicalCompanies = () => {
                 onClick={() => handleTabChange("business")}
               />
             </div>
-            <div className="relative w-full max-w-xs">
+            <div className="relative w-full max-w-xs input-filed-block">
               <input
+                type="search"
+                id="search_bar_non_medical_companies"
+                placeholder="Search"
                 value={searchTerm}
                 onChange={(event) => handleSearchChange(event.target.value)}
-                placeholder="Search"
-                className="w-full rounded-full border border-slate-200 bg-white px-4 py-2.5 pl-11 text-sm text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-full border border-slate-200 bg-white pl-5 pr-11 py-2 text-base text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 peer
+          placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
               />
-              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400">
+              <label
+                htmlFor="search_bar_non_medical_companies"
+                className={`
+                  label-filed absolute left-4 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                  peer-placeholder-shown:top-2 peer-placeholder-shown:left-4 peer-placeholder-shown:text-base cursor-text
+                  peer-focus:-top-3 peer-focus:left-4 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                  bg-white px-1  ${searchTerm && searchTerm.trim() !== "" ? "!-top-3 !left-4 !text-[13px] " : ""} 
+                  `}
+              >
+                Search
+              </label>
+              <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
                 <SearchIcon />
               </span>
             </div>
@@ -885,11 +896,10 @@ const TabButton = ({
   <button
     type="button"
     onClick={onClick}
-    className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-      isActive
-        ? "bg-white text-primary shadow"
-        : "text-gray-400 hover:text-primary"
-    }`}
+    className={`rounded-full px-5 py-2 text-sm font-semibold transition ${isActive
+      ? "bg-white text-primary shadow"
+      : "text-gray-400 hover:text-primary"
+      }`}
   >
     {label}
   </button>
@@ -934,9 +944,8 @@ const FormModal = ({
 }) => {
   return (
     <ModalShell
-      title={`${
-        mode === "edit" ? "Edit" : mode === "view" ? "View" : "Add"
-      } Non Medical Company`}
+      title={`${mode === "edit" ? "Edit" : mode === "view" ? "View" : "Add"
+        } Non Medical Company`}
       onClose={onClose}
     >
       {isLoading ? (
@@ -1088,8 +1097,8 @@ const FormModal = ({
                 {isSubmitting
                   ? "Saving..."
                   : mode === "edit"
-                  ? "Update"
-                  : "Create"}
+                    ? "Update"
+                    : "Create"}
               </button>
             </div>
           )}

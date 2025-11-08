@@ -303,15 +303,28 @@ const Service21Dashboard = () => {
         <div className="mb-6">
           <div className="rounded-[28px] border border-gray-200 bg-white p-6 shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
             <div className="flex items-center gap-4">
-              <div className="flex-1">
+              <div className="flex-1 relative input-filed-block">
                 <input
                   type="text"
+                  id="search_requests"
                   placeholder="Search requests by title, device name, or contact person..."
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
                 />
+                <label
+                  htmlFor="search_requests"
+                  className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${searchText && searchText.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                >
+                  Search requests by title, device name, or contact person...
+                </label>
               </div>
               <button
                 onClick={handleSearch}

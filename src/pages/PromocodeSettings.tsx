@@ -677,7 +677,7 @@ const PromocodeSettings = () => {
               <TabButton label="Registration" isActive={activeTab === "registration"} onClick={() => setActiveTab("registration")} />
               <TabButton label="Services" isActive={activeTab === "services"} onClick={() => setActiveTab("services")} />
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3">
               <SearchField value={searchTerm} onChange={setSearchTerm} />
               <button
                 type="button"
@@ -785,14 +785,28 @@ const TabButton = ({ label, isActive, onClick }: { label: string; isActive: bool
 );
 
 const SearchField = ({ value, onChange }: { value: string; onChange: (next: string) => void }) => (
-  <div className="relative w-full max-w-xs">
+  <div className="relative w-full max-w-xs input-filed-block">
     <input
-      className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 pl-10 text-sm text-gray-600 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+      type="search"
+      id="search_bar_promocode_settings"
       placeholder="Search here"
       value={value}
       onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-full border border-slate-200 bg-white pl-5 pr-11 py-2 text-base text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 peer
+          placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
     />
-    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+    <label
+      htmlFor="search_bar_promocode_settings"
+      className={`
+        label-filed absolute left-4 top-2 text-[#A0A3BD] text-base transition-all duration-200
+        peer-placeholder-shown:top-2 peer-placeholder-shown:left-4 peer-placeholder-shown:text-base cursor-text
+        peer-focus:-top-3 peer-focus:left-4 peer-focus:text-[13px] peer-focus:text-[#070B68]
+        bg-white px-1  ${value && value.trim() !== "" ? "!-top-3 !left-4 !text-[13px] " : ""} 
+        `}
+    >
+      Search here
+    </label>
+    <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
       <SearchIcon />
     </span>
   </div>

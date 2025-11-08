@@ -612,7 +612,7 @@ const EmployeeCategoryAssignment = () => {
                 Assign workforce to categories and services.
               </p>
             </div>
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-3">
               <SearchField value={searchTerm} onChange={setSearchTerm} />
               <button
                 type="button"
@@ -685,14 +685,27 @@ const SearchField = ({
   value: string;
   onChange: (next: string) => void;
 }) => (
-  <div className="relative w-full max-w-xs">
+  <div className="relative input-filed-block w-full max-w-xs">
     <input
-      className="w-full rounded-full border border-gray-200 bg-white px-4 py-2.5 pl-10 text-sm text-gray-600 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+      id="search_employee_category"
+      className="w-full rounded-full border border-slate-200 bg-white pl-5 pr-11 py-2 text-base text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 peer
+          placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
       placeholder="Search here"
       value={value}
       onChange={(event) => onChange(event.target.value)}
     />
-    <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-gray-400">
+    <label
+      htmlFor="search_employee_category"
+      className={`
+          label-filed absolute left-4 top-2 text-[#A0A3BD] text-base transition-all duration-200
+          peer-placeholder-shown:top-2 peer-placeholder-shown:left-4 peer-placeholder-shown:text-base cursor-text
+          peer-focus:-top-3 peer-focus:left-4 peer-focus:text-[13px] peer-focus:text-[#070B68]
+          bg-white px-1  ${value && value.trim() !== "" ? "!-top-3 !left-4 !text-[13px] " : ""} 
+          `}
+    >
+      Search here
+    </label>
+    <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
       <SearchIcon />
     </span>
   </div>
@@ -787,8 +800,9 @@ const FormModal = ({
                 });
               }}
               disabled={isSubmitting || loadingDropdowns.employees}
+              placeholder="Select employee"
+              id="select_employee"
             >
-              <option value="">Select employee</option>
               {employeeOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -809,8 +823,9 @@ const FormModal = ({
                 onCategoryChange(selectedValue);
               }}
               disabled={isSubmitting || loadingDropdowns.categories}
+              placeholder="Select category"
+              id="select_category"
             >
-              <option value="">Select category</option>
               {categoryOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -829,11 +844,12 @@ const FormModal = ({
                 });
                 onServiceChange(selectedValue);
               }}
+              placeholder="Select service"
+              id="select_service"
               disabled={
                 isSubmitting || loadingDropdowns.services || !values.categoryId
               }
             >
-              <option value="">Select service</option>
               {serviceOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -849,13 +865,14 @@ const FormModal = ({
                   subServiceId: event.target.value,
                 });
               }}
+              placeholder="Select sub-service"
+              id="select_sub_service"
               disabled={
                 isSubmitting ||
                 loadingDropdowns.subServices ||
                 !values.serviceId
               }
             >
-              <option value="">Select sub-service</option>
               {subServiceOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
@@ -889,16 +906,31 @@ const FormModal = ({
 const LabeledSelect = ({
   className = "",
   children,
+  value,
+  id,
+  placeholder,
+  disabled,
   ...props
 }: { children: ReactNode } & SelectHTMLAttributes<HTMLSelectElement>) => (
   <label className="space-y-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-    <div className="relative">
+    <div className="relative input-filed-block">
       <select
+        id={id}
         {...props}
-        className={`w-full appearance-none rounded-md border border-gray-200 bg-[#f7f8fd] px-4 py-3 text-sm text-gray-600 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 ${className}`}
+        className={`w-full appearance-none rounded-md border border-gray-200 bg-[#f7f8fd] px-4 py-3 text-sm text-gray-600 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 peer
+          placeholder-transparent ${className}`}
       >
         {children}
       </select>
+      <label
+        htmlFor={id}
+        className={`
+            label-filed absolute left-3 top-3 text-[#A0A3BD] text-sm transition-all duration-200
+            peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-sm
+            peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+            bg-[#f7f8fd] px-1 capitalize ${value ? "!-top-3 !left-3 !text-[13px]" : ""} ${disabled ? "cursor-no-drop" : "cursor-auto"}
+            `}
+      >{placeholder}</label>
       <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
         <ChevronIcon />
       </span>

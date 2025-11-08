@@ -691,21 +691,31 @@ const ServiceDashboard = () => {
               </p>
               {/* Test button for debugging */}
             </div>
-            <div className="relative w-full max-w-sm">
+            <div className="relative w-full max-w-sm input-filed-block">
               <input
-                type="search"
+                id="search_bar_dashboard"
                 placeholder="Search here"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full rounded-full border border-slate-200 bg-white px-5 py-3 pl-12 pr-10 text-sm text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
+                className="w-full rounded-full border border-slate-200 bg-white pl-5 pr-11 py-2 text-base text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 peer
+          placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
               />
-              <span className="pointer-events-none absolute inset-y-0 left-4 grid place-items-center text-primary/70">
-                <img
-                  src="/theme-icons/Search ICon.svg"
-                  alt="search"
-                  className="h-5 w-5"
-                />
-              </span>
+              <label
+                htmlFor="search_bar_dashboard"
+                className={`
+                        label-filed absolute left-4 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-4 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-4 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${searchTerm && searchTerm.trim() !== "" ? "!-top-3 !left-4 !text-[13px] " : ""} 
+                        `}
+              >
+                Search here
+              </label>
+              {!searchTerm &&
+                <span className="pointer-events-none absolute inset-y-0 right-4 grid place-items-center text-gray-400">
+                  <SearchIcon />
+                </span>
+              }
               {searchTerm && (
                 <button
                   type="button"
@@ -737,7 +747,7 @@ const ServiceDashboard = () => {
               Service Category
             </h2>
             {loading ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              <div className="grid gap-[30px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {[...Array(10)].map((_, index) => (
                   <div
                     key={index}
@@ -757,7 +767,7 @@ const ServiceDashboard = () => {
                 <p className="text-sm text-red-500">{error}</p>
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+              <div className="grid gap-[30px] sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
                 {filteredCategories.length > 0 ? (
                   filteredCategories.map((category, index) => (
                     <CategoryCard
@@ -969,44 +979,28 @@ const CategoryCard = ({
     type="button"
     onClick={onClick}
     className={clsx(
-      "flex h-44 flex-col justify-between rounded-2xl border px-6 py-5 text-left transition duration-200 shadow",
+      "flex gap-3 items-center justify-center min-h-[234px] w-full text-primary flex-col rounded-[16px] px-6 py-5 text-center relative before:absolute before:top-0 before:left-0 before:bottom-0 before:right-0 before:rounded-[16px] before:z-0 before:transition before:duration-200",
       selected
-        ? "border-transparent bg-[linear-gradient(180deg,#05055C_0%,#0D0D78_100%)] text-white"
-        : "border-slate-200 bg-white text-primary hover:border-primary/40 hover:shadow-lg"
+        ? "before:border-[5px] before:border-[#00B6FF]"
+        : "before:border-2 before:border-slate-200 hover:before:border-[5px] hover:before:border-[#00B6FF]"
     )}
   >
     <span
-      className={clsx(
-        "grid h-12 w-12 place-items-center rounded-xl",
-        selected ? "bg-white/15" : "bg-slate-100"
-      )}
+      className="grid place-items-center rounded-xl"
     >
-      <img
-        src={category.icon}
-        alt=""
-        className={clsx(
-          "h-7 w-7",
-          selected ? "filter brightness-0 invert" : ""
-        )}
-      />
+      <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="#007bff" class="w-12 h-12">
+        <path stroke-linecap="round" stroke-linejoin="round"
+          d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
     </span>
-    <div className="space-y-3">
-      <p
-        className={clsx(
-          "text-base font-helveticaBold",
-          selected ? "text-white" : "text-primary"
-        )}
+    <div className="space-y-3 text-center">
+      <p className="text-base font-helveticaBold text-primary"
       >
         {category.title}
       </p>
-      <span
-        className={clsx(
-          "inline-flex items-center gap-2 text-sm font-textMedium",
-          selected ? "text-white" : "text-primary"
-        )}
+      <span className="inline-flex items-center gap-2 text-sm font-textMedium text-[#939598]"
       >
         {category.description}
-        <ArrowIcon selected={selected} />
       </span>
     </div>
   </button>
@@ -1029,10 +1023,10 @@ const SelectableCard = ({
     type="button"
     onClick={onSelect}
     className={clsx(
-      "flex h-full flex-col gap-5 rounded-[28px] border px-6 py-6 text-left transition shadow-sm",
+      "flex items-center h-full flex-col gap-5 rounded-[16px] border px-6 py-6 text-center transition shadow-sm relative before:absolute before:top-0 before:left-0 before:bottom-0 before:right-0 before:rounded-[16px] before:z-0 before:transition before:duration-200",
       selected
-        ? "border-transparent bg-[linear-gradient(180deg,#05055C_0%,#0D0D78_100%)] text-white"
-        : "border-gray-200 bg-white text-primary hover:border-primary/40 hover:shadow-lg"
+        ? "before:border-[5px] before:border-[#00B6FF]"
+        : "before:border-2 before:border-slate-200 hover:before:border-[5px] hover:before:border-[#00B6FF]"
     )}
   >
     <span
@@ -1221,6 +1215,20 @@ const ActionCard = ({
       <p className="text-sm text-gray-500">{description}</p>
     </div>
   </button>
+);
+
+const SearchIcon = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    className="h-4 w-4"
+  >
+    <circle cx="11" cy="11" r="7" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M20 20l-3-3" />
+  </svg>
 );
 
 export default ServiceDashboard;

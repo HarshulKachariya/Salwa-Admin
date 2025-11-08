@@ -52,16 +52,33 @@ const Header: FC<HeaderProps> = ({ onToggleSidebar, onOpenProfile }) => {
 
       <div className="flex gap-5 items-center">
         {/* Search bar */}
-        <div className=" w-full sm:w-[300px] lg:w-[400px] relative border rounded-full border-[#0d0d78]">
+        <div className=" w-full sm:w-[300px] lg:w-[400px] relative border input-filed-block header-search-bar rounded-full border-[#0d0d78]">
           <input
+            id="search_bar"
             type="text"
             placeholder={t("header.searchPlaceholder")}
-            className="w-full outline-none font-medium text-sm sm:text-base lg:text-[16px] px-3 sm:px-4 lg:px-[25px] py-2 sm:py-2.5 lg:py-[12px] rounded-full transition-colors duration-300"
+            className="w-full outline-none font-medium text-sm sm:text-base lg:text-[16px] px-3 sm:px-4 lg:px-[25px] py-2 sm:py-2.5 lg:py-[12px] rounded-full transition-colors duration-300 peer border border-[#E4E6EF] bg-white text-[#1F1F1F]
+          placeholder-transparent shadow-[0_12px_40px_rgba(7,11,104,0.08)]
+          focus:border-[#070B68] focus:ring-2 focus:ring-[#070B68]/15
+          disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
             style={{
               backgroundColor: "var(--input-bg)",
               color: "var(--text-primary)",
             }}
           />
+          <label
+            htmlFor="search_bar"
+            className={`
+          label-filed absolute left-6 top-4 text-[#A0A3BD] text-lg transition-all duration-200
+          peer-placeholder-shown:top-2.5 peer-placeholder-shown:text-lg cursor-text
+          peer-focus:-top-3.5 peer-focus:text-[13px] peer-focus:text-[#070B68]
+          bg-white px-1 
+          `}
+          // ${value ? "!-top-3.5 text-[13px] " : ""} 
+            style={{ backgroundColor: "var(--input-bg)" }}
+          >
+            {t("header.searchPlaceholder")}
+          </label>
           <a
             href="javascript:;"
             className="flex w-fit h-fit items-center absolute top-0 bottom-0 right-3 sm:right-4 lg:right-5 m-auto text-[14px] sm:text-[16px] lg:text-[18px] transition-colors duration-300"
@@ -133,9 +150,8 @@ const Header: FC<HeaderProps> = ({ onToggleSidebar, onOpenProfile }) => {
                     changeLanguage("en");
                     setIsLanguageMenuOpen(false);
                   }}
-                  className={`block px-4 py-2 text-sm w-full text-left transition-colors duration-200 ${
-                    currentLanguage === "en" ? "font-semibold" : ""
-                  }`}
+                  className={`block px-4 py-2 text-sm w-full text-left transition-colors duration-200 ${currentLanguage === "en" ? "font-semibold" : ""
+                    }`}
                   style={{
                     color:
                       currentLanguage === "en"
@@ -168,9 +184,8 @@ const Header: FC<HeaderProps> = ({ onToggleSidebar, onOpenProfile }) => {
                     changeLanguage("ar");
                     setIsLanguageMenuOpen(false);
                   }}
-                  className={`block px-4 py-2 text-sm w-full text-left transition-colors duration-200 ${
-                    currentLanguage === "ar" ? "font-semibold" : ""
-                  }`}
+                  className={`block px-4 py-2 text-sm w-full text-left transition-colors duration-200 ${currentLanguage === "ar" ? "font-semibold" : ""
+                    }`}
                   style={{
                     color:
                       currentLanguage === "ar"
@@ -357,7 +372,7 @@ const Header: FC<HeaderProps> = ({ onToggleSidebar, onOpenProfile }) => {
           )}
         </div>
       </div>
-    </div>
+    </div >
   );
 };
 

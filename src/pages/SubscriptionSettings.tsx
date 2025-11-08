@@ -136,17 +136,31 @@ const FilterBar = ({
         options={["All Subcategory", "Small Facilities", "Medium Facilities", "Large Facilities", "Mega Facilities"]}
         onChange={(event) => onSubCategoryChange(event.target.value)}
       />
-      <div className="flex-1 min-w-[220px]">
+      <div className="flex items-center flex-1 min-w-[220px]">
         <label className="block text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
           Search
         </label>
-        <div className="mt-2 flex items-center gap-2">
+        <div className="flex items-center gap-2 w-full relative input-filed-block">
           <input
-            className="w-full rounded-full border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+            type="search"
+            id="search_bar_subscription_settings"
             placeholder="Search plans"
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
+            className="w-full rounded-full border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 peer
+          placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
           />
+          <label
+            htmlFor="search_bar_subscription_settings"
+            className={`
+          label-filed absolute left-4 top-3 text-[#A0A3BD] text-sm transition-all duration-200
+          peer-placeholder-shown:top-3 peer-placeholder-shown:left-3 peer-placeholder-shown:text-sm cursor-text
+          peer-focus:-top-2.5 peer-focus:left-4 peer-focus:text-[13px] peer-focus:text-[#070B68]
+          bg-white px-1  ${search && search.trim() !== "" ? "-top-2.5 left-4 !text-[13px] " : ""} 
+          `}
+          >
+            Search plans
+          </label>
           <button className="shrink-0 rounded-full border border-gray-200 px-5 py-2 text-sm font-semibold text-primary hover:border-primary">
             Search
           </button>
@@ -223,7 +237,7 @@ const Select = ({
   <label className="space-y-1 text-xs font-semibold uppercase tracking-[0.18em] text-gray-400">
     {label}
     <select
-      className="mt-2 min-w-[220px] rounded-full border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+      className="min-w-[220px] rounded-full border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
       value={value}
       onChange={onChange}
     >

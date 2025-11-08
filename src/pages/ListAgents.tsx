@@ -439,13 +439,11 @@ const ListAgents = () => {
           <button
             type="button"
             onClick={() => handleStatusToggle(row)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer border border-transparent hover:border-current ${
-              STATUS_BADGE_CLASSES[row.status] ??
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer border border-transparent hover:border-current ${STATUS_BADGE_CLASSES[row.status] ??
               "bg-gray-100 text-gray-500 hover:bg-gray-200"
-            }`}
-            title={`Click to ${
-              row.status === "Active" ? "deactivate" : "activate"
-            } this agent`}
+              }`}
+            title={`Click to ${row.status === "Active" ? "deactivate" : "activate"
+              } this agent`}
           >
             {row.status}
           </button>
@@ -516,13 +514,11 @@ const ListAgents = () => {
           <button
             type="button"
             onClick={() => handleStatusToggle(row)}
-            className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer border border-transparent hover:border-current ${
-              STATUS_BADGE_CLASSES[row.status] ??
+            className={`rounded-full px-3 py-1 text-xs font-semibold transition-all duration-200 hover:shadow-md hover:scale-105 cursor-pointer border border-transparent hover:border-current ${STATUS_BADGE_CLASSES[row.status] ??
               "bg-gray-100 text-gray-500 hover:bg-gray-200"
-            }`}
-            title={`Click to ${
-              row.status === "Active" ? "deactivate" : "activate"
-            } this agent`}
+              }`}
+            title={`Click to ${row.status === "Active" ? "deactivate" : "activate"
+              } this agent`}
           >
             {row.status}
           </button>
@@ -565,8 +561,7 @@ const ListAgents = () => {
 
       if (response?.success) {
         showToast(
-          `Agent ${activeTab} status updated to ${
-            newStatus ? "Active" : "Inactive"
+          `Agent ${activeTab} status updated to ${newStatus ? "Active" : "Inactive"
           } successfully`,
           "success"
         );
@@ -668,14 +663,27 @@ const ListAgents = () => {
                 onClick={() => handleTabChange("business")}
               />
             </div>
-            <div className="relative w-full max-w-xs">
+            <div className="relative w-full max-w-xs input-filed-block">
               <input
+                id="search_bar_list_of_agents"
+                placeholder="Search here"
                 value={searchTerm}
                 onChange={(event) => handleSearchChange(event.target.value)}
-                placeholder="Search"
-                className="w-full rounded-full border border-slate-200 bg-white px-4 py-2.5 pl-11 text-sm text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
+                className="w-full rounded-full border border-slate-200 bg-white pl-5 pr-11 py-2 text-base text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 peer
+          placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
               />
-              <span className="pointer-events-none absolute inset-y-0 left-4 flex items-center text-gray-400">
+              <label
+                htmlFor="search_bar_list_of_agents"
+                className={`
+                        label-filed absolute left-4 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-4 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-4 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${searchTerm && searchTerm.trim() !== "" ? "!-top-3 !left-4 !text-[13px] " : ""} 
+                        `}
+              >
+                Search here
+              </label>
+              <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
                 <SearchIcon />
               </span>
             </div>
@@ -698,7 +706,7 @@ const ListAgents = () => {
           </div>
 
           {/* Debug: Show total records from API */}
-         
+
 
           <ChartPlaceholder />
 
@@ -757,11 +765,10 @@ const StatusConfirmModal = ({
   <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-xl">
     <div className="space-y-6 text-center">
       <div
-        className={`mx-auto flex h-24 w-24 items-center justify-center rounded-full ${
-          currentStatus
-            ? "bg-orange-100 text-orange-600"
-            : "bg-green-100 text-green-600"
-        }`}
+        className={`mx-auto flex h-24 w-24 items-center justify-center rounded-full ${currentStatus
+          ? "bg-orange-100 text-orange-600"
+          : "bg-green-100 text-green-600"
+          }`}
       >
         {currentStatus ? (
           <svg
@@ -818,11 +825,10 @@ const StatusConfirmModal = ({
         </button>
         <button
           type="button"
-          className={`rounded-full px-6 py-2 text-sm font-semibold text-white shadow transition disabled:cursor-not-allowed disabled:opacity-50 ${
-            currentStatus
-              ? "bg-orange-600 hover:bg-orange-700"
-              : "bg-green-600 hover:bg-green-700"
-          }`}
+          className={`rounded-full px-6 py-2 text-sm font-semibold text-white shadow transition disabled:cursor-not-allowed disabled:opacity-50 ${currentStatus
+            ? "bg-orange-600 hover:bg-orange-700"
+            : "bg-green-600 hover:bg-green-700"
+            }`}
           onClick={onConfirm}
           disabled={isSubmitting}
         >
@@ -831,8 +837,8 @@ const StatusConfirmModal = ({
               ? "Deactivating..."
               : "Activating..."
             : currentStatus
-            ? "Deactivate"
-            : "Activate"}
+              ? "Deactivate"
+              : "Activate"}
         </button>
       </div>
     </div>
@@ -851,11 +857,10 @@ const TabButton = ({
   <button
     type="button"
     onClick={onClick}
-    className={`rounded-full px-5 py-2 text-sm font-semibold transition ${
-      isActive
-        ? "bg-white text-primary shadow"
-        : "text-gray-400 hover:text-primary"
-    }`}
+    className={`rounded-full px-5 py-2 text-sm font-semibold transition ${isActive
+      ? "bg-white text-primary shadow"
+      : "text-gray-400 hover:text-primary"
+      }`}
   >
     {label}
   </button>

@@ -502,6 +502,17 @@ body {
   border-right: 1px solid #8b4513;
 }
 
+.input-filed-block:has(input:disabled) .label-filed{
+  @apply bg-[#F4F5F9] cursor-not-allowed
+}
+
+@layer components {
+  .dark .input-filed-block.header-search-bar input:focus ~ .label-filed {
+    color: white; /* plain CSS property */
+  }
+}
+
+
 /* Responsive table adjustments */
 @media (max-width: 768px) {
   .dataTable thead th,

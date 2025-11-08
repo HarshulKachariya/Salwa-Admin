@@ -508,23 +508,34 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                     General Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="first_name"
                         value={formData.firstName}
                         onChange={(e) =>
                           handleInputChange("firstName", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.firstName
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.firstName
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="First Name *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="first_name"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.firstName && formData.firstName.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >
+                        First Name *
+                      </label>
                       {formErrors.firstName && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.firstName}
@@ -532,40 +543,61 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
+                        id="middle_name"
                         type="text"
                         value={formData.middleName}
                         onChange={(e) =>
                           handleInputChange("middleName", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isReadOnly
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                         placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${isReadOnly
                             ? "bg-gray-100 cursor-not-allowed"
                             : "border-gray-300"
-                        }`}
+                          }`}
                         placeholder="Middle Name"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="middle_name"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.middleName && formData.middleName.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >
+                        Middle Name
+                      </label>
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="last_name"
                         value={formData.lastName}
                         onChange={(e) =>
                           handleInputChange("lastName", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.lastName
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.lastName
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Last Name *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="last_name"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.lastName && formData.lastName.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Last Name *</label>
                       {formErrors.lastName && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.lastName}
@@ -573,23 +605,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="id_number"
                         value={formData.idNumber}
                         onChange={(e) =>
                           handleInputChange("idNumber", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.idNumber
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.idNumber
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="ID Number / IQAMA Number *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="id_number"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.idNumber && formData.idNumber.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >ID Number / IQAMA Number *</label>
                       {formErrors.idNumber && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.idNumber}
@@ -597,23 +638,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="date"
+                        id="id_expiry_date"
                         value={formData.idExpiryDate}
                         onChange={(e) =>
                           handleInputChange("idExpiryDate", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.idExpiryDate
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.idExpiryDate
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="ID Expiry Date"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="id_expiry_date"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.idExpiryDate && formData.idExpiryDate.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >ID Expiry Date</label>
                       {formErrors.idExpiryDate && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.idExpiryDate}
@@ -621,23 +671,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="date"
+                        id="date_of_birth"
                         value={formData.dateOfBirth}
                         onChange={(e) =>
                           handleInputChange("dateOfBirth", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.dateOfBirth
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.dateOfBirth
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Date of Birth"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="date_of_birth"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.dateOfBirth && formData.dateOfBirth.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Date of Birth</label>
                       {formErrors.dateOfBirth && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.dateOfBirth}
@@ -645,9 +704,10 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="graduation_certificate"
                         value={formData.graduationCertificate}
                         onChange={(e) =>
                           handleInputChange(
@@ -655,16 +715,24 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                             e.target.value
                           )
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.graduationCertificate
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.graduationCertificate
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Graduation Certificate"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="graduation_certificate"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.graduationCertificate && formData.graduationCertificate.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Graduation Certificate</label>
                       {formErrors.graduationCertificate && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.graduationCertificate}
@@ -672,23 +740,31 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="acquired_languages"
                         value={formData.acquiredLanguages}
                         onChange={(e) =>
                           handleInputChange("acquiredLanguages", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.acquiredLanguages
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.acquiredLanguages
+                          ? "border-red-500"
+                          : "border-gray-300"
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Acquired Languages"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="acquired_languages"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.acquiredLanguages && formData.acquiredLanguages.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Acquired Languages</label>
                       {formErrors.acquiredLanguages && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.acquiredLanguages}
@@ -697,13 +773,12 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                     </div>
 
                     <div>
-                      <div className="flex">
+                      <div className="flex relative input-filed-block">
                         <select
-                          className={`px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            isReadOnly
-                              ? "bg-gray-100 cursor-not-allowed"
-                              : "border-gray-300"
-                          }`}
+                          className={`px-3 py-2 border rounded-l-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${isReadOnly
+                            ? "bg-gray-100 cursor-not-allowed"
+                            : "border-gray-300"
+                            }`}
                           disabled={isReadOnly}
                         >
                           <option>+966</option>
@@ -712,20 +787,29 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                         </select>
                         <input
                           type="tel"
+                          id="telephone"
                           value={formData.telephone}
                           onChange={(e) =>
                             handleInputChange("telephone", e.target.value)
                           }
-                          className={`flex-1 px-3 py-2 border border-l-0 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            formErrors.telephone
+                          className={`flex-1 px-3 py-2 border border-l-0 rounded-r-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.telephone
                               ? "border-red-500"
                               : "border-gray-300"
-                          } ${
-                            isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                          }`}
+                            } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                            }`}
                           placeholder="Telephone *"
                           readOnly={isReadOnly}
                         />
+                        <label
+                          htmlFor="telephone"
+                          className={`
+                        label-filed absolute left-24 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-24 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-24 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.telephone && formData.telephone.trim() !== "" ? "-top-3 left-24 !text-[13px] " : ""} 
+                        `}
+                        >Telephone *</label>
                       </div>
                       {formErrors.telephone && (
                         <p className="text-red-500 text-xs mt-1">
@@ -734,23 +818,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="email"
+                        id="official_email"
                         value={formData.officialEmail}
                         onChange={(e) =>
                           handleInputChange("officialEmail", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.officialEmail
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.officialEmail
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Official Email *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="official_email"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.officialEmail && formData.officialEmail.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Official Email *</label>
                       {formErrors.officialEmail && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.officialEmail}
@@ -758,26 +851,34 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <select
                         value={formData.type}
+                        id="select_type"
                         onChange={(e) =>
                           handleInputChange("type", parseInt(e.target.value))
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.type ? "border-red-500" : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                        className={`w-full px-3 py-2 h-[42px] border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.type ? "border-red-500" : "border-gray-300"
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         disabled={isReadOnly}
                       >
-                        <option value={0}>Select Type *</option>
                         {commonData?.map((item: any) => (
                           <option key={item.ID} value={item.ID}>
                             {item.EName}
                           </option>
                         ))}
                       </select>
+                      <label
+                        htmlFor="select_type"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.type ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Selct Type *</label>
                       {formErrors.type && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.type}
@@ -793,23 +894,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                     Address
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="country"
                         value={formData.country}
                         onChange={(e) =>
                           handleInputChange("country", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.country
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.country
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Country *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="country"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.country && formData.country.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Country *</label>
                       {formErrors.country && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.country}
@@ -817,23 +927,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="region"
                         value={formData.region}
                         onChange={(e) =>
                           handleInputChange("region", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.region
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.region
                             ? "border-red-500"
                             : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Region *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="region"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.region && formData.region.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Region *</label>
                       {formErrors.region && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.region}
@@ -841,21 +960,30 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="city"
                         value={formData.city}
                         onChange={(e) =>
                           handleInputChange("city", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.city ? "border-red-500" : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.city ? "border-red-500" : "border-gray-300"
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="City *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="city"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.city && formData.city.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >City *</label>
                       {formErrors.city && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.city}
@@ -863,40 +991,59 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="national_address"
                         value={formData.nationalAddress}
                         onChange={(e) =>
                           handleInputChange("nationalAddress", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          isReadOnly
-                            ? "bg-gray-100 cursor-not-allowed"
-                            : "border-gray-300"
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${isReadOnly
+                          ? "bg-gray-100 cursor-not-allowed"
+                          : "border-gray-300"
+                          }`}
                         placeholder="National Address - SPL"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="national_address"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.nationalAddress && formData.nationalAddress.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >National Address - SPL</label>
                     </div>
 
-                    <div className="md:col-span-2">
+                    <div className="md:col-span-2 relative input-filed-block">
                       <input
                         type="text"
+                        id="address"
                         value={formData.address}
                         onChange={(e) =>
                           handleInputChange("address", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.address
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.address
+                          ? "border-red-500"
+                          : "border-gray-300"
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Address *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="address"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.address && formData.address.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Address *</label>
                       {formErrors.address && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.address}
@@ -930,23 +1077,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                     Bank Information
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="bank_name"
                         value={formData.bankName}
                         onChange={(e) =>
                           handleInputChange("bankName", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.bankName
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.bankName
+                          ? "border-red-500"
+                          : "border-gray-300"
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="Bank Name *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="bank_name"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.bankName && formData.bankName.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >Bank Name *</label>
                       {formErrors.bankName && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.bankName}
@@ -954,23 +1110,32 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                       )}
                     </div>
 
-                    <div>
+                    <div className="relative input-filed-block">
                       <input
                         type="text"
+                        id="iban_number"
                         value={formData.ibanNumber}
                         onChange={(e) =>
                           handleInputChange("ibanNumber", e.target.value)
                         }
-                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                          formErrors.ibanNumber
-                            ? "border-red-500"
-                            : "border-gray-300"
-                        } ${
-                          isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
-                        }`}
+                        className={`w-full px-3 py-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 peer
+                        placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${formErrors.ibanNumber
+                          ? "border-red-500"
+                          : "border-gray-300"
+                          } ${isReadOnly ? "bg-gray-100 cursor-not-allowed" : ""
+                          }`}
                         placeholder="IBAN Number *"
                         readOnly={isReadOnly}
                       />
+                      <label
+                        htmlFor="iban_number"
+                        className={`
+                        label-filed absolute left-3 top-2 text-[#A0A3BD] text-base transition-all duration-200
+                        peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-base cursor-text
+                        peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                        bg-white px-1  ${formData.ibanNumber && formData.ibanNumber.trim() !== "" ? "!-top-3 !left-3 !text-[13px]" : ""} 
+                        `}
+                      >IBAN Number *</label>
                       {formErrors.ibanNumber && (
                         <p className="text-red-500 text-xs mt-1">
                           {formErrors.ibanNumber}
@@ -986,11 +1151,10 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                     <button
                       type="submit"
                       disabled={isSubmitting}
-                      className={`px-8 py-3 font-medium rounded-md transition-colors flex items-center gap-2 ${
-                        isSubmitting
-                          ? "bg-gray-400 cursor-not-allowed"
-                          : "bg-black text-white hover:bg-gray-800"
-                      }`}
+                      className={`px-8 py-3 font-medium rounded-md transition-colors flex items-center gap-2 ${isSubmitting
+                        ? "bg-gray-400 cursor-not-allowed"
+                        : "bg-black text-white hover:bg-gray-800"
+                        }`}
                     >
                       {isSubmitting && (
                         <svg
@@ -1019,8 +1183,8 @@ const SupervisorForm: FC<SupervisorFormProps> = ({
                           ? "Saving..."
                           : "Updating..."
                         : isAdd
-                        ? "Save"
-                        : "Update"}
+                          ? "Save"
+                          : "Update"}
                     </button>
                   </div>
                 )}

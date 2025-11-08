@@ -1,25 +1,25 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
-import { 
+import {
   type SubscriberRecord,
   type SubscriberAnalytics
 } from "../services/SubscriberService";
-import { 
-  getSubscriberAnalyticsMock, 
-  exportSubscribersMock 
+import {
+  getSubscriberAnalyticsMock,
+  exportSubscribersMock
 } from "../services/SubscriberMockService";
-import { 
+import {
   getAllIndividualUserDetails,
-  type IndividualUserParams 
+  type IndividualUserParams
 } from "../services/IndividualUserInsuranceService";
-import { 
+import {
   getAllBusinessUserDetails,
-  type BusinessUserParams 
+  type BusinessUserParams
 } from "../services/BusinessUserDetailsService";
-import { 
+import {
   getAllGovernmentUserDetails,
-  type GovernmentUserParams 
+  type GovernmentUserParams
 } from "../services/GovernmentUserDetailService";
 import ComanTable, {
   type TableColumn,
@@ -46,12 +46,12 @@ const ListSubscribers = () => {
     try {
       setLoading(true);
       setError(null);
-      
+
       if (activeTab === "Individual") {
         // Use Individual User Insurance API for Individual tab
         const sortColumn = sortState.length > 0 ? sortState[0].key : "Id";
         const sortDirection = sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC";
-        
+
         const params: IndividualUserParams = {
           searchText,
           pageNumber: currentPage,
@@ -59,7 +59,7 @@ const ListSubscribers = () => {
           orderByColumn: sortColumn,
           orderDirection: sortDirection,
         };
-        
+
         const response = await getAllIndividualUserDetails(params);
         console.log("Individual API Response:", response);
         console.log("Transformed Records:", response.records);
@@ -69,7 +69,7 @@ const ListSubscribers = () => {
         // Use Business User Details API for Business tab
         const sortColumn = sortState.length > 0 ? sortState[0].key : "CreatedDate";
         const sortDirection = sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC";
-        
+
         const params: BusinessUserParams = {
           searchText,
           pageNumber: currentPage,
@@ -77,7 +77,7 @@ const ListSubscribers = () => {
           orderByColumn: sortColumn,
           orderDirection: sortDirection,
         };
-        
+
         const response = await getAllBusinessUserDetails(params);
         console.log("Business API Response:", response);
         console.log("Transformed Business Records:", response.records);
@@ -87,7 +87,7 @@ const ListSubscribers = () => {
         // Use Government User Details API for Government tab
         const sortColumn = sortState.length > 0 ? sortState[0].key : "CreatedDate";
         const sortDirection = sortState.length > 0 ? sortState[0].order.toUpperCase() : "DESC";
-        
+
         const params: GovernmentUserParams = {
           searchText,
           pageNumber: currentPage,
@@ -95,7 +95,7 @@ const ListSubscribers = () => {
           orderByColumn: sortColumn,
           orderDirection: sortDirection,
         };
-        
+
         const response = await getAllGovernmentUserDetails(params);
         console.log("Government API Response:", response);
         console.log("Transformed Government Records:", response.records);
@@ -156,8 +156,8 @@ const ListSubscribers = () => {
   const tableColumns: TableColumn<SubscriberRecord>[] = useMemo(
     () => [
       {
-        label: activeTab === "Business" ? "Registration No." : 
-               activeTab === "Government" ? "Employee ID" : "ID Number",
+        label: activeTab === "Business" ? "Registration No." :
+          activeTab === "Government" ? "Employee ID" : "ID Number",
         value: (row) => (
           <span className="font-helveticaBold text-primary">{row.idNo}</span>
         ),
@@ -165,8 +165,8 @@ const ListSubscribers = () => {
         isSort: true,
       },
       {
-        label: activeTab === "Business" ? "Business Name" : 
-               activeTab === "Government" ? "Position" : "Name",
+        label: activeTab === "Business" ? "Business Name" :
+          activeTab === "Government" ? "Position" : "Name",
         value: (row) => (
           <div className="flex flex-col">
             <span className="text-gray-700 font-medium">{row.name}</span>
@@ -207,8 +207,8 @@ const ListSubscribers = () => {
         isSort: true,
       },
       {
-        label: activeTab === "Business" ? "Business Info" : 
-               activeTab === "Government" ? "Ministry/Department" : "Insurance",
+        label: activeTab === "Business" ? "Business Info" :
+          activeTab === "Government" ? "Ministry/Department" : "Insurance",
         value: (row) => (
           <div className="flex flex-col">
             {activeTab === "Business" ? (
@@ -245,8 +245,8 @@ const ListSubscribers = () => {
             )}
           </div>
         ),
-        sortKey: activeTab === "Business" ? "businessSector" : 
-                 activeTab === "Government" ? "ministryName" : "insuranceProvider",
+        sortKey: activeTab === "Business" ? "businessSector" :
+          activeTab === "Government" ? "ministryName" : "insuranceProvider",
         isSort: true,
       },
       {
@@ -254,13 +254,12 @@ const ListSubscribers = () => {
         value: (row) => (
           <div className="flex flex-col space-y-1">
             <span
-              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${
-                row.status === "Active"
-                  ? "bg-green-100 text-green-800"
-                  : row.status === "Inactive"
+              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${row.status === "Active"
+                ? "bg-green-100 text-green-800"
+                : row.status === "Inactive"
                   ? "bg-red-100 text-red-800"
                   : "bg-yellow-100 text-yellow-800"
-              }`}
+                }`}
             >
               {row.status}
             </span>
@@ -285,8 +284,8 @@ const ListSubscribers = () => {
         isSort: true,
       },
       {
-        label: activeTab === "Business" ? "Revenue" : 
-               activeTab === "Government" ? "Salary Grade" : "Stage",
+        label: activeTab === "Business" ? "Revenue" :
+          activeTab === "Government" ? "Salary Grade" : "Stage",
         value: (row) => (
           activeTab === "Business" ? (
             <span className="text-gray-600 text-sm">
@@ -302,8 +301,8 @@ const ListSubscribers = () => {
             </span>
           )
         ),
-        sortKey: activeTab === "Business" ? "subscriptionAmount" : 
-                 activeTab === "Government" ? "salaryGrade" : "currentStage",
+        sortKey: activeTab === "Business" ? "subscriptionAmount" :
+          activeTab === "Government" ? "salaryGrade" : "currentStage",
         isSort: true,
       },
     ],
@@ -346,7 +345,7 @@ const ListSubscribers = () => {
     <DashboardLayout>
       <div className="mx-auto flex w-full flex-col gap-8 pb-3">
         <Header />
-        
+
         {/* Analytics Section */}
         {analytics && (
           <section className="rounded-[32px] border border-gray-200 bg-white p-8 shadow-sm">
@@ -370,18 +369,18 @@ const ListSubscribers = () => {
                 <div className="text-sm text-gray-500">Total User</div>
               </div>
             </div>
-            
+
             {/* Simple Bar Chart */}
             <div className="h-32 bg-gray-50 rounded-lg p-4">
               <div className="flex items-end justify-between h-full space-x-2">
                 {analytics.monthlyData.slice(0, 6).map((data, index) => (
                   <div key={index} className="flex flex-col items-center flex-1">
                     <div className="flex flex-col justify-end h-20 w-full">
-                      <div 
+                      <div
                         className="bg-primary rounded-t"
                         style={{ height: `${(data.active / Math.max(...analytics.monthlyData.map(d => d.active))) * 100}%` }}
                       />
-                      <div 
+                      <div
                         className="bg-gray-300 rounded-t"
                         style={{ height: `${(data.inactive / Math.max(...analytics.monthlyData.map(d => d.inactive))) * 100}%` }}
                       />
@@ -402,25 +401,39 @@ const ListSubscribers = () => {
                 <button
                   key={tab}
                   onClick={() => handleTabChange(tab)}
-                  className={`px-6 py-3 text-sm font-medium rounded-md transition-colors ${
-                    activeTab === tab
-                      ? "bg-primary text-white shadow-sm"
-                      : "text-gray-600 hover:text-gray-800"
-                  }`}
+                  className={`px-6 py-3 text-sm font-medium rounded-md transition-colors ${activeTab === tab
+                    ? "bg-primary text-white shadow-sm"
+                    : "text-gray-600 hover:text-gray-800"
+                    }`}
                 >
                   {tab}
                 </button>
               ))}
             </div>
-            
+
             <div className="flex items-center gap-3">
-              <input
-                placeholder="Search subscribers"
-                value={searchText}
-                onChange={handleSearch}
-                className="w-full max-w-sm rounded-full border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20"
-              />
-              <button 
+              <div className="relative input-filed-block">
+                <input
+                  id="search_bar_subscribers"
+                  placeholder="Search subscribers"
+                  value={searchText}
+                  onChange={handleSearch}
+                  className="w-full max-w-sm rounded-full border border-gray-200 bg-white px-4 py-3 text-sm text-gray-600 shadow-sm focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 peer
+          placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
+                />
+                <label
+                  htmlFor="search_bar_subscribers"
+                  className={`
+                      label-filed absolute left-4 top-4 text-[#A0A3BD] text-sm transition-all duration-200
+                      peer-placeholder-shown:top-[13px] peer-placeholder-shown:text-sm cursor-text
+                      peer-focus:-top-2 peer-focus:text-[13px] peer-focus:text-[#070B68]
+                      bg-white px-1   ${searchText && searchText.trim() !== "" ? "-top-2 !text-[13px] " : ""} 
+                      `}
+                >
+                  Search subscribers
+                </label>
+              </div>
+              <button
                 onClick={handleExport}
                 className="rounded-full border border-gray-200 px-6 py-2 text-sm font-semibold text-primary hover:border-primary"
               >
@@ -458,7 +471,7 @@ const ListSubscribers = () => {
               </div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">No subscribers found</h3>
               <p className="text-gray-500">
-                {searchText 
+                {searchText
                   ? `No subscribers match your search for "${searchText}"`
                   : `No ${activeTab.toLowerCase()} subscribers available`
                 }

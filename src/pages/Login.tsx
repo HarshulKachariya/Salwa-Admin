@@ -498,7 +498,6 @@ const Login = () => {
                   value={idNumber}
                   onChange={(event) => setIdNumber(event.target.value)}
                   placeholder="ID number / IQAMA number"
-                  hideLabel
                   inputClassName="placeholder:text-[#A0A3BD]"
                   autoFocus
                 />
@@ -682,7 +681,7 @@ const Login = () => {
             {step === "login" && (
               <div className="space-y-6">
 
-                <form onSubmit={handleLoginSubmit} className="space-y-2">
+                <form onSubmit={handleLoginSubmit} className="space-y-3">
                   <InputField
                     id="login-id"
                     label="ID Number / IQAMA Number"
@@ -744,27 +743,40 @@ const InputField = ({
   containerClassName = "",
   inputClassName = "",
   className = "",
+  value,
   ...props
-}: InputFieldProps) => (
-  <label className={`block text-left ${containerClassName}`}>
-    <span
-      className={
-        hideLabel
-          ? "sr-only"
-          : "mb-2 block text-xs font-semibold uppercase tracking-[0.18em] text-gray-400"
-      }
-    >
-      {label}
-    </span>
-    <input
-      id={id}
-      {...props}
-      className={
-        `w-full rounded-[18px] border border-[#E4E6EF] bg-white px-6 py-4 text-base text-[#1F1F1F] placeholder:text-[#A0A3BD] shadow-[0_12px_40px_rgba(7,11,104,0.08)] outline-none transition focus:border-[#070B68] focus:ring-2 focus:ring-[#070B68]/15 disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD] ${className} ${inputClassName}`
-      }
-    />
-  </label>
-);
+}: InputFieldProps) => {
+  const hasValue = value && value.trim() !== "";
+  return (
+    <div className={`block text-left relative input-filed-block ${containerClassName}`}>
+      <input
+        id={id}
+        value={value}
+        placeholder=" "
+        {...props}
+        className={`
+          peer w-full rounded-[18px] border border-[#E4E6EF] bg-white px-6 py-3.5 text-lg text-[#1F1F1F]
+          placeholder-transparent shadow-[0_12px_40px_rgba(7,11,104,0.08)]
+          outline-none transition focus:border-[#070B68] focus:ring-2 focus:ring-[#070B68]/15
+          disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]
+          ${className} ${inputClassName}
+        `}
+      />
+      <label
+        htmlFor={id}
+        className={`
+          label-filed absolute left-6 top-4 text-[#A0A3BD] text-lg transition-all duration-200
+          peer-placeholder-shown:top-3.5 peer-placeholder-shown:text-lg cursor-text
+          peer-focus:-top-3.5 peer-focus:text-[13px] peer-focus:text-[#070B68]
+          bg-white px-1 ${hasValue ? "!-top-3.5 !text-[13px] " : ""} 
+          ${hideLabel ? "sr-only" : ""}
+        `}
+      >
+        {label}
+      </label>
+    </div>
+  )
+};
 
 const OtpInputGroup = ({
   values,
