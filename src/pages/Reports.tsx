@@ -147,15 +147,12 @@ const Reports = () => {
   }, [filters.categoryId]);
 
   // Load sub services when service changes
+
   useEffect(() => {
+    console.log(filters.serviceName);
     if (filters.serviceName) {
       // Find the service ID from the service name
-      const selectedService = services.find(service =>
-        (service.name || service.serviceName) === filters.serviceName
-      );
-      if (selectedService) {
-        loadSubServices(parseInt(selectedService.id || selectedService.Id));
-      }
+      loadSubServices(filters.serviceName);
     } else {
       setSubServices([]);
     }
@@ -183,7 +180,7 @@ const Reports = () => {
     }
   };
 
-  const loadSubServices = async (serviceId: number) => {
+  const loadSubServices = async (serviceId: any) => {
     try {
       const response = await ReportServices.GetSubServices(serviceId);
       if (response && "data" in response && response.data) {
@@ -264,7 +261,7 @@ const Reports = () => {
         label: "Order No",
         value: (row) => (
           <span className="font-semibold text-primary">
-            {row.orderNo || row.orderNumber || row.id || `#${row.id || 'N/A'}`}
+            {row.orderNo || row.orderNumber || row.id || `#${row.id || "N/A"}`}
           </span>
         ),
         sortKey: "orderNo",
@@ -274,7 +271,11 @@ const Reports = () => {
         label: "Order Title",
         value: (row) => (
           <span className="text-gray-700">
-            {row.orderTitle || row.serviceName || row.title || row.name || "N/A"}
+            {row.orderTitle ||
+              row.serviceName ||
+              row.title ||
+              row.name ||
+              "N/A"}
           </span>
         ),
         sortKey: "orderTitle",
@@ -284,7 +285,11 @@ const Reports = () => {
         label: "Purchase By / Rented By",
         value: (row) => (
           <span className="text-gray-500">
-            {row.purchasedBy || row.customerName || row.purchaserName || row.customer || "N/A"}
+            {row.purchasedBy ||
+              row.customerName ||
+              row.purchaserName ||
+              row.customer ||
+              "N/A"}
           </span>
         ),
         sortKey: "purchasedBy",
@@ -294,7 +299,11 @@ const Reports = () => {
         label: "Sold By",
         value: (row) => (
           <span className="text-gray-500">
-            {row.soldBy || row.agentName || row.sellerName || row.agent || "N/A"}
+            {row.soldBy ||
+              row.agentName ||
+              row.sellerName ||
+              row.agent ||
+              "N/A"}
           </span>
         ),
         sortKey: "soldBy",
@@ -304,7 +313,11 @@ const Reports = () => {
         label: "Amount",
         value: (row) => (
           <span className="font-medium text-primary">
-            {row.amount ? `${row.amount} SAR` : row.totalAmount ? `${row.totalAmount} SAR` : "0 SAR"}
+            {row.amount
+              ? `${row.amount} SAR`
+              : row.totalAmount
+              ? `${row.totalAmount} SAR`
+              : "0 SAR"}
           </span>
         ),
         sortKey: "amount",
@@ -314,7 +327,11 @@ const Reports = () => {
         label: "Discount Amount",
         value: (row) => (
           <span className="text-gray-500">
-            {row.discount ? `${row.discount} SAR` : row.discountAmount ? `${row.discountAmount} SAR` : "0 SAR"}
+            {row.discount
+              ? `${row.discount} SAR`
+              : row.discountAmount
+              ? `${row.discountAmount} SAR`
+              : "0 SAR"}
           </span>
         ),
         sortKey: "discount",
@@ -324,7 +341,11 @@ const Reports = () => {
         label: "Sales Commission",
         value: (row) => (
           <span className="text-gray-500">
-            {row.salesCommission ? `${row.salesCommission} SAR` : row.commission ? `${row.commission} SAR` : "0 SAR"}
+            {row.salesCommission
+              ? `${row.salesCommission} SAR`
+              : row.commission
+              ? `${row.commission} SAR`
+              : "0 SAR"}
           </span>
         ),
         sortKey: "salesCommission",
@@ -334,7 +355,11 @@ const Reports = () => {
         label: "Payment Gateway Charges",
         value: (row) => (
           <span className="text-gray-500">
-            {row.paymentGateway ? `${row.paymentGateway} SAR` : row.gatewayCharges ? `${row.gatewayCharges} SAR` : "0 SAR"}
+            {row.paymentGateway
+              ? `${row.paymentGateway} SAR`
+              : row.gatewayCharges
+              ? `${row.gatewayCharges} SAR`
+              : "0 SAR"}
           </span>
         ),
         sortKey: "paymentGateway",
@@ -385,7 +410,7 @@ const Reports = () => {
               value={filters.categoryId}
               options={categories.map((cat) => ({
                 value: (cat.Id || cat.id)?.toString() || "",
-                label: cat.Name || cat.name || `Category ${cat.Id || cat.id}`,
+                label: cat.EName || cat.name || `Category ${cat.Id || cat.id}`,
               }))}
               onChange={(value) => handleFilterChange("categoryId", value)}
             />
@@ -394,8 +419,11 @@ const Reports = () => {
               id="service_reports"
               value={filters.serviceName}
               options={services.map((service) => ({
-                value: service.name || service.serviceName || `Service ${service.Id || service.id}`,
-                label: service.name || service.serviceName || `Service ${service.Id || service.id}`,
+                value: service.Id || service.id,
+                label:
+                  service.EName ||
+                  service.serviceName ||
+                  `Service ${service.Id || service.id}`,
               }))}
               onChange={(value) => handleFilterChange("serviceName", value)}
             />
@@ -404,8 +432,12 @@ const Reports = () => {
               id="subService_reports"
               value={filters.subServiceName}
               options={subServices.map((sub) => ({
-                value: sub.name || sub.subServiceName || `Sub-service ${sub.Id || sub.id}`,
-                label: sub.name || sub.subServiceName || `Sub-service ${sub.Id || sub.id}`,
+                value: sub.Id || sub.id,
+
+                label:
+                  sub.EName ||
+                  sub.subServiceName ||
+                  `Sub-service ${sub.Id || sub.id}`,
               }))}
               onChange={(value) => handleFilterChange("subServiceName", value)}
             />
@@ -500,7 +532,9 @@ const Select = ({
           peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
           bg-white px-1  ${value ? "!-top-3 !left-3 !text-[13px]" : ""} 
           `}
-      >{label}</label>
+      >
+        {label}
+      </label>
     </div>
   </div>
 );

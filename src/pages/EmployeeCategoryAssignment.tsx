@@ -254,7 +254,7 @@ const EmployeeCategoryAssignment = () => {
         const options: SelectOption[] = data.map((item: any) => ({
           value: item.Id?.toString() || item.id?.toString() || "",
           label:
-            item.name || item.serviceName || `Service ${item.Id || item.id}`,
+            item.EName || item.serviceName || `Service ${item.Id || item.id}`,
         }));
         setServiceOptions(options);
         setSubServiceOptions([]); // Clear sub-services when category changes
@@ -293,11 +293,9 @@ const EmployeeCategoryAssignment = () => {
 
         const options: SelectOption[] = data.map((item: any) => ({
           value: item.Id?.toString() || item.id?.toString() || "",
-          label:
-            item.name ||
-            item.subServiceName ||
-            `Sub-service ${item.Id || item.id}`,
+          label: item.EName,
         }));
+        console.log("options", options);
         setSubServiceOptions(options);
       } catch (error) {
         console.error("Failed to load sub-services:", error);
@@ -490,12 +488,12 @@ const EmployeeCategoryAssignment = () => {
         assignmentId: match.assignmentId ?? assignment.assignmentId ?? null,
         employeeIds:
           typeof match.employeeId === "number" &&
-            !Number.isNaN(match.employeeId)
+          !Number.isNaN(match.employeeId)
             ? [match.employeeId.toString()]
             : [],
         categoryId:
           typeof match.categoryId === "number" &&
-            !Number.isNaN(match.categoryId)
+          !Number.isNaN(match.categoryId)
             ? match.categoryId.toString()
             : "",
         serviceId:
@@ -504,7 +502,7 @@ const EmployeeCategoryAssignment = () => {
             : "",
         subServiceId:
           typeof match.subServiceId === "number" &&
-            !Number.isNaN(match.subServiceId)
+          !Number.isNaN(match.subServiceId)
             ? match.subServiceId.toString()
             : "",
       };
@@ -700,7 +698,9 @@ const SearchField = ({
           label-filed absolute left-2.5 top-2 text-[#A0A3BD] text-base transition-all duration-200
           peer-placeholder-shown:top-2 peer-placeholder-shown:left-2.5 peer-placeholder-shown:text-base cursor-text
           peer-focus:-top-3 peer-focus:left-2.5 peer-focus:text-[13px] peer-focus:text-[#070B68]
-          bg-white px-1  ${value && value.trim() !== "" ? "!-top-3 !text-[13px] " : ""} 
+          bg-white px-1  ${
+            value && value.trim() !== "" ? "!-top-3 !text-[13px] " : ""
+          } 
           `}
     >
       Search here
@@ -773,8 +773,9 @@ const FormModal = ({
 }) => {
   return (
     <ModalShell
-      title={`${mode === "edit" ? "Edit" : "Add"
-        } Employee & Category Assignment`}
+      title={`${
+        mode === "edit" ? "Edit" : "Add"
+      } Employee & Category Assignment`}
       onClose={onClose}
     >
       {isLoading ? (
@@ -928,9 +929,13 @@ const LabeledSelect = ({
             label-filed absolute left-3 top-3 text-[#A0A3BD] text-sm transition-all duration-200
             peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-sm
             peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
-            bg-[#f7f8fd] px-1 capitalize ${value ? "!-top-3 !left-3 !text-[13px]" : ""} ${disabled ? "cursor-no-drop" : "cursor-auto"}
+            bg-[#f7f8fd] px-1 capitalize ${
+              value ? "!-top-3 !left-3 !text-[13px]" : ""
+            } ${disabled ? "cursor-no-drop" : "cursor-auto"}
             `}
-      >{placeholder}</label>
+      >
+        {placeholder}
+      </label>
       <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
         <ChevronIcon />
       </span>
@@ -1027,7 +1032,14 @@ const SearchIcon = () => (
 );
 
 const ChevronIcon = () => (
-  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.6" className="h-3 w-3">
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 20 20"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.6"
+    className="h-3 w-3"
+  >
     <path strokeLinecap="round" strokeLinejoin="round" d="m6 8 4 4 4-4" />
   </svg>
 );

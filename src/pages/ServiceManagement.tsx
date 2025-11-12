@@ -116,16 +116,6 @@ const ServiceManagement = () => {
   const menuTableColumns: TableColumn<any>[] = useMemo(
     () => [
       {
-        label: "Category ID",
-        value: (row) => (
-          <span className="font-helveticaBold text-primary">
-            {row.categoryId || "N/A"}
-          </span>
-        ),
-        sortKey: "categoryId",
-        isSort: true,
-      },
-      {
         label: "Category Name",
         value: (row) => (
           <span className="text-gray-700">{row.categoryName || "N/A"}</span>

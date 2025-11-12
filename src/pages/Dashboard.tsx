@@ -817,7 +817,7 @@ const ServiceStatisticsSection = ({
               <option value="">All Categories</option>
               {categories.map((category) => (
                 <option key={category.Id || category.id} value={category.Id || category.id}>
-                  {category.Name || category.name}
+                  {category.EName || category.name}
                 </option>
               ))}
             </select>
@@ -847,7 +847,7 @@ const ServiceStatisticsSection = ({
               <option value="">All Services</option>
               {services.map((service) => (
                 <option key={service.Id || service.id} value={service.Name || service.name || service.serviceName}>
-                  {service.Name || service.name || service.serviceName}
+                  {service.EName || service.name || service.serviceName}
                 </option>
               ))}
             </select>
@@ -877,7 +877,7 @@ const ServiceStatisticsSection = ({
               <option value="">All Sub-Services</option>
               {subServices.map((subService) => (
                 <option key={subService.Id || subService.id} value={subService.Name || subService.name || subService.subServiceName}>
-                  {subService.Name || subService.name || subService.subServiceName}
+                  {subService.EName || subService.name || subService.subServiceName}
                 </option>
               ))}
             </select>
