@@ -1,5 +1,11 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, useEffect, type ChangeEvent, type FormEvent } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { 
+  updateIndividualSubscriptions, 
+  getAllIndividualSubscriptions, 
+  updateBusinessSubscriptions, 
+  getBusinessSubscriptions 
+} from "../services/SubsettingServices/SubsettingsServies";
 
 const INDIVIDUAL_CATEGORIES = [
   "Insurance Card Holder",
@@ -23,8 +29,32 @@ const SubscriptionSettings = () => {
   const [categoryFilter, setCategoryFilter] = useState("All Category");
   const [subCategoryFilter, setSubCategoryFilter] = useState("All Subcategory");
   const [searchTerm, setSearchTerm] = useState("");
-
+  const [subscriptionData, setSubscriptionData] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+    
   const categories = activeTab === "individuals" ? INDIVIDUAL_CATEGORIES : BUSINESS_CATEGORIES;
+
+  useEffect(() => {
+    const fetchSubscriptionData = async () => {
+      setLoading(true);
+      try {
+        if (activeTab === "business") {
+          // Call business subscription API with static IDs for now
+          const data = await getBusinessSubscriptions(29, 34);
+          setSubscriptionData(data);
+        } else {
+          const data = await getAllIndividualSubscriptions();
+          setSubscriptionData(data);
+        }
+      } catch (error) {
+        console.error("Error fetching subscription data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchSubscriptionData();
+  }, [activeTab]);
 
   const filteredCategories = categories.filter((title) => {
     const matchesCategory = categoryFilter === "All Category" || title.includes(categoryFilter);
