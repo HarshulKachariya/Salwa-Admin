@@ -153,6 +153,7 @@ const transformToSubscriberRecord = (record: IndividualUserRecord): any => {
     expiryDate: record.insurancePolicyExpiryDate,
     currentStage: record.currentStage,
     isApproved: record.isApproved,
+    isActive: record.isActive
   };
 };
 
@@ -196,5 +197,25 @@ export const getIndividualUserDetailById = async (userId: string) => {
   return apiRequest<IndividualUserRecord>(
     `${INDIVIDUAL_USER_INSURANCE_BASE_URL}/GetIndividualUserDetailById${query}`,
     { method: "GET" }
+  );
+};
+
+export const updateIndividualUserStatusByStatusId = async (id: number, newStatusId: number) => {
+  if (id === undefined || id === null) {
+    throw new Error("id is required");
+  }
+  
+  if (newStatusId === undefined || newStatusId === null) {
+    throw new Error("newStatusId is required");
+  }
+
+  const requestBody = { id, newStatusId };
+
+  return apiRequest<unknown>(
+    `${INDIVIDUAL_USER_INSURANCE_BASE_URL}/UpdateIndividualUserStatusByStatusId`,
+    { 
+      method: "POST",
+      body: JSON.stringify(requestBody)
+    }
   );
 };
