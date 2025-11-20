@@ -250,13 +250,47 @@ class OfficeStationaryService {
     }
   };
 
+  static OfficeStationarySectorGetAllPublished = async (
+    params: OfficeStationaryParams = {}
+  ) => {
+    try {
+      const {
+        searchText = "",
+        pageNumber = 1,
+        pageSize = 10,
+        orderByColumn = "RequestId",
+        orderDirection = "DESC",
+      } = params;
+
+      // Build query parameters for GET request
+      const queryParams = new URLSearchParams({
+        searchText: searchText,
+        pageNumber: pageNumber.toString(),
+        pageSize: pageSize.toString(),
+        orderByColumn: orderByColumn,
+        orderDirection: orderDirection,
+      });
+
+      // Use GET request with query parameters
+      const res = await axiosInstance.get(
+        `OfficeStationary/OfficeStationarySectorGetAllPublished?${queryParams.toString()}`
+      );
+      return {
+        success: true,
+        data: res.data,
+      };
+    } catch (error: any) {
+      return errorHandler(error);
+    }
+  };
+
   static OfficeStationarySectorGetByRequestNumber = async (
     requestNumber: string
   ) => {
     try {
       // Use GET request with query parameters
       const res = await axiosInstance.get(
-        `OfficeStationary/OfficeStationarySectorGetByRequestNumber/${requestNumber}`
+        `OfficeStationary/OfficeStationarySectorGetByRequestNumber?requestNumber=${requestNumber}`
       );
       return successHandler(res);
     } catch (error: any) {
