@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../layouts/DashboardLayout";
-import MedicalLegalServices from "../../services/MedicalLegalServices";
+import MedicalLegalService from "../../services/MedicalLegalService";
 import { useToast } from "../../components/ToastProvider";
 import {
     StatusEnum,
@@ -67,6 +67,10 @@ const Service41MedicalLegalDetails = () => {
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const [images, setImages] = useState<string[]>([]);
 
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
+
     const fetchServiceDetails = async () => {
         if (!requestNumber) {
             setError("Request number not provided");
@@ -78,7 +82,7 @@ const Service41MedicalLegalDetails = () => {
             setLoading(true);
             setError(null);
 
-            const response: any = await MedicalLegalServices.GetMedicalLegalServiceByRequestNumber(requestNumber);
+            const response: any = await MedicalLegalService.GetMedicalLegalServiceByRequestNumber(requestNumber);
 
             if (response?.data && response?.success) {
                 setServiceDetails(response.data[0]);
@@ -117,13 +121,13 @@ const Service41MedicalLegalDetails = () => {
     const handleApprove = async () => {
         if (!serviceDetails) return;
 
-
         try {
             setLoading(true);
 
-            const response = await MedicalLegalServices.UpdateMedicalLegalServiceStatus({
-                serviceId: serviceDetails.RequestId,
-                statusId: StatusEnum.APPROVED,
+            const response = await MedicalLegalService.MedicalLegalServicesApproveRejectByAdmin({
+                id: serviceDetails.RequestId,
+                newStatusId: StatusEnum.APPROVED,
+                requestNumber: serviceDetails.RequestNumber,
                 reason: "Request approved by admin",
             });
 
@@ -150,39 +154,7 @@ const Service41MedicalLegalDetails = () => {
     };
 
     const handleReject = async () => {
-        if (!serviceDetails) return;
-
-
-
-        try {
-            setLoading(true);
-
-            const response = await MedicalLegalServices.UpdateMedicalLegalServiceStatus({
-                serviceId: serviceDetails.RequestId,
-                statusId: StatusEnum.REJECTED,
-                reason: "Request rejected by admin",
-            });
-
-            if (response && response.success) {
-                await fetchServiceDetails();
-                showToast(
-                    `Request ${serviceDetails.RequestNumber} has been rejected`,
-                    "success"
-                );
-            } else {
-                throw new Error(
-                    (response as any)?.message || "Failed to reject request"
-                );
-            }
-        } catch (error) {
-            console.error("Error rejecting request:", error);
-            showToast(
-                `Failed to reject request ${serviceDetails.RequestNumber}. Please try again.`,
-                "error"
-            );
-        } finally {
-            setLoading(false);
-        }
+        setShowRejectModal(true);
     };
 
     // const handleAssignLawyer = async () => {
@@ -227,6 +199,50 @@ const Service41MedicalLegalDetails = () => {
     //         setLoading(false);
     //     }
     // };
+
+    const handleRejectSubmit = async () => {
+        if (!rejectionReason.trim()) {
+        showToast("Please provide a reason for rejection.", "error");
+        return;
+        }
+
+        if (!serviceDetails) return;
+
+        try {
+        setIsSubmitting(true);
+
+        const response =
+            await MedicalLegalService.MedicalLegalServicesApproveRejectByAdmin({
+                id: serviceDetails.RequestId,
+                newStatusId: StatusEnum.REJECTED,
+                requestNumber: serviceDetails.RequestNumber,
+                reason: "Request rejected by admin",
+            }
+            );
+
+        if (response?.success) {
+            showToast("Service rejected successfully!", "success");
+            setRejectionReason("");
+            setShowRejectModal(false);
+            navigate(-1);
+        } else {
+            showToast(
+            (response as any)?.message || "Failed to reject service",
+            "error"
+            );
+        }
+        } catch (error) {
+        console.error("Error rejecting service:", error);
+        showToast("An error occurred while rejecting the service", "error");
+        } finally {
+        setIsSubmitting(false);
+        }
+    };
+
+    const handleRejectCancel = () => {
+        setRejectionReason("");
+        setShowRejectModal(false);
+    };
 
     if (loading) {
         return (
@@ -669,6 +685,63 @@ const Service41MedicalLegalDetails = () => {
                     }
                 </div>
             </div>
+
+            {/* Rejection Reason Modal */}
+            {showRejectModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                        Reason for Cancellation
+                    </h3>
+                    <button
+                        onClick={handleRejectCancel}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                        </svg>
+                    </button>
+                    </div>
+
+                    {/* Modal Body */}
+                    <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Reason*
+                    </label>
+                    <textarea
+                        value={rejectionReason}
+                        onChange={(e:any) => setRejectionReason(e.target.value)}
+                        placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                        className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
+                        required
+                    />
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="flex justify-center">
+                    <button
+                        onClick={handleRejectSubmit}
+                        disabled={isSubmitting}
+                        className="px-8 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isSubmitting ? "Sending..." : "Send"}
+                    </button>
+                    </div>
+                </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 };

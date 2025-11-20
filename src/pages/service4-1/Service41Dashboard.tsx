@@ -148,7 +148,7 @@ const Service41Dashboard = () => {
         await MedicalLegalService.MedicalLegalServicesApproveRejectByAdmin({
           id: row.requestId,
           newStatusId: StatusEnum.PUBLISHED,
-          requestNumber: (row.requestId).toString(),
+          requestNumber: row.requestNumber,
           reason: "Medical legal service published by admin",
         });
 

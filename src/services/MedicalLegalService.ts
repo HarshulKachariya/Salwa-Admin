@@ -6,6 +6,7 @@ interface MedicalLegalServiceParams {
   pageSize?: number;
   orderByColumn?: string;
   orderDirection?: string;
+  searchText?: string;  
 }
 
 interface MedicalLegalServiceRecord {
@@ -53,6 +54,7 @@ class MedicalLegalService {
   ) => {
     try {
       const {
+        searchText = "",
         pageNumber = 1,
         pageSize = 10,
         orderByColumn = "CreatedDate",
@@ -61,6 +63,7 @@ class MedicalLegalService {
 
       // Build query parameters for GET request
       const queryParams = new URLSearchParams({
+        searchText: searchText,
         pageNumber: pageNumber.toString(),
         pageSize: pageSize.toString(),
         orderByColumn: orderByColumn,
@@ -106,6 +109,22 @@ class MedicalLegalService {
       return errorHandler(error);
     }
   };
+
+  /**
+   * Get medical legal service by request number
+   */
+  static GetMedicalLegalServiceByRequestNumber = async (
+    requestNumber: string
+  ) => {
+    try {
+      const res = await axiosInstance.get(
+        `MedicalLegalServices/GetMedicalLegalServiceByRequestNumber?requestNumber=${requestNumber}`
+      );
+      return successHandler(res);
+    } catch (error: any) {
+      return errorHandler(error);
+    }
+  };
 }
 
 export default MedicalLegalService;
@@ -114,3 +133,4 @@ export type {
   MedicalLegalServiceRecord,
   MedicalLegalServiceResponse,
 };
+

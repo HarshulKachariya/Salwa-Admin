@@ -143,22 +143,6 @@ class MedicalLegalServices {
   };
 
   /**
-   * Get medical legal service by request number
-   */
-  static GetMedicalLegalServiceByRequestNumber = async (
-    requestNumber: string
-  ) => {
-    try {
-      const res = await axiosInstance.get(
-        `MedicalLegalServices/GetMedicalLegalServiceByRequestNumber?requestNumber=${requestNumber}`
-      );
-      return successHandler(res);
-    } catch (error: any) {
-      return errorHandler(error);
-    }
-  };
-
-  /**
    * Create new medical legal service request
    */
   static CreateMedicalLegalService = async (data: {
