@@ -7,6 +7,7 @@ import { useToast } from "../components/ToastProvider";
 
 interface OrderDetail {
   id: string;
+  OrderTitle: string;
   requestId: number;
   requestNumber: string;
   categoryId: number;
@@ -34,14 +35,14 @@ interface OrderDetail {
 }
 
 interface OrderItem {
-  id: number;
-  requestNumber: string;
-  requestId: number;
-  name: string;
-  quantity: number;
-  isActive: boolean;
+  Id: number;
+  RequestNumber: string;
+  RequestId: number;
+  Name: string;
+  Quantity: number;
+  IsActive: boolean;
   createdBy: number;
-  createdDate: string;
+  CreatedDate: string;
 }
 
 const OrderDetailPage = () => {
@@ -55,9 +56,6 @@ const OrderDetailPage = () => {
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
          
-  console.log("orderDetail",orderDetail);
-
-
   useEffect(() => {
     const fetchOrderDetail = async () => {
       if (!orderId) {
@@ -110,7 +108,7 @@ const OrderDetailPage = () => {
       const requestData = {
         requestId: orderDetail.requestId,
         newStatusId: StatusEnum.APPROVED, // 100
-        userId: 0, // You may need to get this from auth context
+        // userId: 0, // You may need to get this from auth context
         requestNumber: orderDetail.requestNumber,
         reason: "", // No reason needed for approval
       };
@@ -149,7 +147,7 @@ const OrderDetailPage = () => {
       const requestData = {
         requestId: orderDetail.requestId,
         newStatusId: StatusEnum.REJECTED, // 101
-        userId: 0, // You may need to get this from auth context
+        // userId: 0, // You may need to get this from auth context
         requestNumber: orderDetail.requestNumber,
         reason: rejectionReason,
       };
@@ -236,7 +234,7 @@ const OrderDetailPage = () => {
 
           {/* Order Title */}
           <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            {orderDetail.postTimeValidityName}
+            {orderDetail?.postTimeValidityName}
           </h1>
 
           {/* Request Number and Status */}
@@ -292,7 +290,7 @@ const OrderDetailPage = () => {
                   {orderDetail.contactPersonEmail}
                 </span>
               </div>
-              <div className="flex items-center gap-2">
+              {/* <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
                 <span className="text-gray-700">
                   <strong>Category ID :</strong> {orderDetail.categoryId}
@@ -316,7 +314,7 @@ const OrderDetailPage = () => {
                   <strong>Validity Period :</strong>{" "}
                   {orderDetail.choosePostTimeValidityTime} Days
                 </span>
-              </div>
+              </div> */}
             </div>
           </div>
 
@@ -381,33 +379,33 @@ const OrderDetailPage = () => {
               <tbody>
                 {orderDetail?.items?.map((item, index) => (
                   <tr
-                    key={item.id}
+                    key={item.Id}
                     className={index % 2 === 0 ? "bg-gray-50" : "bg-white"}
                   >
                     <td className="border border-gray-300 px-4 py-3 text-gray-900">
-                      {item.id}
+                      {item.Id}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-900">
-                      {item.name}
+                      {item.Name}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-900">
-                      {item.quantity}
+                      {item.Quantity}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-900">
-                      {item.requestNumber}
+                      {item.RequestNumber}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-900">
-                      {new Date(item.createdDate).toLocaleDateString()}
+                      {new Date(item.CreatedDate).toLocaleDateString()}
                     </td>
                     <td className="border border-gray-300 px-4 py-3 text-gray-900">
                       <span
                         className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          item.isActive
+                          item.IsActive
                             ? "bg-green-100 text-green-800"
                             : "bg-red-100 text-red-800"
                         }`}
                       >
-                        {item.isActive ? "Active" : "Inactive"}
+                        {item.IsActive ? "Active" : "Inactive"}
                       </span>
                     </td>
                   </tr>
@@ -431,7 +429,7 @@ const OrderDetailPage = () => {
             </div>
           </div>
 
-           {orderDetail?.statusId === StatusEnum.PENDING && (
+           {orderDetail?.statusId !== StatusEnum.PENDING && (
              <>
                <div className="flex justify-center gap-4">
                  <button

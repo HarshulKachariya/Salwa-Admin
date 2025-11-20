@@ -25,7 +25,7 @@ interface CreateOrderParams {
 interface UpdateHealthMarketPlaceStatusParams {
   requestId: number | string;
   newStatusId: number;
-  userId: number;
+  userId?: number;
   requestNumber: string;
   reason: string;
 }
