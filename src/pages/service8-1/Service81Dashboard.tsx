@@ -37,6 +37,8 @@ interface DashboardRecord {
   isAdminApprove: string;
   isTermCondition: boolean;
   otherTermsAndCondition: string;
+  createdDate: string;
+  statusId: number;  
 }
 
 const Service81Dashboard = () => {
@@ -76,6 +78,8 @@ const Service81Dashboard = () => {
 
       if (response && response.success) {
         const responseData = (response as any).data;
+        console.log("responseData",responseData);
+        
         const totalCount = responseData?.totalCount || 0;
         const apiTotalPages = responseData?.totalPages;
 
@@ -218,33 +222,11 @@ const Service81Dashboard = () => {
 
   const tableColumns: TableColumn<DashboardRecord>[] = [
     {
-      label: "Request Number",
+      label: "Order No",
       value: (row) => (
         <span className="font-semibold text-primary">{row.requestNumber}</span>
       ),
       sortKey: "requestNumber",
-      isSort: true,
-    },
-    {
-      label: "Order Title",
-      value: (row) => <span className="text-gray-700">{row.orderTitle}</span>,
-      sortKey: "orderTitle",
-      isSort: true,
-    },
-    {
-      label: "Contact Person",
-      value: (row) => (
-        <span className="text-gray-500">{row.contactPersonName}</span>
-      ),
-      sortKey: "contactPersonName",
-      isSort: true,
-    },
-    {
-      label: "Contact Email",
-      value: (row) => (
-        <span className="text-gray-500">{row.contactPersonEmail}</span>
-      ),
-      sortKey: "contactPersonEmail",
       isSort: true,
     },
     {
@@ -280,15 +262,13 @@ const Service81Dashboard = () => {
       isSort: true,
     },
     {
-      label: "Address",
+      label: "Upload Date",
       value: (row) => (
-        <span className="text-gray-500" title={row.address}>
-          {row?.address?.length > 30
-            ? `${row.address.substring(0, 30)}...`
-            : row.address}
+        <span className="text-gray-500" title={row.createdDate}>
+          {row?.createdDate || "Jan 14, 2023"}
         </span>
       ),
-      sortKey: "address",
+      sortKey: "createdDate",
       isSort: true,
     },
     {
@@ -297,14 +277,14 @@ const Service81Dashboard = () => {
         return (
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-              row.orderStatus
+              row.statusId
             )}`}
           >
-            {getStatusName(row.orderStatus)}
+            {getStatusName(row.statusId)}
           </span>
         );
       },
-      sortKey: "orderStatus",
+      sortKey: "statusId",
       isSort: true,
     },
   ];
@@ -323,7 +303,7 @@ const Service81Dashboard = () => {
       label: "Publish",
       iconType: "publish",
       onClick: (row) => handlePublishAction(row),
-      isVisible: (row) => row.orderStatus === StatusEnum.APPROVED,
+      isVisible: (row) => row.statusId === StatusEnum.APPROVED,
     },
   ];
 

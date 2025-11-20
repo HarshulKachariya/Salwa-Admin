@@ -268,9 +268,9 @@ const Service81Details = () => {
               </svg>
               <span className="text-sm font-medium">Back</span>
             </button>
-            <h1 className="text-xl font-bold text-gray-900">
+            {/* <h1 className="text-xl font-bold text-gray-900">
               Medical General Service Details
-            </h1>
+            </h1> */}
             <div className="w-20"></div> {/* Spacer for centering */}
           </div>
         </header>

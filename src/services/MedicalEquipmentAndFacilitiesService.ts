@@ -122,7 +122,7 @@ export interface GetAllMedicalFactoriesSectorParams {
 export interface MedicalFactoriesSectorApproveRejectParams {
   RequestId: number;
   NewStatusId: number;
-  RequestNumber: string;
+  RequestNumber: any;
   Reason: string;
 }
 

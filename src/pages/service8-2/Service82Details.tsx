@@ -103,7 +103,7 @@ const Service82Details = () => {
       const params: MedicalFactoriesSectorApproveRejectParams = {
         RequestId: serviceDetails.requestId,
         NewStatusId: StatusEnum.APPROVED,
-        RequestNumber: String(serviceDetails.requestId).padStart(4, "0"),
+        RequestNumber: serviceDetails?.requestNumber,
         Reason: "Request approved by admin",
       };
 

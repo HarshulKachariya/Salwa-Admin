@@ -123,8 +123,8 @@ const Service82Dashboard = () => {
         );
 
       if (response && response.success) {
-        await fetchDataFromAPI();
-
+        const updatedData = await fetchDataFromAPI();
+        setRecords(updatedData);
         showToast(
           `Order #${String(row.requestId).padStart(
             4,
