@@ -29,11 +29,12 @@ interface Service3Detail {
     PostValidityTimeName: string;
     ProductTypeAndColor: string;
     Offers: string | null;
+    Country: string;
+    City: string;
 }
 
 const Service3DetailPage = () => {
     const { projectId } = useParams<{ projectId: string }>();
-
 
     const navigate = useNavigate();
 
@@ -203,10 +204,26 @@ const Service3DetailPage = () => {
                     {/* Request Number and Status */}
                     <div className="flex items-center justify-between mb-8">
                         <div className="flex items-center gap-2 text-gray-600">
-                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 20l4-16m2 16l4-16M6 9h14M4 15h14" />
+                            <svg
+                                className="w-5 h-5 text-gray-500"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                            >
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                />
+                                <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth="2"
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
                             </svg>
-                            Request Number: {projectDetail.RequestNumber}
+                            {projectDetail?.City}, {projectDetail?.Country}
                         </div>
                         <div className="flex items-center gap-2">
                             <span className={`px-3 py-1 rounded-full text-sm font-medium ${projectDetail.StatusId === 99 ? 'bg-yellow-100 text-yellow-800' :
@@ -236,30 +253,6 @@ const Service3DetailPage = () => {
                                 <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
                                 <span className="text-gray-700">
                                     <strong>Contact Person Email:</strong> {projectDetail.ContactPersonEmail}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
-                                <span className="text-gray-700">
-                                    <strong>Uniform Type:</strong> {projectDetail.UniformTypeName}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
-                                <span className="text-gray-700">
-                                    <strong>Gender:</strong> {projectDetail.GenderName}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
-                                <span className="text-gray-700">
-                                    <strong>Size:</strong> {projectDetail.Size}
-                                </span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <div className="w-2 h-2 bg-gray-900 rounded-full"></div>
-                                <span className="text-gray-700">
-                                    <strong>Post Validity Time:</strong> {projectDetail.PostValidityTime} {projectDetail.PostValidityTimeName}
                                 </span>
                             </div>
                         </div>

@@ -279,10 +279,10 @@ const Service3ManagementPage = () => {
       isSort: true,
     },
     {
-      label: "Contact Person",
+      label: "Date",
       value: (row) => (
         <span className="text-gray-700">
-          {row.contactPersonName || row.ContactPersonName || "N/A"}
+          {row.createdDate || "21/09/2000"}
         </span>
       ),
       sortKey: "contactPersonName",
