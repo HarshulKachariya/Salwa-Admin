@@ -47,7 +47,7 @@ const Step2Medical: React.FC<Step2Props> = ({ data, onChange }) => {
     //   <input
     //     type="text"
     //     value={data[field]}
-    //     onChange={(e) => handleInputChange(field, e.target.value)}
+    //     onChange={(e:any) => handleInputChange(field, e.target.value)}
     //     placeholder={placeholder}
     //     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
     //   />
@@ -55,7 +55,7 @@ const Step2Medical: React.FC<Step2Props> = ({ data, onChange }) => {
     <InputFiled
       label={label}
       value={data[field]}
-      onChange={(e) => handleInputChange(field, e.target.value)}
+      onChange={(e:any) => handleInputChange(field, e.target.value)}
     />
   );
 
@@ -66,7 +66,7 @@ const Step2Medical: React.FC<Step2Props> = ({ data, onChange }) => {
     //   </label>
     //   <select
     //     value={data[field]}
-    //     onChange={(e) => handleInputChange(field, e.target.value)}
+    //     onChange={(e:any) => handleInputChange(field, e.target.value)}
     //     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
     //   >
     //     <option value="">{t('steps.step1.selectOption')}</option>
@@ -77,7 +77,7 @@ const Step2Medical: React.FC<Step2Props> = ({ data, onChange }) => {
     <SelectFiled
       label={label}
       value={data[field]}
-      onChange={(e) => handleInputChange(field, e.target.value)}
+      onChange={(e:any) => handleInputChange(field, e.target.value)}
     />
   );
 

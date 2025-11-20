@@ -11,6 +11,26 @@ export interface IndividualUserParams {
   orderDirection?: string;
 }
 
+export interface HospitalNetworkRecord {
+  id: number;
+  businessName: string | null;
+  country: string | null;
+  region: string | null;
+  city: string | null;
+  class: string | null;
+  email: string | null;
+  facilityOfficialPhoneNumber: string | null;
+  certificatePath: string | null;
+  category: string;
+  points: number;
+  createdDate: string;
+  updatedDate: string;
+  userId: number;
+  userTypeId: number;
+  isUpgradeFlag: number;
+  totalRecords?: number;
+}
+
 export interface IndividualUserRecord {
   id: number;
   idNumber_IqamaNumber: string;
@@ -153,6 +173,7 @@ const transformToSubscriberRecord = (record: IndividualUserRecord): any => {
     expiryDate: record.insurancePolicyExpiryDate,
     currentStage: record.currentStage,
     isApproved: record.isApproved,
+    isActive: record.isActive
   };
 };
 
@@ -195,6 +216,50 @@ export const getIndividualUserDetailById = async (userId: string) => {
   const query = buildQuery({ userId });
   return apiRequest<IndividualUserRecord>(
     `${INDIVIDUAL_USER_INSURANCE_BASE_URL}/GetIndividualUserDetailById${query}`,
+    { method: "GET" }
+  );
+};
+
+export const updateIndividualUserStatusByStatusId = async (id: number, newStatusId: number) => {
+  if (id === undefined || id === null) {
+    throw new Error("id is required");
+  }
+  
+  if (newStatusId === undefined || newStatusId === null) {
+    throw new Error("newStatusId is required");
+  }
+
+  const requestBody = { id, newStatusId };
+
+  return apiRequest<unknown>(
+    `${INDIVIDUAL_USER_INSURANCE_BASE_URL}/UpdateIndividualUserStatusByStatusId`,
+    { 
+      method: "POST",
+      body: JSON.stringify(requestBody)
+    }
+      );
+};
+
+export const getAllHospitalNetwork = async (
+  params: IndividualUserParams = {}
+) => {
+  const {
+    searchText = "",
+    pageNumber = 1,
+    pageSize = 10,
+    orderByColumn = "Id",
+    orderDirection = "DESC",
+  } = params;
+
+  const query = buildQuery({
+    searchText,
+    pageNumber,
+    pageSize,
+    orderByColumn,
+    orderDirection,
+  });
+  return apiRequest<HospitalNetworkRecord>(
+    `${INDIVIDUAL_USER_INSURANCE_BASE_URL}/GetAllHospitalNetwork${query}`,
     { method: "GET" }
   );
 };

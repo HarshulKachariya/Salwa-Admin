@@ -1,11 +1,11 @@
 import { Select } from "antd";
 import { useState } from "react";
 
-function SelectFiled({ value, setValue, options, label }: any) {
+function SelectFiled({ value, onChange, options, label, className = "", errorsMessage, mainClassName = "" }: any) {
   const [focused, setFocused] = useState(false);
 
   return (
-    <div className="relative">
+    <div className={`relative ${mainClassName}`}>
       {/* Floating Label */}
       <label
         className={`absolute left-3 z-[1] bg-white px-1 text-gray-500 
@@ -21,12 +21,17 @@ function SelectFiled({ value, setValue, options, label }: any) {
       {/* Antd Select */}
       <Select
         value={value}
-        onChange={(val) => setValue(val)}
+        onChange={onChange}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}
-        className="w-full !text-[17px] !h-[62px] floating-select-filed"
+        className={`w-full !text-[17px] !h-[62px] floating-select-filed ${className}`}
         options={options}
       />
+      {errorsMessage && (
+        <p className="text-red-500 text-xs mt-1">
+          {errorsMessage}
+        </p>
+      )}
     </div>
   );
 }

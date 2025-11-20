@@ -121,6 +121,7 @@ const transformToSubscriberRecord = (record: BusinessUserRecord): any => {
     isVerified: record.isVerified,
     businessWebsite: record.businessWebsite,
     businessDescription: record.businessDescription,
+    isActive: record.isActive,
   };
 };
 
@@ -164,6 +165,18 @@ export const getBusinessUserDetailById = async (businessId: string) => {
   const query = buildQuery({ businessId });
   return apiRequest<BusinessUserRecord>(
     `${BUSINESS_USER_DETAILS_BASE_URL}/GetBusinessUserDetailById${query}`,
+    { method: "GET" }
+  );
+};
+
+export const GetBusinessUserDetailsById = async (id: string | number) => {
+  if (id === undefined || id === null || id === "") {
+    throw new Error("id is required");
+  }
+
+  const query = buildQuery({ Id: id });
+  return apiRequest<BusinessUserRecord>(
+    `${BUSINESS_USER_DETAILS_BASE_URL}/GetBusinessUserDetailsById${query}`,
     { method: "GET" }
   );
 };

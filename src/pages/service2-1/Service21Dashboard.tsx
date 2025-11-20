@@ -310,7 +310,7 @@ const Service21Dashboard = () => {
                   id="search_requests"
                   placeholder="Search requests by title, device name, or contact person..."
                   value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
+                  onChange={(e:any) => setSearchText(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
                   className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent peer
                         placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
@@ -375,22 +375,20 @@ const Service21Dashboard = () => {
         </div>
 
         {/* Equipment Table */}
-        <div className="rounded-[28px] border border-gray-200 bg-white shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-          <ComanTable
-            columns={tableColumns}
-            data={records}
-            actions={actionButtons}
-            page={pageNumber}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            onPageChange={handlePageChange}
-            sortState={sortState}
-            onSortChange={handleSortChange}
-            pageSize={pageSize}
-            onPageSizeChange={handlePageSizeChange}
-            loading={loading}
-          />
-        </div>
+        <ComanTable
+          columns={tableColumns}
+          data={records}
+          actions={actionButtons}
+          page={pageNumber}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          onPageChange={handlePageChange}
+          sortState={sortState}
+          onSortChange={handleSortChange}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
+          loading={loading}
+        />
       </div>
     </DashboardLayout>
   );

@@ -362,7 +362,7 @@ const Service2ManagementPage = () => {
                     type="search"
                     placeholder="Search health marketplace services..."
                     value={searchText}
-                    onChange={(e) => setSearchText(e.target.value)}
+                    onChange={(e:any) => setSearchText(e.target.value)}
                     onKeyPress={(e) => e.key === "Enter" && handleSearch()}
                     className="w-64 rounded-full border border-slate-200 bg-white px-5 py-2 pl-10 pr-4 text-sm text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15"
                   />
@@ -481,22 +481,20 @@ const Service2ManagementPage = () => {
         </div>
 
         {/* Orders Table using ComanTable */}
-        <div className="rounded-[28px] border border-gray-200 bg-white shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-          <ComanTable
-            columns={tableColumns}
-            data={orders}
-            actions={actionButtons}
-            page={pageNumber}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            onPageChange={handlePageChange}
-            sortState={sortState}
-            onSortChange={handleSortChange}
-            pageSize={pageSize}
-            onPageSizeChange={handlePageSizeChange}
-            loading={loading}
-          />
-        </div>
+        <ComanTable
+          columns={tableColumns}
+          data={orders}
+          actions={actionButtons}
+          page={pageNumber}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          onPageChange={handlePageChange}
+          sortState={sortState}
+          onSortChange={handleSortChange}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
+          loading={loading}
+        />
       </div>
     </DashboardLayout>
   );

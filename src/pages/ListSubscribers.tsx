@@ -312,20 +312,10 @@ const ListSubscribers = () => {
         label: "Status",
         value: (row) => (
           <div className="flex flex-col space-y-1">
-            <span
-              className={`inline-flex items-center rounded-full px-2 py-1 text-xs font-medium ${row.status === "Active"
-                ? "bg-green-100 text-green-800"
-                : row.status === "Inactive"
-                  ? "bg-red-100 text-red-800"
-                  : "bg-yellow-100 text-yellow-800"
-                }`}
-            >
-              {row.status}
-            </span>
             {activeTab === "Individual" &&
               (row as any).isApproved !== undefined && (
                 <span
-                  className={`text-xs ${(row as any).isApproved
+                  className={`text-xs ${(row as any).isActive
                     ? "text-green-600"
                     : "text-yellow-600"
                     }`}
@@ -336,7 +326,7 @@ const ListSubscribers = () => {
             {activeTab === "Business" &&
               (row as any).isVerified !== undefined && (
                 <span
-                  className={`text-xs ${(row as any).isVerified
+                  className={`text-xs ${(row as any).isActive
                     ? "text-green-600"
                     : "text-yellow-600"
                     }`}
@@ -347,7 +337,7 @@ const ListSubscribers = () => {
             {activeTab === "Government" &&
               (row as any).isVerified !== undefined && (
                 <span
-                  className={`text-xs ${(row as any).isVerified
+                  className={`text-xs ${(row as any).isActive
                     ? "text-green-600"
                     : "text-yellow-600"
                     }`}
@@ -422,7 +412,7 @@ const ListSubscribers = () => {
         },
       },
     ],
-    []
+    [activeTab]
   );
 
   const totalPages = Math.ceil(totalCount / pageSize);
@@ -438,6 +428,7 @@ const ListSubscribers = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="text-center">
                 <div className="text-4xl font-bold text-green-600 mb-2">
+                  <>{console.log("jsut checking",analytics.totalActive)}</>
                   {analytics.totalActive}
                 </div>
                 <div className="text-sm text-gray-500">Total Active</div>

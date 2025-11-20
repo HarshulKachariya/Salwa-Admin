@@ -513,22 +513,20 @@ const Service73Dashboard = () => {
         </div>
 
         {/* Data Table */}
-        <div className="rounded-[28px] border border-gray-200 bg-white shadow-[0_20px_40px_rgba(5,6,104,0.08)]">
-          <ComanTable
-            columns={tableColumns}
-            data={records}
-            actions={actionButtons}
-            page={pageNumber}
-            totalPages={totalPages}
-            totalCount={totalCount}
-            onPageChange={handlePageChange}
-            sortState={sortState}
-            onSortChange={handleSortChange}
-            pageSize={pageSize}
-            onPageSizeChange={handlePageSizeChange}
-            loading={loading}
-          />
-        </div>
+        <ComanTable
+          columns={tableColumns}
+          data={records}
+          actions={actionButtons}
+          page={pageNumber}
+          totalPages={totalPages}
+          totalCount={totalCount}
+          onPageChange={handlePageChange}
+          sortState={sortState}
+          onSortChange={handleSortChange}
+          pageSize={pageSize}
+          onPageSizeChange={handlePageSizeChange}
+          loading={loading}
+        />
       </div>
 
       {/* Reject Reason Modal - Same design as Service3DetailPage */}
@@ -567,7 +565,7 @@ const Service73Dashboard = () => {
               </label>
               <textarea
                 value={rejectionReason}
-                onChange={(e) => setRejectionReason(e.target.value)}
+                onChange={(e:any) => setRejectionReason(e.target.value)}
                 placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
                 className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
                 required

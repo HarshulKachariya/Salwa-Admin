@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../../layouts/DashboardLayout";
-import MedicalLegalServices from "../../services/MedicalLegalServices";
+import MedicalLegalService from "../../services/MedicalLegalService";
 import { useToast } from "../../components/ToastProvider";
 import {
     StatusEnum,
@@ -17,30 +17,43 @@ const sampleImages = [
 ];
 
 interface MedicalLegalServiceDetails {
-    id: number;
-    requestNumber: string;
-    requestTitle: string;
-    clientName: string;
-    clientEmail: string;
-    clientPhone: string;
-    serviceType: string;
-    legalCaseType: string;
-    caseDescription: string;
-    urgencyLevel: string;
-    estimatedDuration: string;
-    budgetRange: string;
-    preferredLanguage: string;
-    statusId: number;
-    statusName: string;
-    createdDate: string;
-    updatedDate: string;
-    createdBy: number;
-    updatedBy: number;
-    isActive: boolean;
-    isApproved: boolean;
-    notes?: string;
-    assignedLawyer?: string;
-    caseFileNumber?: string;
+    RequestId: number;
+    RequestNumber: string;
+    CategoryId: number;
+    ServiceId: number;
+    ProviderType: number;
+    ProviderTypeName: string;
+    ContactPersonName: string;
+    ContactPersonEmail: string;
+    HealthRegistrationNumber: string;
+    LocationId: number;
+    DiscountTypeId: number;
+    DiscountValue: number;
+    OrderTitle: string;
+    FacilityType: number;
+    FacilityTypeName: string;
+    FDADeviceLicensenumber: string;
+    PostValidityTimeId: number;
+    PostValidityTimeName: string;
+    OtherTermsAndCondition: string;
+    RentValue: number;
+    RentPeriodId: number;
+    RentPeriodName: string;
+    CreatedDate: string;
+    MediaURL: string;
+    IsTermCondition: boolean;
+    Country: string;
+    Region: string;
+    City: string;
+    District: string;
+    NationalAddress: string;
+    Address: string;
+    Latitude: string;
+    Longitude: string;
+    StatusId: number;
+    StatusName: string;
+    BusinessName: string;
+    LeftDays: string;
 }
 
 const Service41MedicalLegalDetails = () => {
@@ -48,11 +61,15 @@ const Service41MedicalLegalDetails = () => {
     const navigate = useNavigate();
     const { showToast } = useToast();
 
-    const [serviceDetails, setServiceDetails] = useState<MedicalLegalServiceDetails | null>(null);
+    const [serviceDetails, setServiceDetails] = useState<MedicalLegalServiceDetails>();
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
-    const [images] = useState<string[]>(sampleImages);
+    const [images, setImages] = useState<string[]>([]);
+
+    const [showRejectModal, setShowRejectModal] = useState(false);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     const fetchServiceDetails = async () => {
         if (!requestNumber) {
@@ -65,10 +82,16 @@ const Service41MedicalLegalDetails = () => {
             setLoading(true);
             setError(null);
 
-            const response: any = await MedicalLegalServices.GetMedicalLegalServiceByRequestNumber(requestNumber);
+            const response: any = await MedicalLegalService.GetMedicalLegalServiceByRequestNumber(requestNumber);
 
-            if (response && response.success) {
-                setServiceDetails(response.data);
+            if (response?.data && response?.success) {
+                setServiceDetails(response.data[0]);
+
+                if (response.data[0].MediaURL) {
+                    setImages([response.data[0].MediaURL]);
+                } else {
+                    setImages(sampleImages);
+                }
             } else {
                 throw new Error(
                     (response as any)?.message || "Failed to fetch service details"
@@ -98,20 +121,20 @@ const Service41MedicalLegalDetails = () => {
     const handleApprove = async () => {
         if (!serviceDetails) return;
 
-
         try {
             setLoading(true);
 
-            const response = await MedicalLegalServices.UpdateMedicalLegalServiceStatus({
-                serviceId: serviceDetails.id,
-                statusId: StatusEnum.APPROVED,
+            const response = await MedicalLegalService.MedicalLegalServicesApproveRejectByAdmin({
+                id: serviceDetails.RequestId,
+                newStatusId: StatusEnum.APPROVED,
+                requestNumber: serviceDetails.RequestNumber,
                 reason: "Request approved by admin",
             });
 
             if (response && response.success) {
                 await fetchServiceDetails();
                 showToast(
-                    `Request ${serviceDetails.requestNumber} has been approved successfully!`,
+                    `Request ${serviceDetails.RequestNumber} has been approved successfully!`,
                     "success"
                 );
             } else {
@@ -122,7 +145,7 @@ const Service41MedicalLegalDetails = () => {
         } catch (error) {
             console.error("Error approving request:", error);
             showToast(
-                `Failed to approve request ${serviceDetails.requestNumber}. Please try again.`,
+                `Failed to approve request ${serviceDetails.RequestNumber}. Please try again.`,
                 "error"
             );
         } finally {
@@ -131,39 +154,7 @@ const Service41MedicalLegalDetails = () => {
     };
 
     const handleReject = async () => {
-        if (!serviceDetails) return;
-
-
-
-        try {
-            setLoading(true);
-
-            const response = await MedicalLegalServices.UpdateMedicalLegalServiceStatus({
-                serviceId: serviceDetails.id,
-                statusId: StatusEnum.REJECTED,
-                reason: "Request rejected by admin",
-            });
-
-            if (response && response.success) {
-                await fetchServiceDetails();
-                showToast(
-                    `Request ${serviceDetails.requestNumber} has been rejected`,
-                    "success"
-                );
-            } else {
-                throw new Error(
-                    (response as any)?.message || "Failed to reject request"
-                );
-            }
-        } catch (error) {
-            console.error("Error rejecting request:", error);
-            showToast(
-                `Failed to reject request ${serviceDetails.requestNumber}. Please try again.`,
-                "error"
-            );
-        } finally {
-            setLoading(false);
-        }
+        setShowRejectModal(true);
     };
 
     // const handleAssignLawyer = async () => {
@@ -208,6 +199,50 @@ const Service41MedicalLegalDetails = () => {
     //         setLoading(false);
     //     }
     // };
+
+    const handleRejectSubmit = async () => {
+        if (!rejectionReason.trim()) {
+        showToast("Please provide a reason for rejection.", "error");
+        return;
+        }
+
+        if (!serviceDetails) return;
+
+        try {
+        setIsSubmitting(true);
+
+        const response =
+            await MedicalLegalService.MedicalLegalServicesApproveRejectByAdmin({
+                id: serviceDetails.RequestId,
+                newStatusId: StatusEnum.REJECTED,
+                requestNumber: serviceDetails.RequestNumber,
+                reason: "Request rejected by admin",
+            }
+            );
+
+        if (response?.success) {
+            showToast("Service rejected successfully!", "success");
+            setRejectionReason("");
+            setShowRejectModal(false);
+            navigate(-1);
+        } else {
+            showToast(
+            (response as any)?.message || "Failed to reject service",
+            "error"
+            );
+        }
+        } catch (error) {
+        console.error("Error rejecting service:", error);
+        showToast("An error occurred while rejecting the service", "error");
+        } finally {
+        setIsSubmitting(false);
+        }
+    };
+
+    const handleRejectCancel = () => {
+        setRejectionReason("");
+        setShowRejectModal(false);
+    };
 
     if (loading) {
         return (
@@ -268,9 +303,9 @@ const Service41MedicalLegalDetails = () => {
                             </svg>
                             <span className="text-sm font-medium">Back</span>
                         </button>
-                        <h1 className="text-xl font-bold text-gray-900">
+                        {/* <h1 className="text-xl font-bold text-gray-900">
                             Medical Legal Service Details
-                        </h1>
+                        </h1> */}
                         <div className="w-20"></div> {/* Spacer for centering */}
                     </div>
                 </header>
@@ -370,7 +405,7 @@ const Service41MedicalLegalDetails = () => {
                             {/* Property Information */}
                             <div className="bg-white rounded-lg border border-gray-200 p-6">
                                 <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                                    {serviceDetails.requestTitle || "Medical Legal Service"}
+                                    {serviceDetails.BusinessName}
                                 </h2>
 
                                 {/* Location and Status */}
@@ -395,7 +430,7 @@ const Service41MedicalLegalDetails = () => {
                                                 d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                                             />
                                         </svg>
-                                        <span className="text-gray-700">Jeddah, Saudi Arabia</span>
+                                        <span className="text-gray-700">{serviceDetails.City}, {serviceDetails.Country}</span>
                                     </div>
                                     <div className="flex items-center gap-2">
                                         <svg
@@ -411,8 +446,12 @@ const Service41MedicalLegalDetails = () => {
                                                 d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"
                                             />
                                         </svg>
-                                        <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
-                                            30 Days Left
+                                        <span className={`text-xs px-2 py-1 rounded-full ${
+                                            serviceDetails.LeftDays === "Expire"
+                                                ? "bg-red-100 text-red-800"
+                                                : "bg-green-100 text-green-800"
+                                        }`}>
+                                            {serviceDetails.LeftDays}
                                         </span>
                                     </div>
                                 </div>
@@ -439,7 +478,7 @@ const Service41MedicalLegalDetails = () => {
                                                     />
                                                 </svg>
                                                 <span className="text-black">
-                                                    Health Registration Number : {serviceDetails.requestNumber}
+                                                    Health Registration Number : {serviceDetails.HealthRegistrationNumber}
                                                 </span>
                                             </div>
 
@@ -456,7 +495,7 @@ const Service41MedicalLegalDetails = () => {
                                                     />
                                                 </svg>
                                                 <span className="text-black">
-                                                    Order Title : {serviceDetails.requestTitle}
+                                                    Order Title : {serviceDetails.OrderTitle}
                                                 </span>
                                             </div>
 
@@ -473,7 +512,7 @@ const Service41MedicalLegalDetails = () => {
                                                     />
                                                 </svg>
                                                 <span className="text-black">
-                                                    Rent Period : {serviceDetails.estimatedDuration}
+                                                    Rent Period : {serviceDetails.RentPeriodName}
                                                 </span>
                                             </div>
 
@@ -490,7 +529,7 @@ const Service41MedicalLegalDetails = () => {
                                                     />
                                                 </svg>
                                                 <span className="text-black">
-                                                    Contact Person Email : {serviceDetails.clientEmail}
+                                                    Contact Person Email : {serviceDetails.ContactPersonEmail}
                                                 </span>
                                             </div>
                                         </div>
@@ -510,7 +549,7 @@ const Service41MedicalLegalDetails = () => {
                                                     />
                                                 </svg>
                                                 <span className="text-black">
-                                                    FDA Registration Number : {serviceDetails.id}
+                                                    FDA Registration Number : {serviceDetails.FDADeviceLicensenumber}
                                                 </span>
                                             </div>
 
@@ -527,7 +566,7 @@ const Service41MedicalLegalDetails = () => {
                                                     />
                                                 </svg>
                                                 <span className="text-black">
-                                                    Facility Type : {serviceDetails.serviceType}
+                                                    Facility Type : {serviceDetails.FacilityTypeName}
                                                 </span>
                                             </div>
 
@@ -544,7 +583,7 @@ const Service41MedicalLegalDetails = () => {
                                                     />
                                                 </svg>
                                                 <span className="text-black">
-                                                    Contact Person Name : {serviceDetails.clientName}
+                                                    Contact Person Name : {serviceDetails.ContactPersonName}
                                                 </span>
                                             </div>
                                         </div>
@@ -565,10 +604,10 @@ const Service41MedicalLegalDetails = () => {
                                                 clipRule="evenodd"
                                             />
                                         </svg>
-                                        <div>
-                                            <span className="text-black font-medium">Terms & Condition :</span>
-                                            <p className="text-black mt-2">
-                                                {serviceDetails.caseDescription || "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."}
+                                        <div className="flex justify-center">
+                                            <span className="text-black font-medium">Terms & Condition : {"\u00A0"}</span>
+                                            <p className="text-black">
+                                                {serviceDetails.OtherTermsAndCondition || "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."}
                                             </p>
                                         </div>
                                     </div>
@@ -602,16 +641,16 @@ const Service41MedicalLegalDetails = () => {
                                         {/* Location info box */}
                                         <div className="absolute bottom-4 left-4 right-4 bg-white rounded-lg p-4 shadow-lg">
                                             <h4 className="font-semibold text-gray-900 mb-1">
-                                                {serviceDetails.clientName || "Medical Legal Service"}
+                                                {serviceDetails.BusinessName}
                                             </h4>
                                             <p className="text-sm text-gray-600">
                                                 Jeddah, Saudi Arabia
                                             </p>
                                             <p className="text-xs text-gray-500 mt-1">
-                                                Service Type: {serviceDetails.serviceType}
+                                                Service Type: {serviceDetails.FacilityTypeName}
                                             </p>
                                             <p className="text-xs text-gray-500">
-                                                Budget: {serviceDetails.budgetRange}
+                                                Rent Value: ${serviceDetails.RentValue}
                                             </p>
                                         </div>
                                     </div>
@@ -626,8 +665,9 @@ const Service41MedicalLegalDetails = () => {
                     </div>
 
                     {/* Action Buttons */}
-                    {/* {serviceDetails.statusId === StatusEnum.PENDING && ( */}
-                    <div className="mt-12 flex justify-center gap-4">
+                    {
+                        serviceDetails?.StatusId === StatusEnum.PENDING && (
+                            <div className="mt-12 flex justify-center gap-4">
                         <button
                             onClick={handleReject}
                             className="px-12 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed font-medium"
@@ -641,9 +681,67 @@ const Service41MedicalLegalDetails = () => {
                             Approve
                         </button>
                     </div>
-                    {/* )} */}
+                        )
+                    }
                 </div>
             </div>
+
+            {/* Rejection Reason Modal */}
+            {showRejectModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white rounded-lg p-6 w-full max-w-2xl mx-4">
+                    {/* Modal Header */}
+                    <div className="flex items-center justify-between mb-4">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                        Reason for Cancellation
+                    </h3>
+                    <button
+                        onClick={handleRejectCancel}
+                        className="text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                        <svg
+                        className="w-6 h-6"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        >
+                        <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M6 18L18 6M6 6l12 12"
+                        />
+                        </svg>
+                    </button>
+                    </div>
+
+                    {/* Modal Body */}
+                    <div className="mb-6">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                        Reason*
+                    </label>
+                    <textarea
+                        value={rejectionReason}
+                        onChange={(e:any) => setRejectionReason(e.target.value)}
+                        placeholder="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat."
+                        className="w-full h-32 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-gray-500 focus:border-transparent resize-none"
+                        required
+                    />
+                    </div>
+
+                    {/* Modal Footer */}
+                    <div className="flex justify-center">
+                    <button
+                        onClick={handleRejectSubmit}
+                        disabled={isSubmitting}
+                        className="px-8 py-3 bg-gray-900 text-white font-semibold rounded-lg hover:bg-gray-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                        {isSubmitting ? "Sending..." : "Send"}
+                    </button>
+                    </div>
+                </div>
+                </div>
+            )}
         </DashboardLayout>
     );
 };

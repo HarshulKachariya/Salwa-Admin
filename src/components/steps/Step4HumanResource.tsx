@@ -53,7 +53,7 @@ const Step4HumanResource: React.FC<Step4Props> = ({ data, onChange }) => {
     });
   };
 
-  const renderTextInput = (field: keyof Step4Data, label: string, placeholder?: string) => (
+  const renderTextInput = (field: keyof Step4Data, label: string) => (
     // <div>
     //   <label className="block text-sm font-medium text-gray-700 mb-1">
     //     {label}
@@ -61,7 +61,7 @@ const Step4HumanResource: React.FC<Step4Props> = ({ data, onChange }) => {
     //   <input
     //     type="text"
     //     value={data[field]}
-    //     onChange={(e) => handleInputChange(field, e.target.value)}
+    //     onChange={(e:any) => handleInputChange(field, e.target.value)}
     //     placeholder={placeholder}
     //     className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
     //   />
@@ -69,7 +69,7 @@ const Step4HumanResource: React.FC<Step4Props> = ({ data, onChange }) => {
     <InputFiled
       label={label}
       value={data[field]}
-      onChange={(e) => handleInputChange(field, e.target.value)}
+      onChange={(e:any) => handleInputChange(field, e.target.value)}
     />
   );
 
