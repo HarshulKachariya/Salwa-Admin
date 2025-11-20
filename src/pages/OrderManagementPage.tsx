@@ -49,6 +49,8 @@ interface OrderRecord {
   region: string;
   city: string;
   uploadDate: string;
+  statusId: number;
+  weight: number;
   status:
   | "Pending"
   | "Approved"
@@ -132,6 +134,7 @@ const OrderManagementPage = () => {
               medicalLicenseNumberForBuilding:
                 item.serviceId?.toString() || "12",
               numberOfEmployeesOnWorksite: item.totalQuantity || 710,
+              weight: item.weight || 0,
               fdaRegistrationNumber: item.categoryId?.toString() || "5",
               rentPeriod: `${item.choosePostTimeValidityTime || 30} Days`,
               email: item.contactPersonEmail || "johndoe@example.com",
@@ -141,6 +144,7 @@ const OrderManagementPage = () => {
               uploadDate: item.createdDate
                 ? new Date(item.createdDate).toLocaleDateString()
                 : new Date().toLocaleDateString(),
+              statusId: item?.statusId || 0,
               status: getStatusName(item.statusId) as
                 | "Pending"
                 | "Approved"
@@ -258,39 +262,21 @@ const OrderManagementPage = () => {
     {
       label: "Order No",
       value: (row) => (
-        <span className="font-semibold text-primary">{row.requestNumber}</span>
+        <span className="font-semibold text-primary">{row.requestId}</span>
       ),
-      sortKey: "requestNumber",
+      sortKey: "requestId",
       isSort: true,
     },
     {
-      label: "Service Type",
-      value: (row) => <span className="text-gray-700">{row.orderTitle}</span>,
+      label: "Item Name",
+      value: (row) => (
+        <span className="text-gray-700">{row.orderTitle}</span>
+      ),
       sortKey: "orderTitle",
       isSort: true,
     },
     {
-      label: "Location ID",
-      value: (row) => (
-        <span className="text-gray-500">
-          {row.buildingConstructionLicenseNumber}
-        </span>
-      ),
-      sortKey: "buildingConstructionLicenseNumber",
-      isSort: true,
-    },
-    {
-      label: "Service ID",
-      value: (row) => (
-        <span className="text-gray-500">
-          {row.medicalLicenseNumberForBuilding}
-        </span>
-      ),
-      sortKey: "medicalLicenseNumberForBuilding",
-      isSort: true,
-    },
-    {
-      label: "Total Quantity",
+      label: "Item Quantity",
       value: (row) => (
         <span className="text-gray-500">{row.numberOfEmployeesOnWorksite}</span>
       ),
@@ -298,87 +284,23 @@ const OrderManagementPage = () => {
       isSort: true,
     },
     {
-      label: "Category ID",
+      label: "Weight",
       value: (row) => (
-        <span className="text-gray-500">{row.fdaRegistrationNumber}</span>
+        <span className="text-gray-500">{row.weight || 0} KG</span>
       ),
       sortKey: "fdaRegistrationNumber",
       isSort: true,
     },
     {
-      label: "Validity Period",
-      value: (row) => <span className="text-gray-500">{row.rentPeriod}</span>,
-      sortKey: "rentPeriod",
-      isSort: true,
-    },
-    {
-      label: "Email",
-      value: (row) => <span className="text-gray-500">{row.email}</span>,
-      sortKey: "email",
-      isSort: true,
-    },
-    {
-      label: "Country",
-      value: (row) => <span className="text-gray-500">{row.country}</span>,
-      sortKey: "country",
-      isSort: true,
-    },
-    {
-      label: "Region",
-      value: (row) => <span className="text-gray-500">{row.region}</span>,
-      sortKey: "region",
-      isSort: true,
-    },
-    {
-      label: "City",
-      value: (row) => <span className="text-gray-500">{row.city}</span>,
-      sortKey: "city",
-      isSort: true,
-    },
-    {
-      label: "Upload Date",
-      value: (row) => <span className="text-gray-500">{row.uploadDate}</span>,
-      sortKey: "uploadDate",
-      isSort: true,
-    },
-    {
       label: "Status",
       value: (row) => {
-        // Get the original statusId from the data to use with enum functions
-        const statusId = (() => {
-          switch (row.status) {
-            case "Pending":
-              return 99;
-            case "Approved":
-              return 100;
-            case "Rejected":
-              return 101;
-            case "Published":
-              return 102;
-            case "Expired":
-              return 103;
-            case "FullFilled":
-              return 104;
-            case "Approved By Government":
-              return 105;
-            case "Check In":
-              return 115;
-            case "Check Out":
-              return 116;
-            case "Rejected by Government":
-              return 128;
-            default:
-              return 99;
-          }
-        })();
-
         return (
           <span
             className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold ${getStatusBadgeClass(
-              statusId
+              row?.statusId
             )}`}
           >
-            {row.status}
+            {getStatusName(row?.statusId)}
           </span>
         );
       },
@@ -404,7 +326,7 @@ const OrderManagementPage = () => {
       label: "Publish",
       iconType: "publish",
       onClick: handlePublish,
-      isVisible: (row) => row.status === "Approved", // Only show if status is Approved
+      isVisible: (row) => row.statusId === StatusEnum.APPROVED,
     },
   ];
 
@@ -526,7 +448,7 @@ const OrderManagementPage = () => {
         {/* Orders Table using ComanTable */}
         <ComanTable
           columns={tableColumns}
-          data={orders}
+          data={orders?.length > 0 ? orders : []}
           actions={actionButtons}
           page={pageNumber}
           totalPages={totalPages}

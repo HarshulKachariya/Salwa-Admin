@@ -54,8 +54,9 @@ const OrderDetailPage = () => {
   const [showRejectModal, setShowRejectModal] = useState(false);
   const [rejectionReason, setRejectionReason] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+         
+  console.log("orderDetail",orderDetail);
 
-  console.log(orderDetail);
 
   useEffect(() => {
     const fetchOrderDetail = async () => {
@@ -71,20 +72,15 @@ const OrderDetailPage = () => {
         const response =
           await OfficeStationaryService.OfficeStationarySectorGetByRequestNumber(
             orderId
-          );
-
+          );          
         if (
           response &&
           response.success &&
           "data" in response &&
           response.data
         ) {
-          // Map the API response to our OrderDetail interface
-          console.log("API Response:", response);
-          console.log("Response Data:", response.data);
-          console.log("First Item:", response.data[0]);
-
-          setOrderDetail(response.data[0]);
+          const data = {...response.data, items: JSON.parse(response.data.items)}
+          setOrderDetail(data);
         } else {
           console.error(
             "Failed to fetch order details:",

@@ -6,7 +6,7 @@ import ComanTable, {
   type ActionButton,
   type SortState,
 } from "../../components/common/ComanTable";
-import MedicalRecruitmentJobService from "../../services/MedicalRecruitmentJobService";
+import MedicalStaffService from "../../services/medicalStaffService";
 import { useToast } from "../../components/ToastProvider";
 import {
   getStatusBadgeClass,
@@ -63,9 +63,9 @@ const Service51Dashboard = () => {
   const fetchDataFromAPI = async (): Promise<DashboardRecord[]> => {
     try {
       const response =
-        await MedicalRecruitmentJobService.GetAllMedicalRecruitmentJob({
-          searchText: null,
-          statusId: null,
+        await MedicalStaffService.GetAllMedicalRecruitmentJob({
+          searchText: "",
+          statusId: 0,
           pageNumber: pageNumber,
           pageSize: pageSize,
           orderByColumn:
@@ -132,10 +132,11 @@ const Service51Dashboard = () => {
       setLoading(true);
 
       const response =
-        await MedicalRecruitmentJobService.UpdateMedicalRecruitmentJobStatus({
-          jobId: row.id,
-          statusId: StatusEnum.PUBLISHED,
-          reason: "Job published by admin",
+        await MedicalStaffService.MedicalRecruitmentJobAdminApproveReject({
+          RequestId: row.id,
+          NewStatusId: StatusEnum.PUBLISHED,
+          RequestNumber: 0,
+          Reason: "Job published by admin",
         });
 
       if (response && response.success) {
