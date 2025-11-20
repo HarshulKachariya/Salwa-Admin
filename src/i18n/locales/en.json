@@ -90,7 +90,8 @@
     "termsConditionMaster": "Terms & Condition Master",
     "businessIdeaPartner": "Business Idea Partner",
     "promocodeSettings": "Promocode Settings",
-    "nonMedicalCompanies": "Non Medical Companies"
+    "nonMedicalCompanies": "Non Medical Companies",
+    "listOfPromocodesUsed": "List of Promocodes Used"
   },
   "pages": {
     "dashboard": {

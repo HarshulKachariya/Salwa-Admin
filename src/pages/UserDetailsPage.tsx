@@ -1,5 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
+import { getFullProfileWithPending } from '../services/IndividualUserDetailsService';
+import { GetBusinessUserDetailsById } from '../services/BusinessUserDetailsService';
+import { updateIndividualUserStatusByStatusId } from '../services/IndividualUserInsuranceService';
+import { StatusEnum } from '../utils/statusEnum';
 import { ArrowLeft, MapPin, Calendar, Phone, Mail, CreditCard, Shield, FileText, Eye } from 'lucide-react';
 import DashboardLayout from '../layouts/DashboardLayout';
 
@@ -8,46 +12,95 @@ const UserDetailsPage: React.FC = () => {
   const { userId, userType } = useParams<{ userId: string; userType: string }>();
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-
-  // Mock user data - replace with actual API call
+  // console.log("userType",userType);
+  
   useEffect(() => {
     const fetchUserDetails = async () => {
+      if (!userId) return;
+      
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        setUser({
-          id: userId,
-          firstName: "Ahmed",
-          middleName: "Ali",
-          lastName: "Hassan",
-          idNo: "1234567890",
-          idExpiryDate: "2025-12-31",
-          dateOfBirth: "1990-05-15",
-          doYouWork: "Yes",
-          jobName: "Software Engineer",
-          graduationCertificate: "Bachelor of Computer Science",
-          telephone: "+966 56 545 123",
-          officialEmail: "ahmed.hassan@email.com",
-          country: "Saudi Arabia",
-          region: "Riyadh",
-          city: "Riyadh",
-          address: "King Fahd Road, Al Malaz",
-          bankName: "Al Rajhi Bank",
-          ibanNumber: "SA0380000000608010167519",
-          hasInsuranceCard: "Yes",
-          insuranceCompanyName: "Bupa Arabia",
-          insurancePolicyNumber: "BUP123456789",
-          insurancePolicyExpiry: "2025-06-30",
-          insuranceMembership: "Premium",
-          gender: "Male",
-          status: "Active"
-        });
+      try {
+        if (userType === "business") {
+          // Call business user API
+          const response: any = await GetBusinessUserDetailsById(userId);
+          
+          // Transform business user data to match UI structure
+          const userData = {
+            id: userId,
+            firstName: response.businessName || '',
+            middleName: response.businessType || '',
+            lastName: response.facilityEmail || '',
+            idNo: response.vatNumber || '',
+            idExpiryDate: response.pmdDateOfExpirey || '',
+            dateOfBirth: '', // Not available for business users
+            doYouWork: '', // Not applicable for business users
+            jobName: response.businessType || '',
+            graduationCertificate: '', // Not available for business users
+            telephone: response.facilityOfficialPhoneNumber || '',
+            officialEmail: response.facilityEmail || '',
+            country: response.country || '',
+            region: response.region || '',
+            city: response.city || '',
+            address: response.address || '',
+            bankName: response.bankName || '',
+            ibanNumber: response.ibanNumber || '',
+            hasInsuranceCard: response.insuranceCompanyName ? 'Yes' : 'No',
+            insuranceCompanyName: response.insuranceCompanyName || '',
+            insurancePolicyNumber: response.insurancePolicyNumber || '',
+            insurancePolicyExpiry: response.insurancePolicyExpiryDate || '',
+            insuranceMembership: '', // Not available in the API response
+            gender: '', // Not applicable for business users
+            status: response.isActive ? 'Active' : 'Inactive'
+          };
+          
+          setUser(userData);
+        } else {
+          // Call government user API
+          const response: any = await getFullProfileWithPending(userId);
+          
+          // Extract master data (assuming first item)
+          const masterData = response.masterData?.[0] || {};
+          const pendingData = response.pendingData?.[0] || {};
+          
+          // Transform the API response to match the UI structure
+          const userData = {
+            id: userId,
+            firstName: masterData.FirstName || '',
+            middleName: masterData.MiddleName || '',
+            lastName: masterData.LastName || '',
+            idNo: masterData['IDNumber_IqamaNumber'] || '',
+            idExpiryDate: masterData['IDNumberExpiryDate'] || '',
+            dateOfBirth: masterData.DateOfBirth || '',
+            doYouWork: masterData.DoYouWork || '',
+            jobName: masterData.JobName || '',
+            graduationCertificate: masterData.GraduationCertificate || '',
+            telephone: masterData.Telephone || '',
+            officialEmail: masterData.OfficialEmail || '',
+            country: masterData.Country || pendingData.Country || '',
+            region: masterData.Region || pendingData.Region || '',
+            city: masterData.City || pendingData.City || '',
+            address: masterData.Address || pendingData.Address || '',
+            bankName: masterData.BankName || '',
+            ibanNumber: masterData['IBANNumber'] || '',
+            hasInsuranceCard: masterData.HasInsuranceCard || pendingData.HasInsuranceCard || '',
+            insuranceCompanyName: masterData.InsuranceCompanyName || pendingData.InsuranceCompanyName || '',
+            insurancePolicyNumber: masterData.InsurancePolicyNumber || pendingData.InsurancePolicyNumber || '',
+            insurancePolicyExpiry: masterData['InsurancePolicyExpiryDate'] || pendingData['InsurancePolicyExpiryDate'] || '',
+            insuranceMembership: masterData.InsuranceMembership || pendingData.InsuranceMembership || '',
+            gender: masterData.Gender || '',
+            status: 'Active' // Default status
+          };
+          setUser(userData);
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      } finally {
         setLoading(false);
-      }, 1000);
+      }
     };
 
     fetchUserDetails();
-  }, [userId]);
+  }, [userId, userType]);
 
   if (loading) {
     return (
@@ -405,12 +458,73 @@ const UserDetailsPage: React.FC = () => {
               >
                 Prev
               </button>
-              <button className="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium">
-                Reject
-              </button>
-              <button className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium">
-                Accept
-              </button>
+              
+              {userType === "business" ? (
+                // Business user buttons
+                user.isVerified ? (
+                  <button 
+                    onClick={async () => {
+                      try {
+                        await updateIndividualUserStatusByStatusId(Number(userId), 0);
+                        // Refresh user data or show success message
+                        window.location.reload();
+                      } catch (error) {
+                        console.error('Error updating user status:', error);
+                      }
+                    }}
+                    className="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    Inactive
+                  </button>
+                ) : (
+                  <button 
+                    onClick={async () => {
+                      try {
+                        await updateIndividualUserStatusByStatusId(Number(userId), 1);
+                        // Refresh user data or show success message
+                        window.location.reload();
+                      } catch (error) {
+                        console.error('Error updating user status:', error);
+                      }
+                    }}
+                    className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    Active
+                  </button>
+                )
+              ) : (
+                // Individual user buttons
+                <>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        await updateIndividualUserStatusByStatusId(Number(userId), StatusEnum.APPROVED);
+                        // Refresh user data or show success message
+                        window.location.reload();
+                      } catch (error) {
+                        console.error('Error updating user status:', error);
+                      }
+                    }}
+                    className="px-8 py-3 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium"
+                  >
+                    Accept
+                  </button>
+                  <button 
+                    onClick={async () => {
+                      try {
+                        await updateIndividualUserStatusByStatusId(Number(userId), StatusEnum.REJECTED);
+                        // Refresh user data or show success message
+                        window.location.reload();
+                      } catch (error) {
+                        console.error('Error updating user status:', error);
+                      }
+                    }}
+                    className="px-8 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium"
+                  >
+                    Reject
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

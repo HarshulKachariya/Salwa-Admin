@@ -438,6 +438,7 @@ const ListSubscribers = () => {
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
               <div className="text-center">
                 <div className="text-4xl font-bold text-green-600 mb-2">
+                  <>{console.log("jsut checking",analytics.totalActive)}</>
                   {analytics.totalActive}
                 </div>
                 <div className="text-sm text-gray-500">Total Active</div>
