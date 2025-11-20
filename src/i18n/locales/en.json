@@ -21,6 +21,7 @@
     "foodServices": "Food Services",
     "nonMedicalServices": "Non Medical Services",
     "advancedOptions": "Advanced Options",
+    "supportAndTicketSystem": "Support & Ticket System",
     "statementAnalysis": "Statement Analysis",
     "subscribers": "Subscribers",
     "agents": "Agents",
@@ -78,6 +79,7 @@
     "foodServices": "Food Services",
     "nonMedicalServices": "Non Medical Services",
     "advancedOptions": "Advanced Options",
+    "supportAndTicketSystem": "Support & Ticket System",
     "statementAnalysis": "Statement Analysis",
     "subscribers": "Subscribers",
     "agents": "Agents",
@@ -88,10 +90,8 @@
     "employeeCategory": "Employee Category",
     "termsMaster": "Terms Master",
     "termsConditionMaster": "Terms & Condition Master",
-    "businessIdeaPartner": "Business Idea Partner",
     "promocodeSettings": "Promocode Settings",
-    "nonMedicalCompanies": "Non Medical Companies",
-    "listOfPromocodesUsed": "List of Promocodes Used"
+    "nonMedicalCompanies": "Non Medical Companies"
   },
   "pages": {
     "dashboard": {
