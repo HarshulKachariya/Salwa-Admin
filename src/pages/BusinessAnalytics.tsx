@@ -11,9 +11,12 @@ import ComanTable, {
   type ActionButton,
   type SortState,
 } from "../components/common/ComanTable";
-import { exportBusinessIdeaPartners } from "../services/BusinessAnalyticsService";
-import PrimaryButton from "../antd/PrimaryButton";
-import SearchField from "../antd/SearchField";
+import {
+  exportBusinessIdeaPartners,
+  getIndividualIdeaPartnerById,
+  UpsertIndividualIdeaPartnerUserComment,
+  UpsertIndividualIdeaPartnerUserCommentsReaction,
+} from "../services/BusinessAnalyticsService";
 
 /* ---------------------------
    Types & endpoints
@@ -40,6 +43,13 @@ interface IdeaPartner {
   region?: string | null;
   city?: string | null;
   district?: string | null;
+  email?: string | null;
+  phone?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+  address?: string | null;
+  nationalAddress?: string | null;
+  comments?: any[];
 }
 
 type UserTypeOption = { id: number; label: string };
@@ -158,6 +168,231 @@ const BusinessAnalytics = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [sortState, setSortState] = useState<SortState[]>([]);
+
+  // Add chat board state and handlers (fixes runtime error)
+  const [openReactionFor, setOpenReactionFor] = useState<number | null>(null);
+  const [openAllFor, setOpenAllFor] = useState<number | null>(null);
+  const [sendingReaction, setSendingReaction] = useState(false);
+
+  // Emoji lists
+  const EMOJIS = ["👍", "❤️", "😂", "😮", "😢"];
+  const ALL_EMOJIS = [
+    "👍","👎","❤️","💔","😂","😅","😊","😮","😲","😢","😭","😡","👏","🙌","🤝","🎉","🔥","⭐","💯","➕"
+  ];
+
+  // Chat message sending state
+  const [sendingChat, setSendingChat] = useState(false);
+
+  // Handler for sending chat message (now calls API with required schema)
+  const handleSendChatMessage = async () => {
+    if (sendingChat || searchTerm.trim() === "" || !viewTarget) return;
+    setSendingChat(true);
+    try {
+      const payload = {
+        id: 0,
+        ideaPartnerId: viewTarget.ideaPartnerId,
+        fromId: 1, // adapt to actual current user id if available
+        toId: viewTarget.userId ?? 0,
+        commentType: 1,
+        comment: searchTerm,
+        commentURL: "",
+      };
+      const res = await UpsertIndividualIdeaPartnerUserComment(payload);
+      const created = res && (res.data ?? res) ? (res.data ?? res) : null;
+
+      setViewTarget((prev) => {
+        if (!prev) return prev;
+        const newComment = created && typeof created === "object"
+          ? created
+          : {
+              comment: searchTerm,
+              createdDate: new Date().toISOString(),
+              fromId: payload.fromId,
+              reactions: [],
+            };
+        const updatedComments = Array.isArray(prev.comments)
+          ? [...prev.comments, newComment]
+          : [newComment];
+        return { ...prev, comments: updatedComments };
+      });
+
+      setSearchTerm("");
+    } catch (err) {
+      // fallback: append locally
+      setViewTarget((prev) => {
+        if (!prev) return prev;
+        const newComment = {
+          comment: searchTerm,
+          createdDate: new Date().toISOString(),
+          fromId: 1,
+          reactions: [],
+        };
+        const updatedComments = Array.isArray(prev.comments)
+          ? [...prev.comments, newComment]
+          : [newComment];
+        return { ...prev, comments: updatedComments };
+      });
+      setSearchTerm("");
+    } finally {
+      setSendingChat(false);
+    }
+  };
+
+  // Helper: robust date formatting for comments/reactions
+  const formatCommentDate = (c: any) => {
+    if (!c) return "";
+    const raw =
+      c.createdDate ??
+      c.createdOn ??
+      c.createdAt ??
+      c.createdUtc ??
+      c.date ??
+      c.createdOnDate ??
+      c.CreatedDate ??
+      null;
+    if (!raw) return "";
+    let d: Date | null = null;
+    if (raw instanceof Date) d = raw;
+    else if (typeof raw === "number") d = new Date(raw);
+    else if (typeof raw === "string") {
+      const iso = Date.parse(raw);
+      if (!isNaN(iso)) d = new Date(iso);
+      else d = new Date(raw);
+    }
+    if (d && !isNaN(d.getTime())) {
+      return formatDate(d.toISOString());
+    }
+    return raw;
+  };
+
+  // Send reply in detail view (use same API shape)
+  const handleSendReply = async () => {
+    if (!viewTarget || sendingChat || !searchTerm.trim()) return;
+    setSendingChat(true);
+    try {
+      const payload = {
+        id: 0,
+        ideaPartnerId: viewTarget.ideaPartnerId,
+        fromId: 1,
+        toId: viewTarget.userId ?? 0,
+        commentType: 1,
+        comment: searchTerm,
+        commentURL: "",
+      };
+      const res = await UpsertIndividualIdeaPartnerUserComment(payload);
+      const created = res && (res.data ?? res) ? (res.data ?? res) : null;
+
+      setViewTarget((prev) => {
+        if (!prev) return prev;
+        const newComment = created && typeof created === "object"
+          ? created
+          : {
+              comment: searchTerm,
+              createdDate: new Date().toISOString(),
+              fromId: payload.fromId,
+              reactions: [],
+            };
+        const updatedComments = Array.isArray(prev.comments)
+          ? [...prev.comments, newComment]
+          : [newComment];
+        return { ...prev, comments: updatedComments };
+      });
+
+      setSearchTerm("");
+    } catch {
+      // fallback local append
+      setViewTarget((prev) => {
+        if (!prev) return prev;
+        const newComment = {
+          comment: searchTerm,
+          createdDate: new Date().toISOString(),
+          fromId: 1,
+          reactions: [],
+        };
+        const updatedComments = Array.isArray(prev.comments)
+          ? [...prev.comments, newComment]
+          : [newComment];
+        return { ...prev, comments: updatedComments };
+      });
+      setSearchTerm("");
+    } finally {
+      setSendingChat(false);
+    }
+  };
+
+  // Toggle emoji reaction for a comment in detail view (calls API)
+  const handleSendReaction = async (commentIndex: number, emoji: string) => {
+    if (!viewTarget || !Array.isArray(viewTarget.comments)) return;
+    setSendingReaction(true);
+    try {
+      const comment = viewTarget.comments[commentIndex];
+      const commentId =
+        comment?.commentId ?? comment?.id ?? comment?.commentID ?? null;
+      if (!commentId) {
+        // No server id; cannot persist reaction — toggle locally
+        setViewTarget((prev) => {
+          if (!prev) return prev;
+          const comments = [...(prev.comments ?? [])];
+          const target = { ...(comments[commentIndex] ?? {}) };
+          const existing = Array.isArray(target.reactions) ? [...target.reactions] : [];
+          const idx = existing.findIndex((r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji);
+          if (idx >= 0) existing.splice(idx, 1);
+          else existing.push({ emojiCode: emoji });
+          target.reactions = existing;
+          comments[commentIndex] = target;
+          return { ...prev, comments };
+        });
+        return;
+      }
+
+      // call API to upsert reaction
+      const payload = { id: 0, commentId, emojiCode: emoji };
+      const res = await UpsertIndividualIdeaPartnerUserCommentsReaction(payload);
+      const resp = res && (res.data ?? res) ? (res.data ?? res) : null;
+
+      setViewTarget((prev) => {
+        if (!prev) return prev;
+        const comments = [...(prev.comments ?? [])];
+        const target = { ...(comments[commentIndex] ?? {}) };
+
+        // try to extract updated reactions from response
+        const updatedReactions =
+          resp?.reactions ?? resp?.Reactions ?? resp?.reactionsList ?? null;
+
+        if (updatedReactions && Array.isArray(updatedReactions)) {
+          target.reactions = updatedReactions;
+        } else {
+          // fallback: toggle locally
+          const existing = Array.isArray(target.reactions) ? [...target.reactions] : [];
+          const idx = existing.findIndex((r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji);
+          if (idx >= 0) existing.splice(idx, 1);
+          else existing.push({ emojiCode: emoji });
+          target.reactions = existing;
+        }
+
+        comments[commentIndex] = target;
+        return { ...prev, comments };
+      });
+    } catch (err) {
+      // on error toggle locally as fallback
+      setViewTarget((prev) => {
+        if (!prev) return prev;
+        const comments = [...(prev.comments ?? [])];
+        const target = { ...(comments[commentIndex] ?? {}) };
+        const existing = Array.isArray(target.reactions) ? [...target.reactions] : [];
+        const idx = existing.findIndex((r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji);
+        if (idx >= 0) existing.splice(idx, 1);
+        else existing.push({ emojiCode: emoji });
+        target.reactions = existing;
+        comments[commentIndex] = target;
+        return { ...prev, comments };
+      });
+    } finally {
+      setSendingReaction(false);
+      setOpenReactionFor(null);
+      setOpenAllFor(null);
+    }
+  };
 
   /* Data loader */
   const loadItems = useCallback(
@@ -339,10 +574,31 @@ const BusinessAnalytics = () => {
 
   /* Actions (View + Delete placeholders) */
   const [viewTarget, setViewTarget] = useState<IdeaPartner | null>(null);
+  const [viewLoading, setViewLoading] = useState(false);
 
   const actionButtons: ActionButton<IdeaPartner>[] = useMemo(
     () => [
-      { label: "View", iconType: "view", onClick: (row) => setViewTarget(row) },
+      {
+        label: "View",
+        iconType: "view",
+        onClick: async (row) => {
+          setViewLoading(true);
+          try {
+            const detail = await getIndividualIdeaPartnerById(row.ideaPartnerId);
+            // Support response shaped as { data: {...} } or direct object
+            const payload = detail && (detail.data ?? detail);
+            if (payload) {
+              setViewTarget(payload);
+              // ensure detail area is visible
+              setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
+            } else {
+              setViewTarget(null);
+            }
+          } finally {
+            setViewLoading(false);
+          }
+        },
+      },
       {
         label: "Delete",
         iconType: "delete",
@@ -449,10 +705,16 @@ const BusinessAnalytics = () => {
 
             {/* right: export + search */}
             <div className="flex items-center gap-4">
-              <PrimaryButton Children="Export" onClick={handleExport} />
+              <button
+                type="button"
+                onClick={handleExport}
+                className="rounded-md bg-black px-4 py-2 text-sm font-semibold text-white hover:opacity-90"
+              >
+                Export
+              </button>
 
               <div className="w-64">
-                <SearchField label="Search here" value={searchTerm} onChange={setSearchTerm} />
+                <SearchField value={searchTerm} onChange={setSearchTerm} />
               </div>
             </div>
           </div>
@@ -464,121 +726,257 @@ const BusinessAnalytics = () => {
             </div>
           )}
 
-          <StatsRow />
-          {/* <ChartPlaceholder /> */}
-
-          {listError ? (
-            <div className="rounded-[28px] border border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-600">
-              {listError}
+          {/* Main content: show either detail view or table/stats */}
+          {viewLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="text-gray-500 text-lg">Loading details...</div>
             </div>
-          ) : (
-            <ComanTable
-              columns={tableColumns}
-              data={filteredItems}
-              actions={actionButtons}
-              page={pageNumber}
-              totalPages={totalPages}
-              totalCount={totalCount}
-              onPageChange={handlePageChange}
-              sortState={sortState}
-              onSortChange={handleSortChange}
-              pageSize={pageSize}
-              onPageSizeChange={handlePageSizeChange}
-              loading={listLoading}
-            />
-          )}
-        </section>
-      </div>
+          ) : viewTarget ? (
+            <div className="space-y-6">
+              {/* Top: Back + Status */}
+              <div className="flex items-center justify-between mb-2">
+                <button
+                  type="button"
+                  className="text-primary text-base font-semibold flex items-center gap-2"
+                  onClick={() => setViewTarget(null)}
+                >
+                  <span className="text-xl">&larr;</span> Back
+                </button>
+                <span className={`px-4 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800`}>
+                  {mapStatus(viewTarget.statusId).label}
+                </span>
+              </div>
 
-      {/* View Modal */}
-      {viewTarget && (
-        <ModalOverlay>
-          <ModalShell
-            title={`View Idea Partner (${padId(viewTarget.ideaPartnerId)})`}
-            onClose={() => setViewTarget(null)}
-          >
-            <div className="grid gap-3 text-sm text-gray-700">
-              <div className="flex gap-4">
-                <div className="w-1/2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase">
-                    Partner
-                  </p>
-                  <p className="mt-1">
-                    {viewTarget.businessName ?? `User #${viewTarget.userId}`}
-                  </p>
-                </div>
-                <div className="w-1/2">
-                  <p className="text-xs font-semibold text-gray-500 uppercase">
-                    Idea Name
-                  </p>
-                  <p className="mt-1">{viewTarget.ideaName ?? "-"}</p>
+              {/* Individual Partner Information */}
+              <div className="mb-2">
+                <div className="text-xs font-semibold text-gray-500 mb-2">Individual Partner Information</div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">Name:</span>
+                      <span className="ml-2">{viewTarget.businessName ?? "-"}</span>
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">Email:</span>
+                      <span className="ml-2">{viewTarget.email ?? "-"}</span>
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">Phone no:</span>
+                      <span className="ml-2">{viewTarget.phone ?? "-"}</span>
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">Address:</span>
+                      <span className="ml-2">{viewTarget.address ?? "-"}</span>
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">National Address:</span>
+                      <span className="ml-2">{viewTarget.nationalAddress ?? "-"}</span>
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">Country/Region/City/District:</span>
+                      <span className="ml-2">{`${viewTarget.country ?? "-"}${viewTarget.region ? ', ' + viewTarget.region : ''}${viewTarget.city ? ', ' + viewTarget.city : ''}${viewTarget.district ? ', ' + viewTarget.district : ''}`}</span>
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">Latitude/Longitude:</span>
+                      <span className="ml-2">{viewTarget.latitude ?? "-"}, {viewTarget.longitude ?? "-"}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">Idea Name</span>
+                      <div className="ml-2">{viewTarget.ideaName ?? "-"}</div>
+                    </div>
+                    <div className="mb-1">
+                      <span className="font-semibold text-gray-700">Idea Description</span>
+                      <div className="ml-2">{viewTarget.ideaDescription ?? "-"}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
 
+              {/* Description box */}
               <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase">
-                  Description
-                </p>
-                <p className="mt-1">{viewTarget.ideaDescription ?? "-"}</p>
+                <textarea
+                  className="w-full border rounded p-3 bg-gray-50 text-sm resize-none"
+                  value={viewTarget.ideaDescription ?? ""}
+                  readOnly
+                  rows={3}
+                  style={{ minHeight: "70px" }}
+                />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase">
-                    Registration Date
-                  </p>
-                  <p className="mt-1">
-                    {formatDate(viewTarget.registrationDate)}
-                  </p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase">
-                    Created Date
-                  </p>
-                  <p className="mt-1">{formatDate(viewTarget.createdDate)}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase">
-                    Country / Region / City
-                  </p>
-                  <p className="mt-1">{`${viewTarget.country ?? "-"} / ${viewTarget.region ?? "-"
-                    } / ${viewTarget.city ?? "-"}`}</p>
-                </div>
-                <div>
-                  <p className="text-xs font-semibold text-gray-500 uppercase">
-                    District
-                  </p>
-                  <p className="mt-1">{viewTarget.district ?? "-"}</p>
-                </div>
-              </div>
-
-              <div>
-                <p className="text-xs font-semibold text-gray-500 uppercase">
-                  Media
-                </p>
-                {viewTarget.mediaFilePath ? (
+              {/* Media */}
+              {viewTarget.mediaFilePath && (
+                <div className="mb-2">
+                  <div className="text-xs font-semibold text-gray-500 mb-1">Media</div>
                   <img
                     src={viewTarget.mediaFilePath}
                     alt="media"
-                    className="mt-2 max-h-40 rounded"
+                    className="max-h-40 rounded"
                   />
-                ) : (
-                  <p className="mt-1 text-gray-500">No media</p>
-                )}
+                </div>
+              )}
+
+              {/* Chat Board (from API comments) */}
+              <div className="border-t pt-4 mt-4">
+                <h4 className="font-medium mb-2">Conversation</h4>
+                <div className="space-y-3 max-h-96 overflow-auto mb-3">
+                  {Array.isArray(viewTarget.comments) && viewTarget.comments.length > 0 ? (
+                    viewTarget.comments.map((c: any, idx: number) => {
+                      const text = c.comment ?? c.issueComment ?? c.message ?? c.text ?? "";
+                      const created = formatCommentDate(c);
+                      const sender = c.fromId === 1 ? "You" : `User ${c.fromId}`;
+                      const isCurrentUser = c.fromId === 1;
+                      return (
+                        <div key={idx} className={`flex items-end ${isCurrentUser ? 'justify-end' : 'justify-start'} relative`}>
+                          {!isCurrentUser && (
+                            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 font-bold text-lg shadow">{(sender && sender[0]) || 'U'}</div>
+                          )}
+                          <div className="max-w-[60%]">
+                            {!isCurrentUser && (
+                              <div className="text-xs font-semibold text-gray-700 mb-1">{sender}</div>
+                            )}
+                            {/* Updated bubble: ensure wrapping and explicit color for dark background */}
+                            <div
+                              className={`rounded-lg px-4 py-3 text-sm break-words whitespace-pre-wrap ${isCurrentUser ? 'bg-[#f5f7fa] text-gray-800' : 'bg-black text-white'}`}
+                              style={isCurrentUser ? undefined : { color: '#ffffff' }}
+                            >
+                              {text}
+                            </div>
+                            {created && <div className="text-xs text-gray-400 mt-1">{created}</div>}
+                            {/* Reactions */}
+                            {Array.isArray(c.reactions) && c.reactions.length > 0 && (
+                              <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
+                                {c.reactions.map((r: any, ri: number) => (
+                                  <span key={ri} className="px-1">{r.emojiCode}</span>
+                                ))}
+                              </div>
+                            )}
+                            {/* Emoji pickers */}
+                            <div className="flex items-center gap-2 mt-1">
+                              <button
+                                onClick={() => { setOpenAllFor(null); setOpenReactionFor(openReactionFor === idx ? null : idx); }}
+                                className="text-sm text-gray-500"
+                                aria-label="React"
+                                type="button"
+                              >
+                                😊
+                              </button>
+                              <button
+                                onClick={() => { setOpenReactionFor(null); setOpenAllFor(openAllFor === idx ? null : idx); }}
+                                className="text-sm text-gray-500"
+                                aria-label="More emojis"
+                                type="button"
+                              >
+                                ➕
+                              </button>
+                              {openReactionFor === idx && (
+                                <div className="absolute z-20 mt-8 bg-white border rounded p-2 shadow flex gap-2">
+                                  {EMOJIS.map((e) => (
+                                    <button
+                                      key={e}
+                                      onClick={() => handleSendReaction(idx, e)}
+                                      disabled={sendingReaction}
+                                      className="text-lg"
+                                      type="button"
+                                      aria-label={`React with ${e}`}
+                                    >
+                                      {e}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                              {openAllFor === idx && (
+                                <div className="absolute z-30 mt-8 bg-white border rounded p-3 shadow grid grid-cols-8 gap-2 max-h-40 overflow-auto">
+                                  {ALL_EMOJIS.map((e) => (
+                                    <button
+                                      key={e}
+                                      onClick={() => handleSendReaction(idx, e)}
+                                      disabled={sendingReaction}
+                                      className="text-lg p-1"
+                                      type="button"
+                                      aria-label={`React with ${e}`}
+                                    >
+                                      {e}
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                          {isCurrentUser && (
+                            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center ml-3 font-bold text-lg shadow">R</div>
+                          )}
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="text-gray-500">No conversation yet</div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 pt-2">
+                  <input
+                    className="flex-1 border rounded p-2"
+                    placeholder="Reply"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    aria-label="Reply"
+                  />
+                  <button
+                    className="px-4 py-2 bg-black text-white rounded"
+                    onClick={handleSendChatMessage}
+                    disabled={sendingChat || searchTerm.trim() === ""}
+                  >
+                    {sendingChat ? "Sending..." : "Send"}
+                  </button>
+                </div>
               </div>
 
-              <div className="flex justify-end gap-3 pt-2">
+              {/* Approve/Reject buttons */}
+              <div className="flex justify-end gap-3 pt-6">
                 <button
-                  onClick={() => setViewTarget(null)}
                   className="rounded-md border border-gray-300 px-6 py-2 text-sm font-semibold text-gray-500 hover:border-primary"
+                  // TODO: bind reject logic
                 >
-                  Close
+                  Reject
+                </button>
+                <button
+                  className="rounded-md bg-black px-6 py-2 text-sm font-semibold text-white shadow hover:bg-gray-800"
+                  // TODO: bind approve logic
+                >
+                  Approve
                 </button>
               </div>
             </div>
-          </ModalShell>
-        </ModalOverlay>
-      )}
+          ) : (
+            // Table/stats view (default)
+            <>
+              <StatsRow />
+              {/* <ChartPlaceholder /> */}
+              {listError ? (
+                <div className="rounded-[28px] border border-rose-200 bg-rose-50 px-6 py-10 text-center text-sm text-rose-600">
+                  {listError}
+                </div>
+              ) : (
+                <ComanTable
+                  columns={tableColumns}
+                  data={filteredItems}
+                  actions={actionButtons}
+                  page={pageNumber}
+                  totalPages={totalPages}
+                  totalCount={totalCount}
+                  onPageChange={handlePageChange}
+                  sortState={sortState}
+                  onSortChange={handleSortChange}
+                  pageSize={pageSize}
+                  onPageSizeChange={handlePageSizeChange}
+                  loading={listLoading}
+                />
+              )}
+            </>
+          )}
+        </section>
+      </div>
 
       {/* Delete Confirm Modal */}
       {deleteTarget && (
@@ -625,14 +1023,50 @@ const TabButton = ({
 }) => (
   <button
     type="button"
-    className={`rounded-full px-5 py-2 ${isActive
-      ? "bg-white text-primary shadow"
-      : "bg-transparent text-gray-500 hover:text-primary"
-      }`}
+    className={`rounded-full px-5 py-2 ${
+      isActive
+        ? "bg-white text-primary shadow"
+        : "bg-transparent text-gray-500 hover:text-primary"
+    }`}
     onClick={onClick}
   >
     {label}
   </button>
+);
+
+const SearchField = ({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (next: string) => void;
+}) => (
+  <div className="relative w-full max-w-xs input-filed-block">
+    <input
+      type="search"
+      id="search_bar_business_analytics"
+      placeholder="Search here"
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+      className="w-full rounded-md border border-slate-200 bg-white pl-3 pr-11 py-2 text-base text-gray-600 shadow focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/15 peer placeholder-transparent disabled:cursor-not-allowed disabled:bg-[#F4F5F9] disabled:text-[#A0A3BD]"
+    />
+    <label
+      htmlFor="search_bar_business_analytics"
+      className={`
+        label-filed absolute left-2.5 top-2 text-[#A0A3BD] text-base transition-all duration-200
+        peer-placeholder-shown:top-2 peer-placeholder-shown:left-2.5 peer-placeholder-shown:text-base cursor-text
+        peer-focus:-top-3 peer-focus:left-2.5 peer-focus:text-[13px] peer-focus:text-[#070B68]
+        bg-white px-1 ${
+          value && value.trim() !== "" ? "!-top-3 !text-[13px] " : ""
+        } 
+      `}
+    >
+      Search here
+    </label>
+    <span className="pointer-events-none absolute inset-y-0 right-4 flex items-center text-gray-400">
+      <SearchIcon />
+    </span>
+  </div>
 );
 
 const StatsRow = () => (

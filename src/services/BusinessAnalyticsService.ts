@@ -46,3 +46,52 @@ export const exportBusinessIdeaPartners = async (records: any[]) => {
   window.URL.revokeObjectURL(url);
   document.body.removeChild(a);
 };
+
+import axiosInstance from "../common/axiosInstance";
+
+export const getIndividualIdeaPartnerById = async (ideaPartnerId: number) => {
+  try {
+    const res = await axiosInstance.get(
+      `/SupportTickets/GetIndividualIdeaPartnerByIdeaPartnerId?IdeaPartnerId=${ideaPartnerId}`
+    );
+    return res.data;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const UpsertIndividualIdeaPartnerUserComment = async (payload: {
+  id?: number;
+  ideaPartnerId: number;
+  fromId: number;
+  toId: number;
+  commentType: number;
+  comment: string;
+  commentURL?: string;
+}) => {
+  try {
+    const res = await axiosInstance.post(
+      `SupportTickets/UpsertIndividualIdeaPartnerUserComment`,
+      payload
+    );
+    return res.data ?? res;
+  } catch (error) {
+    return null;
+  }
+};
+
+export const UpsertIndividualIdeaPartnerUserCommentsReaction = async (payload: {
+  id?: number;
+  commentId: number;
+  emojiCode: string;
+}) => {
+  try {
+    const res = await axiosInstance.post(
+      `SupportTickets/UpsertIndividualIdeaPartnerUserCommentsReaction`,
+      payload
+    );
+    return res.data ?? res;
+  } catch (error) {
+    return null;
+  }
+};
