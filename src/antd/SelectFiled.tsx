@@ -1,7 +1,7 @@
 import { Select } from "antd";
 import { useState } from "react";
 
-function SelectFiled({ value, onChange, options, label, className = "", errorsMessage, mainClassName = "" }: any) {
+function SelectFiled({ value, onChange, options,mode, label, className = "", errorsMessage, mainClassName = "" }: any) {
   const [focused, setFocused] = useState(false);
 
   return (
@@ -10,7 +10,7 @@ function SelectFiled({ value, onChange, options, label, className = "", errorsMe
       <label
         className={`absolute left-3 z-[1] bg-white px-1 text-gray-500 
           pointer-events-none transition-all duration-200
-          ${focused || value
+          ${focused || (Array.isArray(value) ? value.length > 0 : value)
             ? "-top-2 text-xs !text-primary px-1"
             : "top-[18px] text-base !text-[#999]"
           }`}
@@ -21,6 +21,7 @@ function SelectFiled({ value, onChange, options, label, className = "", errorsMe
       {/* Antd Select */}
       <Select
         value={value}
+        mode={mode}
         onChange={onChange}
         onFocus={() => setFocused(true)}
         onBlur={() => setFocused(false)}

@@ -9,6 +9,7 @@ import ComanTable, {
   type SortState,
 } from "../components/common/ComanTable";
 import CommonServices from "../services/CommonServices/CommonServices";
+import SelectFiled from "../antd/SelectFiled";
 
 type FormMode = "create" | "edit";
 
@@ -29,9 +30,9 @@ interface EmployeeCategoryAssignmentItem {
 interface FormState {
   assignmentId: number | null;
   employeeIds: string[];
-  categoryId: string;
-  serviceId: string;
-  subServiceId: string;
+  categoryIds: string[];
+  serviceIds: string[];
+  subServiceIds: string[];
 }
 
 interface SelectOption {
@@ -54,9 +55,9 @@ const UPSERT_ENDPOINT =
 const createDefaultFormState = (): FormState => ({
   assignmentId: null,
   employeeIds: [],
-  categoryId: "",
-  serviceId: "",
-  subServiceId: "",
+  categoryIds: [],
+  serviceIds: [],
+  subServiceIds: [],
 });
 
 const parseResponse = async (response: Response): Promise<unknown> => {
@@ -493,20 +494,20 @@ const EmployeeCategoryAssignment = () => {
           !Number.isNaN(match.employeeId)
             ? [match.employeeId.toString()]
             : [],
-        categoryId:
+        categoryIds:
           typeof match.categoryId === "number" &&
           !Number.isNaN(match.categoryId)
-            ? match.categoryId.toString()
-            : "",
-        serviceId:
+            ? [match.categoryId.toString()]
+            : [],
+        serviceIds:
           typeof match.serviceId === "number" && !Number.isNaN(match.serviceId)
-            ? match.serviceId.toString()
-            : "",
-        subServiceId:
+            ? [match.serviceId.toString()]
+            : [],
+        subServiceIds:
           typeof match.subServiceId === "number" &&
           !Number.isNaN(match.subServiceId)
-            ? match.subServiceId.toString()
-            : "",
+            ? [match.subServiceId.toString()]
+            : [],
       };
 
       setFormValues(formState);
@@ -540,19 +541,19 @@ const EmployeeCategoryAssignment = () => {
     }
 
     const employeeIds = formValues.employeeIds;
-    const categoryId = formValues.categoryId.trim();
-    const serviceId = formValues.serviceId.trim();
-    const subServiceId = formValues.subServiceId.trim();
+    const categoryIds = formValues.categoryIds || [];
+    const serviceIds = formValues.serviceIds || [];
+    const subServiceIds = formValues.subServiceIds || [];
 
     if (employeeIds.length === 0) {
       showToast("Employee is required.", "error");
       return;
     }
-    if (!categoryId) {
+    if (categoryIds.length === 0) {
       showToast("Category is required.", "error");
       return;
     }
-    if (!serviceId) {
+    if (serviceIds.length === 0) {
       showToast("Service is required.", "error");
       return;
     }
@@ -562,9 +563,9 @@ const EmployeeCategoryAssignment = () => {
         ? formValues.assignmentId.toString()
         : "0",
       employeeIds: employeeIds.join(","),
-      categoryIds: categoryId,
-      serviceIds: serviceId,
-      subServiceIds: subServiceId || "0",
+      categoryIds: categoryIds.join(","),
+      serviceIds: serviceIds.join(","),
+      subServiceIds: subServiceIds.length > 0 ? subServiceIds.join(",") : "0",
     };
 
     setFormSubmitting(true);
@@ -669,8 +670,8 @@ const EmployeeCategoryAssignment = () => {
             serviceOptions={serviceOptions}
             subServiceOptions={subServiceOptions}
             loadingDropdowns={loadingDropdowns}
-            onCategoryChange={loadServiceOptions}
-            onServiceChange={loadSubServiceOptions}
+            onCategoryChange={(ids: string[]) => void loadServiceOptions(ids[0] ?? "")}
+            onServiceChange={(ids: string[]) => void loadSubServiceOptions(ids[0] ?? "")}
           />
         </ModalOverlay>
       )}
@@ -770,8 +771,8 @@ const FormModal = ({
     services: boolean;
     subServices: boolean;
   };
-  onCategoryChange: (categoryId: string) => void;
-  onServiceChange: (serviceId: string) => void;
+  onCategoryChange: (categoryIds: string[]) => void;
+  onServiceChange: (serviceIds: string[]) => void;
 }) => {
   return (
     <ModalShell
@@ -793,95 +794,58 @@ const FormModal = ({
           }}
         >
           <div className="grid gap-4 grid-cols-2">
-            <LabeledSelect
-              value={values.employeeIds[0] || ""}
-              onChange={(event: { target: { value: any } }) => {
-                const selectedValue = event.target.value;
-                onChange({
-                  ...values,
-                  employeeIds: selectedValue ? [selectedValue] : [],
-                });
-              }}
-              disabled={isSubmitting || loadingDropdowns.employees}
+            <SelectFiled
+              value={values.employeeIds}
+              onChange={(val: any) =>
+                onChange({ ...values, employeeIds: Array.isArray(val) ? val : [val] })
+              }
+              options={employeeOptions}
+              label="Select Employee"
+              mode="multiple"
               placeholder="Select employee"
-              id="select_employee"
-            >
-              {employeeOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </LabeledSelect>
+              disabled={isSubmitting || loadingDropdowns.employees}
+            />
 
-            <LabeledSelect
-              value={values.categoryId}
-              onChange={(event: { target: { value: any } }) => {
-                const selectedValue = event.target.value;
-                onChange({
-                  ...values,
-                  categoryId: selectedValue,
-                  serviceId: "",
-                  subServiceId: "",
-                });
-                onCategoryChange(selectedValue);
+
+
+
+            <SelectFiled
+              value={values.categoryIds}
+              onChange={(val: any) => {
+                const next = Array.isArray(val) ? val : [val];
+                onChange({ ...values, categoryIds: next, serviceIds: [], subServiceIds: [] });
+                onCategoryChange(next);
               }}
-              disabled={isSubmitting || loadingDropdowns.categories}
+              options={categoryOptions}
+              label="Select Category"
+              mode="multiple"
               placeholder="Select category"
-              id="select_category"
-            >
-              {categoryOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </LabeledSelect>
+              disabled={isSubmitting || loadingDropdowns.categories}
+            />
 
-            <LabeledSelect
-              value={values.serviceId}
-              onChange={(event: { target: { value: any } }) => {
-                const selectedValue = event.target.value;
-                onChange({
-                  ...values,
-                  serviceId: selectedValue,
-                  subServiceId: "",
-                });
-                onServiceChange(selectedValue);
+            <SelectFiled
+              value={values.serviceIds}
+              onChange={(val: any) => {
+                const next = Array.isArray(val) ? val : [val];
+                onChange({ ...values, serviceIds: next, subServiceIds: [] });
+                onServiceChange(next);
               }}
+              options={serviceOptions}
+              label="Select Service"
+              mode="multiple"
               placeholder="Select service"
-              id="select_service"
-              disabled={
-                isSubmitting || loadingDropdowns.services || !values.categoryId
-              }
-            >
-              {serviceOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </LabeledSelect>
+              disabled={isSubmitting || loadingDropdowns.services || values.categoryIds.length === 0}
+            />
 
-            <LabeledSelect
-              value={values.subServiceId}
-              onChange={(event: { target: { value: any } }) => {
-                onChange({
-                  ...values,
-                  subServiceId: event.target.value,
-                });
-              }}
+            <SelectFiled
+              value={values.subServiceIds}
+              onChange={(val: any) => onChange({ ...values, subServiceIds: Array.isArray(val) ? val : [val] })}
+              options={subServiceOptions}
+              label="Select Sub-Service"
+              mode="multiple"
               placeholder="Select sub-service"
-              id="select_sub_service"
-              disabled={
-                isSubmitting ||
-                loadingDropdowns.subServices ||
-                !values.serviceId
-              }
-            >
-              {subServiceOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </LabeledSelect>
+              disabled={isSubmitting || loadingDropdowns.subServices || values.serviceIds.length === 0}
+            />
           </div>
           <div className="flex justify-center gap-3 pt-4">
             <button
@@ -914,36 +878,39 @@ const LabeledSelect = ({
   placeholder,
   disabled,
   ...props
-}: any) => (
-  <label className="space-y-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
-    <div className="relative input-filed-block">
-      <select
-        id={id}
-        {...props}
-        className={`w-full appearance-none rounded-md border border-gray-200 bg-[#f7f8fd] px-4 py-3 text-sm text-gray-600 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 peer
+}: any) => {
+  console.log("childrenchildren",children)
+  const hasValue = Array.isArray(value) ? value.length > 0 : Boolean(value);
+  return (
+    <label className="space-y-2 text-xs font-semibold uppercase tracking-[0.18em] text-gray-500">
+      <div className="relative input-filed-block">
+        <select
+          id={id}
+          multiple={props.multiple}
+          {...props}
+          className={`w-full appearance-none rounded-md border border-gray-200 bg-[#f7f8fd] px-4 py-3 text-sm text-gray-600 shadow-inner focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 disabled:cursor-not-allowed disabled:bg-gray-100 disabled:text-gray-400 peer
           placeholder-transparent ${className}`}
-      >
-        {children}
-      </select>
-      <label
-        htmlFor={id}
-        className={`
-            label-filed absolute left-3 top-3 text-[#A0A3BD] text-sm transition-all duration-200
+        >
+          {children}
+        </select>
+        <label
+          htmlFor={id}
+          className={`label-filed absolute left-3 top-3 text-[#A0A3BD] text-sm transition-all duration-200
             peer-placeholder-shown:top-2 peer-placeholder-shown:left-3 peer-placeholder-shown:text-sm
             peer-focus:-top-3 peer-focus:left-3 peer-focus:text-[13px] peer-focus:text-[#070B68]
-            bg-[#f7f8fd] px-1 capitalize ${
-              value ? "!-top-3 !left-3 !text-[13px]" : ""
-            } ${disabled ? "cursor-no-drop" : "cursor-auto"}
-            `}
-      >
-        {placeholder}
-      </label>
-      <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
-        <ChevronIcon />
-      </span>
-    </div>
-  </label>
-);
+            bg-[#f7f8fd] px-1 capitalize ${hasValue ? "!-top-3 !left-3 !text-[13px]" : ""} ${
+            disabled ? "cursor-no-drop" : "cursor-auto"
+          }`}
+        >
+          {placeholder}
+        </label>
+        <span className="pointer-events-none absolute inset-y-0 right-3 flex items-center text-gray-400">
+          <ChevronIcon />
+        </span>
+      </div>
+    </label>
+  );
+};
 
 const ActionButton = ({
   label,
