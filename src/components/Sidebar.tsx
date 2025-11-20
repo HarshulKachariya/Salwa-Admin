@@ -38,11 +38,6 @@ const getMenuItems = (t: any) => [
     icon: "/theme-icons/invoice.png",
   },
   {
-    label: t('sidebar.businessIdeaPartner'),
-    href: "/business-idea-partner",
-    icon: "/theme-icons/invoice.png",
-  },
-  {
     label: t('sidebar.nonMedicalCompanies'),
     href: "/non-medical-companies",
     icon: "/theme-icons/providers.png",
@@ -78,8 +73,8 @@ const getMenuItems = (t: any) => [
     icon: "/theme-icons/settings.png",
   },
   {
-    label: t('sidebar.listOfPromocodesUsed'),
-    href: "/promocode-used",
+    label: t("sidebar.supportAndTicketSystem"),
+    href: "/support-ticket-system",
     icon: "/theme-icons/settings.png",
   },
 ];
