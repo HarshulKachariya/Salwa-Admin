@@ -1,8 +1,6 @@
 // BusinessAnalytics.tsx
 import { useCallback, useEffect, useMemo, useState } from "react";
-import type {
-  ReactNode,
-} from "react";
+import type { ReactNode } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../components/ToastProvider";
@@ -135,15 +133,14 @@ const BusinessAnalytics = () => {
   const { showToast } = useToast();
 
   // UI state (matching PromocodeSettings structure)
-  const [activeTab, setActiveTab] = useState<ActiveTab>("registration");
+  const [activeTab, setActiveTab] = useState<any>("registration");
   const [searchTerm, setSearchTerm] = useState("");
 
   const [items, setItems] = useState<IdeaPartner[]>([]);
   const [listLoading, setListLoading] = useState(false);
   const [listError, setListError] = useState<string | null>(null);
 
-  const [, setUserTypeOptions] =
-    useState<UserTypeOption[]>(DEFAULT_USER_TYPES);
+  const [, setUserTypeOptions] = useState<UserTypeOption[]>(DEFAULT_USER_TYPES);
 
   // form modal controls retained to keep same UI; Add/Edit are placeholders for now
   // const [isFormOpen, setIsFormOpen] = useState(false);
@@ -164,7 +161,7 @@ const BusinessAnalytics = () => {
 
   // Pagination state
   const [pageNumber, setPageNumber] = useState(1);
-  const [pageSize, setPageSize] = useState(10);
+  const [pageSize, setPageSize] = useState<any>(10);
   const [totalCount, setTotalCount] = useState(0);
   const [totalPages, setTotalPages] = useState(1);
   const [sortState, setSortState] = useState<SortState[]>([]);
@@ -177,7 +174,26 @@ const BusinessAnalytics = () => {
   // Emoji lists
   const EMOJIS = ["👍", "❤️", "😂", "😮", "😢"];
   const ALL_EMOJIS = [
-    "👍","👎","❤️","💔","😂","😅","😊","😮","😲","😢","😭","😡","👏","🙌","🤝","🎉","🔥","⭐","💯","➕"
+    "👍",
+    "👎",
+    "❤️",
+    "💔",
+    "😂",
+    "😅",
+    "😊",
+    "😮",
+    "😲",
+    "😢",
+    "😭",
+    "😡",
+    "👏",
+    "🙌",
+    "🤝",
+    "🎉",
+    "🔥",
+    "⭐",
+    "💯",
+    "➕",
   ];
 
   // Chat message sending state
@@ -198,18 +214,19 @@ const BusinessAnalytics = () => {
         commentURL: "",
       };
       const res = await UpsertIndividualIdeaPartnerUserComment(payload);
-      const created = res && (res.data ?? res) ? (res.data ?? res) : null;
+      const created = res && (res.data ?? res) ? res.data ?? res : null;
 
       setViewTarget((prev) => {
         if (!prev) return prev;
-        const newComment = created && typeof created === "object"
-          ? created
-          : {
-              comment: searchTerm,
-              createdDate: new Date().toISOString(),
-              fromId: payload.fromId,
-              reactions: [],
-            };
+        const newComment =
+          created && typeof created === "object"
+            ? created
+            : {
+                comment: searchTerm,
+                createdDate: new Date().toISOString(),
+                fromId: payload.fromId,
+                reactions: [],
+              };
         const updatedComments = Array.isArray(prev.comments)
           ? [...prev.comments, newComment]
           : [newComment];
@@ -266,59 +283,59 @@ const BusinessAnalytics = () => {
   };
 
   // Send reply in detail view (use same API shape)
-  const handleSendReply = async () => {
-    if (!viewTarget || sendingChat || !searchTerm.trim()) return;
-    setSendingChat(true);
-    try {
-      const payload = {
-        id: 0,
-        ideaPartnerId: viewTarget.ideaPartnerId,
-        fromId: 1,
-        toId: viewTarget.userId ?? 0,
-        commentType: 1,
-        comment: searchTerm,
-        commentURL: "",
-      };
-      const res = await UpsertIndividualIdeaPartnerUserComment(payload);
-      const created = res && (res.data ?? res) ? (res.data ?? res) : null;
+  // const handleSendReply = async () => {
+  //   if (!viewTarget || sendingChat || !searchTerm.trim()) return;
+  //   setSendingChat(true);
+  //   try {
+  //     const payload = {
+  //       id: 0,
+  //       ideaPartnerId: viewTarget.ideaPartnerId,
+  //       fromId: 1,
+  //       toId: viewTarget.userId ?? 0,
+  //       commentType: 1,
+  //       comment: searchTerm,
+  //       commentURL: "",
+  //     };
+  //     const res = await UpsertIndividualIdeaPartnerUserComment(payload);
+  //     const created = res && (res.data ?? res) ? (res.data ?? res) : null;
 
-      setViewTarget((prev) => {
-        if (!prev) return prev;
-        const newComment = created && typeof created === "object"
-          ? created
-          : {
-              comment: searchTerm,
-              createdDate: new Date().toISOString(),
-              fromId: payload.fromId,
-              reactions: [],
-            };
-        const updatedComments = Array.isArray(prev.comments)
-          ? [...prev.comments, newComment]
-          : [newComment];
-        return { ...prev, comments: updatedComments };
-      });
+  //     setViewTarget((prev) => {
+  //       if (!prev) return prev;
+  //       const newComment = created && typeof created === "object"
+  //         ? created
+  //         : {
+  //             comment: searchTerm,
+  //             createdDate: new Date().toISOString(),
+  //             fromId: payload.fromId,
+  //             reactions: [],
+  //           };
+  //       const updatedComments = Array.isArray(prev.comments)
+  //         ? [...prev.comments, newComment]
+  //         : [newComment];
+  //       return { ...prev, comments: updatedComments };
+  //     });
 
-      setSearchTerm("");
-    } catch {
-      // fallback local append
-      setViewTarget((prev) => {
-        if (!prev) return prev;
-        const newComment = {
-          comment: searchTerm,
-          createdDate: new Date().toISOString(),
-          fromId: 1,
-          reactions: [],
-        };
-        const updatedComments = Array.isArray(prev.comments)
-          ? [...prev.comments, newComment]
-          : [newComment];
-        return { ...prev, comments: updatedComments };
-      });
-      setSearchTerm("");
-    } finally {
-      setSendingChat(false);
-    }
-  };
+  //     setSearchTerm("");
+  //   } catch {
+  //     // fallback local append
+  //     setViewTarget((prev) => {
+  //       if (!prev) return prev;
+  //       const newComment = {
+  //         comment: searchTerm,
+  //         createdDate: new Date().toISOString(),
+  //         fromId: 1,
+  //         reactions: [],
+  //       };
+  //       const updatedComments = Array.isArray(prev.comments)
+  //         ? [...prev.comments, newComment]
+  //         : [newComment];
+  //       return { ...prev, comments: updatedComments };
+  //     });
+  //     setSearchTerm("");
+  //   } finally {
+  //     setSendingChat(false);
+  //   }
+  // };
 
   // Toggle emoji reaction for a comment in detail view (calls API)
   const handleSendReaction = async (commentIndex: number, emoji: string) => {
@@ -334,8 +351,12 @@ const BusinessAnalytics = () => {
           if (!prev) return prev;
           const comments = [...(prev.comments ?? [])];
           const target = { ...(comments[commentIndex] ?? {}) };
-          const existing = Array.isArray(target.reactions) ? [...target.reactions] : [];
-          const idx = existing.findIndex((r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji);
+          const existing = Array.isArray(target.reactions)
+            ? [...target.reactions]
+            : [];
+          const idx = existing.findIndex(
+            (r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji
+          );
           if (idx >= 0) existing.splice(idx, 1);
           else existing.push({ emojiCode: emoji });
           target.reactions = existing;
@@ -347,8 +368,10 @@ const BusinessAnalytics = () => {
 
       // call API to upsert reaction
       const payload = { id: 0, commentId, emojiCode: emoji };
-      const res = await UpsertIndividualIdeaPartnerUserCommentsReaction(payload);
-      const resp = res && (res.data ?? res) ? (res.data ?? res) : null;
+      const res = await UpsertIndividualIdeaPartnerUserCommentsReaction(
+        payload
+      );
+      const resp = res && (res.data ?? res) ? res.data ?? res : null;
 
       setViewTarget((prev) => {
         if (!prev) return prev;
@@ -363,8 +386,12 @@ const BusinessAnalytics = () => {
           target.reactions = updatedReactions;
         } else {
           // fallback: toggle locally
-          const existing = Array.isArray(target.reactions) ? [...target.reactions] : [];
-          const idx = existing.findIndex((r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji);
+          const existing = Array.isArray(target.reactions)
+            ? [...target.reactions]
+            : [];
+          const idx = existing.findIndex(
+            (r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji
+          );
           if (idx >= 0) existing.splice(idx, 1);
           else existing.push({ emojiCode: emoji });
           target.reactions = existing;
@@ -379,8 +406,12 @@ const BusinessAnalytics = () => {
         if (!prev) return prev;
         const comments = [...(prev.comments ?? [])];
         const target = { ...(comments[commentIndex] ?? {}) };
-        const existing = Array.isArray(target.reactions) ? [...target.reactions] : [];
-        const idx = existing.findIndex((r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji);
+        const existing = Array.isArray(target.reactions)
+          ? [...target.reactions]
+          : [];
+        const idx = existing.findIndex(
+          (r: any) => (r.emojiCode ?? r.emoji ?? r) === emoji
+        );
         if (idx >= 0) existing.splice(idx, 1);
         else existing.push({ emojiCode: emoji });
         target.reactions = existing;
@@ -396,11 +427,7 @@ const BusinessAnalytics = () => {
 
   /* Data loader */
   const loadItems = useCallback(
-    async (
-      tab: ActiveTab,
-      page: number = pageNumber,
-      size: number = pageSize
-    ) => {
+    async (page: any = pageNumber, size: any = pageSize) => {
       setListLoading(true);
       setListError(null);
       try {
@@ -584,13 +611,18 @@ const BusinessAnalytics = () => {
         onClick: async (row) => {
           setViewLoading(true);
           try {
-            const detail = await getIndividualIdeaPartnerById(row.ideaPartnerId);
+            const detail = await getIndividualIdeaPartnerById(
+              row.ideaPartnerId
+            );
             // Support response shaped as { data: {...} } or direct object
             const payload = detail && (detail.data ?? detail);
             if (payload) {
               setViewTarget(payload);
               // ensure detail area is visible
-              setTimeout(() => window.scrollTo({ top: 0, behavior: "smooth" }), 50);
+              setTimeout(
+                () => window.scrollTo({ top: 0, behavior: "smooth" }),
+                50
+              );
             } else {
               setViewTarget(null);
             }
@@ -611,13 +643,13 @@ const BusinessAnalytics = () => {
   /* Pagination handlers */
   const handlePageChange = (page: number) => {
     setPageNumber(page);
-    void loadItems(activeTab, page, pageSize);
+    void loadItems(activeTab, page);
   };
 
   const handlePageSizeChange = (size: number) => {
     setPageSize(size);
     setPageNumber(1);
-    void loadItems(activeTab, 1, size);
+    void loadItems(activeTab, 1);
   };
 
   const handleSortChange = (newSortState: SortState[]) => {
@@ -742,53 +774,86 @@ const BusinessAnalytics = () => {
                 >
                   <span className="text-xl">&larr;</span> Back
                 </button>
-                <span className={`px-4 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800`}>
+                <span
+                  className={`px-4 py-1 rounded-full text-xs font-semibold bg-yellow-100 text-yellow-800`}
+                >
                   {mapStatus(viewTarget.statusId).label}
                 </span>
               </div>
 
               {/* Individual Partner Information */}
               <div className="mb-2">
-                <div className="text-xs font-semibold text-gray-500 mb-2">Individual Partner Information</div>
+                <div className="text-xs font-semibold text-gray-500 mb-2">
+                  Individual Partner Information
+                </div>
                 <div className="grid grid-cols-2 gap-6">
                   <div>
                     <div className="mb-1">
                       <span className="font-semibold text-gray-700">Name:</span>
-                      <span className="ml-2">{viewTarget.businessName ?? "-"}</span>
+                      <span className="ml-2">
+                        {viewTarget.businessName ?? "-"}
+                      </span>
                     </div>
                     <div className="mb-1">
-                      <span className="font-semibold text-gray-700">Email:</span>
+                      <span className="font-semibold text-gray-700">
+                        Email:
+                      </span>
                       <span className="ml-2">{viewTarget.email ?? "-"}</span>
                     </div>
                     <div className="mb-1">
-                      <span className="font-semibold text-gray-700">Phone no:</span>
+                      <span className="font-semibold text-gray-700">
+                        Phone no:
+                      </span>
                       <span className="ml-2">{viewTarget.phone ?? "-"}</span>
                     </div>
                     <div className="mb-1">
-                      <span className="font-semibold text-gray-700">Address:</span>
+                      <span className="font-semibold text-gray-700">
+                        Address:
+                      </span>
                       <span className="ml-2">{viewTarget.address ?? "-"}</span>
                     </div>
                     <div className="mb-1">
-                      <span className="font-semibold text-gray-700">National Address:</span>
-                      <span className="ml-2">{viewTarget.nationalAddress ?? "-"}</span>
+                      <span className="font-semibold text-gray-700">
+                        National Address:
+                      </span>
+                      <span className="ml-2">
+                        {viewTarget.nationalAddress ?? "-"}
+                      </span>
                     </div>
                     <div className="mb-1">
-                      <span className="font-semibold text-gray-700">Country/Region/City/District:</span>
-                      <span className="ml-2">{`${viewTarget.country ?? "-"}${viewTarget.region ? ', ' + viewTarget.region : ''}${viewTarget.city ? ', ' + viewTarget.city : ''}${viewTarget.district ? ', ' + viewTarget.district : ''}`}</span>
+                      <span className="font-semibold text-gray-700">
+                        Country/Region/City/District:
+                      </span>
+                      <span className="ml-2">{`${viewTarget.country ?? "-"}${
+                        viewTarget.region ? ", " + viewTarget.region : ""
+                      }${viewTarget.city ? ", " + viewTarget.city : ""}${
+                        viewTarget.district ? ", " + viewTarget.district : ""
+                      }`}</span>
                     </div>
                     <div className="mb-1">
-                      <span className="font-semibold text-gray-700">Latitude/Longitude:</span>
-                      <span className="ml-2">{viewTarget.latitude ?? "-"}, {viewTarget.longitude ?? "-"}</span>
+                      <span className="font-semibold text-gray-700">
+                        Latitude/Longitude:
+                      </span>
+                      <span className="ml-2">
+                        {viewTarget.latitude ?? "-"},{" "}
+                        {viewTarget.longitude ?? "-"}
+                      </span>
                     </div>
                   </div>
                   <div>
                     <div className="mb-1">
-                      <span className="font-semibold text-gray-700">Idea Name</span>
+                      <span className="font-semibold text-gray-700">
+                        Idea Name
+                      </span>
                       <div className="ml-2">{viewTarget.ideaName ?? "-"}</div>
                     </div>
                     <div className="mb-1">
-                      <span className="font-semibold text-gray-700">Idea Description</span>
-                      <div className="ml-2">{viewTarget.ideaDescription ?? "-"}</div>
+                      <span className="font-semibold text-gray-700">
+                        Idea Description
+                      </span>
+                      <div className="ml-2">
+                        {viewTarget.ideaDescription ?? "-"}
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -808,7 +873,9 @@ const BusinessAnalytics = () => {
               {/* Media */}
               {viewTarget.mediaFilePath && (
                 <div className="mb-2">
-                  <div className="text-xs font-semibold text-gray-500 mb-1">Media</div>
+                  <div className="text-xs font-semibold text-gray-500 mb-1">
+                    Media
+                  </div>
                   <img
                     src={viewTarget.mediaFilePath}
                     alt="media"
@@ -821,41 +888,75 @@ const BusinessAnalytics = () => {
               <div className="border-t pt-4 mt-4">
                 <h4 className="font-medium mb-2">Conversation</h4>
                 <div className="space-y-3 max-h-96 overflow-auto mb-3">
-                  {Array.isArray(viewTarget.comments) && viewTarget.comments.length > 0 ? (
+                  {Array.isArray(viewTarget.comments) &&
+                  viewTarget.comments.length > 0 ? (
                     viewTarget.comments.map((c: any, idx: number) => {
-                      const text = c.comment ?? c.issueComment ?? c.message ?? c.text ?? "";
+                      const text =
+                        c.comment ??
+                        c.issueComment ??
+                        c.message ??
+                        c.text ??
+                        "";
                       const created = formatCommentDate(c);
-                      const sender = c.fromId === 1 ? "You" : `User ${c.fromId}`;
+                      const sender =
+                        c.fromId === 1 ? "You" : `User ${c.fromId}`;
                       const isCurrentUser = c.fromId === 1;
                       return (
-                        <div key={idx} className={`flex items-end ${isCurrentUser ? 'justify-end' : 'justify-start'} relative`}>
+                        <div
+                          key={idx}
+                          className={`flex items-end ${
+                            isCurrentUser ? "justify-end" : "justify-start"
+                          } relative`}
+                        >
                           {!isCurrentUser && (
-                            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 font-bold text-lg shadow">{(sender && sender[0]) || 'U'}</div>
+                            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center mr-3 font-bold text-lg shadow">
+                              {(sender && sender[0]) || "U"}
+                            </div>
                           )}
                           <div className="max-w-[60%]">
                             {!isCurrentUser && (
-                              <div className="text-xs font-semibold text-gray-700 mb-1">{sender}</div>
+                              <div className="text-xs font-semibold text-gray-700 mb-1">
+                                {sender}
+                              </div>
                             )}
                             {/* Updated bubble: ensure wrapping and explicit color for dark background */}
                             <div
-                              className={`rounded-lg px-4 py-3 text-sm break-words whitespace-pre-wrap ${isCurrentUser ? 'bg-[#f5f7fa] text-gray-800' : 'bg-black text-white'}`}
-                              style={isCurrentUser ? undefined : { color: '#ffffff' }}
+                              className={`rounded-lg px-4 py-3 text-sm break-words whitespace-pre-wrap ${
+                                isCurrentUser
+                                  ? "bg-[#f5f7fa] text-gray-800"
+                                  : "bg-black text-white"
+                              }`}
+                              style={
+                                isCurrentUser ? undefined : { color: "#ffffff" }
+                              }
                             >
                               {text}
                             </div>
-                            {created && <div className="text-xs text-gray-400 mt-1">{created}</div>}
-                            {/* Reactions */}
-                            {Array.isArray(c.reactions) && c.reactions.length > 0 && (
-                              <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
-                                {c.reactions.map((r: any, ri: number) => (
-                                  <span key={ri} className="px-1">{r.emojiCode}</span>
-                                ))}
+                            {created && (
+                              <div className="text-xs text-gray-400 mt-1">
+                                {created}
                               </div>
                             )}
+                            {/* Reactions */}
+                            {Array.isArray(c.reactions) &&
+                              c.reactions.length > 0 && (
+                                <div className="flex items-center gap-1 text-xs text-gray-600 mt-1">
+                                  {c.reactions.map((r: any, ri: number) => (
+                                    <span key={ri} className="px-1">
+                                      {r.emojiCode}
+                                    </span>
+                                  ))}
+                                </div>
+                              )}
                             {/* Emoji pickers */}
                             <div className="flex items-center gap-2 mt-1">
                               <button
-                                onClick={() => { setOpenAllFor(null); setOpenReactionFor(openReactionFor === idx ? null : idx); }}
+                                onClick={() => {
+                                  setOpenAllFor(null);
+                                  setOpenReactionFor(
+                                    openReactionFor === idx ? null : idx
+                                  );
+                                }}
                                 className="text-sm text-gray-500"
                                 aria-label="React"
                                 type="button"
@@ -863,7 +964,12 @@ const BusinessAnalytics = () => {
                                 😊
                               </button>
                               <button
-                                onClick={() => { setOpenReactionFor(null); setOpenAllFor(openAllFor === idx ? null : idx); }}
+                                onClick={() => {
+                                  setOpenReactionFor(null);
+                                  setOpenAllFor(
+                                    openAllFor === idx ? null : idx
+                                  );
+                                }}
                                 className="text-sm text-gray-500"
                                 aria-label="More emojis"
                                 type="button"
@@ -905,7 +1011,9 @@ const BusinessAnalytics = () => {
                             </div>
                           </div>
                           {isCurrentUser && (
-                            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center ml-3 font-bold text-lg shadow">R</div>
+                            <div className="w-8 h-8 rounded-full bg-purple-600 text-white flex items-center justify-center ml-3 font-bold text-lg shadow">
+                              R
+                            </div>
                           )}
                         </div>
                       );
@@ -1074,8 +1182,12 @@ const StatsRow = () => (
     <div className="flex gap-6 flex-1 items-center justify-start">
       {stats.map((s) => (
         <div key={s.label} className="min-w-[180px] flex-1">
-          <div className="text-4xl lg:text-5xl font-extrabold text-black leading-none">{s.value}</div>
-          <div className="mt-4 text-sm font-semibold text-gray-700 whitespace-pre-line">{s.label}</div>
+          <div className="text-4xl lg:text-5xl font-extrabold text-black leading-none">
+            {s.value}
+          </div>
+          <div className="mt-4 text-sm font-semibold text-gray-700 whitespace-pre-line">
+            {s.label}
+          </div>
         </div>
       ))}
     </div>
@@ -1105,12 +1217,21 @@ const ChartPlaceholder = () => {
   const chartWidth = viewWidth - padding.left - padding.right;
   const chartHeight = viewHeight - padding.top - padding.bottom;
   const barCount = values.length;
-  const barWidth = Math.max(12, Math.floor((chartWidth - barGap * (barCount - 1)) / barCount));
+  const barWidth = Math.max(
+    12,
+    Math.floor((chartWidth - barGap * (barCount - 1)) / barCount)
+  );
 
   return (
     <div className="rounded-[12px] border border-gray-200 bg-white p-4">
       <div className="text-xs text-gray-600 mb-3">Report by Month</div>
-      <svg viewBox={`0 0 ${viewWidth} ${viewHeight}`} width="100%" height="220" preserveAspectRatio="xMidYMid meet" aria-hidden>
+      <svg
+        viewBox={`0 0 ${viewWidth} ${viewHeight}`}
+        width="100%"
+        height="220"
+        preserveAspectRatio="xMidYMid meet"
+        aria-hidden
+      >
         {/* y axis grid lines (optional lightweight) */}
         {[0, 0.25, 0.5, 0.75, 1].map((t, i) => {
           const y = padding.top + chartHeight * (1 - t);
@@ -1136,7 +1257,14 @@ const ChartPlaceholder = () => {
           return (
             <g key={i} transform={`translate(${x},0)`}>
               {/* numeric label above bar */}
-              <text x={barWidth / 2} y={labelY} textAnchor="middle" fontSize="11" fill="#111" style={{ fontWeight: 700 }}>
+              <text
+                x={barWidth / 2}
+                y={labelY}
+                textAnchor="middle"
+                fontSize="11"
+                fill="#111"
+                style={{ fontWeight: 700 }}
+              >
                 {val}
               </text>
 
@@ -1166,8 +1294,17 @@ const ChartPlaceholder = () => {
         })}
 
         {/* y-axis left label (0 and max) */}
-        <text x={8} y={padding.top + chartHeight + 4} fontSize="10" fill="#9ca3af">0</text>
-        <text x={8} y={padding.top + 10} fontSize="10" fill="#9ca3af">{max}</text>
+        <text
+          x={8}
+          y={padding.top + chartHeight + 4}
+          fontSize="10"
+          fill="#9ca3af"
+        >
+          0
+        </text>
+        <text x={8} y={padding.top + 10} fontSize="10" fill="#9ca3af">
+          {max}
+        </text>
       </svg>
     </div>
   );
@@ -1351,6 +1488,19 @@ const stats = [
 
 // monthly data shown in image (Jan..Dec)
 const monthlyValues = [30, 37, 117, 50, 74, 22, 90, 60, 80, 50, 110, 75];
-const monthLabels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sept","Oct","Nov","Dec"];
+const monthLabels = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sept",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 export default BusinessAnalytics;
